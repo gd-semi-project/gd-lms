@@ -1,2 +1,9 @@
 /build/
 /.apt_generated/
+.idea
+.vscode
+.DS_Store
+.metadata
+
+Servers
+gitgitgit

@@ -1,17 +1,18 @@
 package model.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.Data;
 
 @Data
 public class AttendanceDTO {
-	
-	private int attendanceId;
-    private int courseId;
-    private int studentId;
-    private int week;
-    private String status;
-    private String note;
-    private String createdAt;
-    
 
+    private int attendanceId;     // 출석 ID
+    private int studentId;        // 수강생 ID
+    private int sessionId;        // 회차 ID
+    private String status;         // 출석 상태 (출석/지각/결석/공결)
+    private LocalDateTime checkTime; // 출석 체크 시각
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
 }
