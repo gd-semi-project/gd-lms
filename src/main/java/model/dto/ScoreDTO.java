@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
-public class GradeDTO {
+public class ScoreDTO {
 	private int grade_id;
 	
 	private int enrollment_id; // enroll FK
