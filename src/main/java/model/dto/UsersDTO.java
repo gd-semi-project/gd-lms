@@ -17,5 +17,5 @@ public class UsersDTO {
 	private Role role;
 	private Status status;
 	private LocalDateTime created_at;
-	private LocalDateTime updated_at;
+	private LocalDateTime updated_atd;
 }
