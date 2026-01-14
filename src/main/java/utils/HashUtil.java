@@ -4,6 +4,8 @@ import java.security.MessageDigest;
 
 public class HashUtil {
 	public static String sha256(String passwd) {
+		if (passwd == null) return null;
+		
 		try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest(passwd.getBytes());
