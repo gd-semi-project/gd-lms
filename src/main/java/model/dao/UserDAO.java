@@ -22,7 +22,7 @@ public class UserDAO {
 	}
 	
 	public UserDTO SelectUsersById(String id) {
-		String sql = "SELECT * FROM users WHER id = ?";
+		String sql = "SELECT * FROM users WHERE id = ?";
 		UserDTO userDTO = new UserDTO();
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
