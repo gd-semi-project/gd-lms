@@ -1,26 +1,26 @@
 # ==========================
 # IDE / Editor 설정 파일
 # ==========================
-.idea/            # IntelliJ IDEA
-.vscode/        # Visual Studio Code
-.metadata     # Eclipse workspace 메타데이터
-.settings/      # Eclipse 설정
-.classpath     # Eclipse classpath
-.project        # Eclipse project 설정
+.idea/
+.vscode/
+.metadata
+.settings/
+.classpath
+.project
 
 # ==========================
 # OS / 시스템 자동 생성 파일
 # ==========================
-.DS_Store     # macOS Finder
+.DS_Store
 
 # ==========================
 # Server / Runtime 관련
 # ==========================
-Servers/      # Eclipse Tomcat 서버 설정
+Servers/
 
 # ==========================
 # Build / Output 디렉토리
 # ==========================
-/build/       # 빌드 결과물
-/bin/          # 컴파일(.class) 산출물
-/target/     # Maven 빌드 결과(추후 확장 대비)
+/build/
+/bin/
+/target/
