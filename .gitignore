@@ -1,2 +1,11 @@
 /build/
 /.apt_generated/
+.idea/
+.vscode/
+.metadata
+.settings/
+.classpath
+.project
+.DS_Store
+Servers/
+.gitignore
