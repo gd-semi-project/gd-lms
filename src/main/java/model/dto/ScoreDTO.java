@@ -18,7 +18,7 @@ public class ScoreDTO {
 	private Integer final_score;	// 기말고사 점수
 	private Integer total_score;	// 종합 점수
 	private Integer grade_score;	// 과제 점수
-	private String grade;		// 등급 A+, A, B+ 등등등
+	private String score;		// 등급 A+, A, B+ 등등등
 		
 	
 }

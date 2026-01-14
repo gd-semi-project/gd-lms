@@ -11,8 +11,8 @@ public class AssignmentsDTO {
 	private int creator_id;	// user_id FK
 	
 	private Integer weekNo;	// 주차(1주차, 2주차 ~~)
-	private String title;
-	private String content;
+	private String title;	// 제목
+	private String content;	// 내용
 	
 	private LocalDateTime dueAt;	// 마감일
 	private LocalDateTime created_at;	// 게시일
