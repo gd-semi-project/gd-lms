@@ -1,5 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -36,7 +39,9 @@
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
       
-      바디
+      <c:if test="${not empty requestScope.contentPage}">
+	      <jsp:include page = "${requestScope.contentPage}"/>
+      </c:if>
       
       </main>
 
