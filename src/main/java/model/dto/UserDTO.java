@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import model.enumtype.Role;
 import model.enumtype.Status;
+import model.enumtype.YesOrNo;
 
 @Data
 @NoArgsConstructor
