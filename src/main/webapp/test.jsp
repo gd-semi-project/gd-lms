@@ -4,5 +4,3 @@
   request.getRequestDispatcher("/WEB-INF/testViewSihyeon/layoutTest.jsp")
          .forward(request, response);
 %>
-
-tnwjdg
