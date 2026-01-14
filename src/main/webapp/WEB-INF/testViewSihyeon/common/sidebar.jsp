@@ -17,6 +17,9 @@
     <li class="nav-item">
       <a class="nav-link text-white" href="<%=ctx%>/admin/calendar">학사일정 관리</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link text-white" href="<%=ctx%>/admin/campus">캠퍼스 관리</a>
+    </li>
   </ul>
   
   <hr class="border-light opacity-50 my-3">

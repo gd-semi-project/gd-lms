@@ -52,6 +52,12 @@ public class AdminController extends HttpServlet {
 			
 		case "/calendar":
 			contentPage = "/WEB-INF/testViewSihyeon/adminCalendarManagement.jsp";
+			break;
+			
+		case "/campus":
+			contentPage = "/WEB-INF/testViewSihyeon/adminCampusMap.jsp";
+			break;
+			
 		default:
 			break;
 		}
