@@ -1,6 +1,6 @@
 package model.dto;
 
 public class DepartmentDTO {
-	private int department_id;
-	private String department_name;	// 부서/전공
+	private int departmentId;
+	private String departmentName;	// 부서/전공
 }

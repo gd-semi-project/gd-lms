@@ -2,26 +2,23 @@ package model.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.Data;
 import model.enumtype.StudentStatus;
 import model.enumtype.StudentType;
 
+@Data
 public class MypageDTO {
-//	공통 users 
+//	공통 users
+	private UserDTO user;
 	
-//	전공	
-	private String department_name;	// 부서/전공
+//	전공/부서
+	private DepartmentDTO department;
 	
 //	학생 
-	private Integer student_number;	// 학번
-	private int student_grade;	// 학년
-	private StudentType status;	// 학부냐 대학원이냐
-	private StudentStatus student_status;	// 재학 상태
-	private LocalDateTime enroll_date;	// 입학일자
-	private LocalDateTime end_date;		// 졸업일자
-	private String tuition_account;		// 등록금 계좌
+	private StudentsDTO student;
 	
 //	교수 
-	
+	private ProfessorDTO professor;
 	
 
 	
