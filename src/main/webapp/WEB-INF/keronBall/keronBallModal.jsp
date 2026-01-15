@@ -118,7 +118,7 @@
       <div class="keron-grid-2x2">
 
         <!-- 1번 기능 -->
-        <a class="keron-tile" href="${pageContext.request.contextPath}/keron/time">
+        <a class="keron-tile" href="${pageContext.request.contextPath}/keronBall/time">
           <span>시간 조작</span>
         </a>
 

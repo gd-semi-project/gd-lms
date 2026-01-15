@@ -30,7 +30,7 @@ public class KeronBallServlet extends HttpServlet {
 			break;
 		
 		case "/time":
-			contentPage = "/WEB-INF/keronBall/timeControl.jsp";
+			contentPage = "/WEB-INF/keronBall/timeControlPanel.jsp";
 			break;
 			
 		default:
@@ -40,7 +40,7 @@ public class KeronBallServlet extends HttpServlet {
 		request.setAttribute("contentPage", contentPage);
 		
 		
-		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/keronBall/keronBallModal.jsp");
+		RequestDispatcher rd = request.getRequestDispatcher(contentPage);
 		rd.forward(request, response);
 		
 	}
