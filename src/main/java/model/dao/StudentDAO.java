@@ -21,8 +21,8 @@ public class StudentDAO {
 		return instance;
 	}
 	
-	// user
-	public StudentsDTO findByUserId(int userId) {
+	// user_id(FK)을 통해서 학생테이블을 가져옴
+	public StudentsDTO findStudentByUserId(int userId) {
 		StudentsDTO student = new StudentsDTO();
 		
 		String sql = "SELECET * FROM student WHERE user_id = ?";

@@ -3,10 +3,12 @@ package model.dto;
 import java.time.LocalDateTime;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import model.enumtype.StudentStatus;
 import model.enumtype.StudentType;
 
 @Data
+@NoArgsConstructor
 public class MypageDTO {
 //	공통 users
 	private UserDTO user;
