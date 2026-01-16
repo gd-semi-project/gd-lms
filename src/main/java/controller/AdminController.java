@@ -92,7 +92,10 @@ public class AdminController extends HttpServlet {
 				
 				response.sendRedirect(contextPath + "/admin/lectureRequest");
 				return;
-			} else response.sendRedirect(contextPath + "/admin/lectureRequest");
+			} else {
+				response.sendRedirect(contextPath + "/admin/lectureRequest");
+				return;
+			}
 		}
 		
 		}

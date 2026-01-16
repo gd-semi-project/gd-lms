@@ -17,13 +17,13 @@ public class KeronBallServlet extends HttpServlet {
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
-		String action = command.substring("/keronBall".length());
+		String actionPath = command.substring("/keronBall".length());
 		
-		if (action.isEmpty()) action = "/";
+		if (actionPath.isEmpty()) actionPath = "/";
 		
 		String contentPage = "";
 		
-		switch(action) {
+		switch(actionPath) {
 		
 		case "/remote":
 			contentPage = "/WEB-INF/keronBall/keronBallModal.jsp";
@@ -32,6 +32,12 @@ public class KeronBallServlet extends HttpServlet {
 		case "/time":
 			contentPage = "/WEB-INF/keronBall/timeControlPanel.jsp";
 			break;
+			
+		case "/db":
+			contentPage = "/WEB-INF/keronBall/dbControlPanel.jsp";
+			break;
+			
+			
 			
 		default:
 			break;
@@ -46,6 +52,34 @@ public class KeronBallServlet extends HttpServlet {
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String command = requestURI.substring(contextPath.length());
+		String actionPath = command.substring("/keronBall".length());
+		String action = request.getParameter("action");
+		
+		switch(actionPath) {
+		
+		case "/db": {
+			if("CREATEALL".equals(action)) {
+				
+				KeronBallService.getInstance().createAllDB(request);
+				
+				response.sendRedirect(contextPath + "/keronBall/db");
+				return;
+			} if("DELETEALL".equals(action)) {
+				
+				KeronBallService.getInstance().deleteAllDB();
+				
+				response.sendRedirect(contextPath + "/keronBall/db");
+				return;
+			} else {
+				response.sendRedirect(contextPath + "/keronBall/db");
+				return;
+			}
+		}
+		}
 	}
 
 }

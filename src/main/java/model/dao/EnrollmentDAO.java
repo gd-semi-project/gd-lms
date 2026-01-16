@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,7 +82,8 @@ public class EnrollmentDAO {
 					dto.setSchedule(rs.getString("schedule"));
 					dto.setCapacity(rs.getInt("capacity"));
 					dto.setValidation(LectureValidation.valueOf(rs.getString("validation")));
-					dto.setCreatedAt((rs.getTimestamp("createdAt").toLocalDateTime()));
+					DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+					dto.setCreatedAt((rs.getTimestamp("createdAt").toLocalDateTime().format(dtf)));
 					dto.setInstructorName(rs.getString("instructorName"));
 					list.add(dto);
 				}
