@@ -1,12 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
 <div class="container my-4">
+
 
   <form method="post" action="${pageContext.request.contextPath}/keron/time/apply">
     <div class="card shadow-sm">
       <div class="card-body">
-
-        <!-- 이동할 시간 선택 -->
         <div class="fw-semibold mb-2">시간 이동</div>
 
         <div class="row g-3">
@@ -75,7 +76,7 @@
         </div>
 
         <div class="d-flex gap-2 mt-4">
-          <button type="submit" class="btn btn-primary">적용</button>
+          <button type="submit" class="btn btn-success">적용</button>
           <button type="button" class="btn btn-outline-secondary" disabled>복원</button>
         </div>
 

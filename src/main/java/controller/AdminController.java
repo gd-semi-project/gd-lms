@@ -23,13 +23,13 @@ public class AdminController extends HttpServlet {
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
-		String action = command.substring("/admin".length());
+		String actionPath = command.substring("/admin".length());
 		
-		if (action.isEmpty()) action = "/";
+		if (actionPath.isEmpty()) actionPath = "/";
 		
 		String contentPage = "";
 		
-		switch(action) {
+		switch(actionPath) {
 		
 		case "/dashboard":
 			contentPage = "/WEB-INF/views/admin/adminDashboard.jsp";
@@ -47,10 +47,6 @@ public class AdminController extends HttpServlet {
 			request.setAttribute("pendingLectureList",service.getPendingLectureList());
 			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
 			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
-			break;
-			
-		case "/lectureValidationProcess":
-			service.LectureValidate();
 			break;
 			
 		case "/noticeList":
@@ -79,6 +75,29 @@ public class AdminController extends HttpServlet {
 	}
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String command = requestURI.substring(contextPath.length());
+		String actionPath = command.substring("/admin".length());
+		String action = request.getParameter("action");
+		
+		switch(actionPath) {
+		
+		case "/lectureRequest": {
+			
+			if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				service.LectureValidate(lectureId, action);
+				
+				response.sendRedirect(contextPath + "/admin/lectureRequest");
+				return;
+			} else response.sendRedirect(contextPath + "/admin/lectureRequest");
+		}
+		
+		}
+		
+		
 	}
 
 }
