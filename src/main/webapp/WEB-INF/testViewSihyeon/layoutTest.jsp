@@ -34,7 +34,6 @@
 
   <!-- 헤더 include -->
   <jsp:include page="/WEB-INF/testViewSihyeon/common/header.jsp" />
-
   <div class="container-fluid">
     <div class="row">
 

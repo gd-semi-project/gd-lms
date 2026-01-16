@@ -1,18 +1,24 @@
 package model.dto;
 
-import lombok.AllArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ProfessorDTO {
 
-    private int professorId;
-    private String name;
-    private String email;
-    private String department;
-    private String phone;
-    private String status;
+    // PK, FK → users.user_id
+    private int userId;
+
+    private String employeeNo;    // 교번
+    private String department;    // 소속 학과
+    private String officeRoom;    // 연구실
+    private String officePhone;   // 연구실 전화
+    private LocalDate hireDate;   // 임용일
+
+    private LocalDateTime createdAt;   // 생성일
+    private LocalDateTime updatedAt;   // 수정일
 }
