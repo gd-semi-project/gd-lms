@@ -12,7 +12,7 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     
-    <jsp:include page="/WEB-INF/testViewSihyeon/common/appClock.jsp"/>
+    <jsp:include page="/WEB-INF/views/include/appClock.jsp"/>
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
