@@ -32,7 +32,7 @@ public class AdminController extends HttpServlet {
 		switch(action) {
 		
 		case "/dashboard":
-			contentPage = "/WEB-INF/testViewSihyeon/dashboardTest.jsp";
+			contentPage = "/WEB-INF/views/admin/adminDashboard.jsp";
 			request.setAttribute("lectureCount", service.getLectureCount());
 			request.setAttribute("totalLectureCount", service.getTotalLectureCount());
 			request.setAttribute("lectureFillRate", service.getLectureFillRate());
@@ -43,7 +43,7 @@ public class AdminController extends HttpServlet {
 			break;
 			
 		case "/lectureRequest":
-			contentPage = "/WEB-INF/testViewSihyeon/adminLectureRequestTest.jsp";
+			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
 			request.setAttribute("pendingLectureList",service.getPendingLectureList());
 			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
 			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
@@ -52,16 +52,17 @@ public class AdminController extends HttpServlet {
 		case "/lectureValidationProcess":
 			service.LectureValidate();
 			break;
+			
 		case "/noticeList":
-			contentPage = "/WEB-INF/testViewSihyeon/adminNoticeListTest.jsp";
+			contentPage = "/WEB-INF/views/admin/adminNoticeList.jsp";
 			break;
 			
 		case "/calendar":
-			contentPage = "/WEB-INF/testViewSihyeon/adminCalendarManagement.jsp";
+			contentPage = "/WEB-INF/views/admin/adminCalendarManagement.jsp";
 			break;
 			
 		case "/campus":
-			contentPage = "/WEB-INF/testViewSihyeon/adminCampusMap.jsp";
+			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
 			break;
 			
 		default:
@@ -71,7 +72,7 @@ public class AdminController extends HttpServlet {
 		request.setAttribute("contentPage", contentPage);
 		
 		
-		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/testViewSihyeon/layoutTest.jsp");
+		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
 		rd.forward(request, response);
 		
 		
