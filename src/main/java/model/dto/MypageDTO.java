@@ -20,7 +20,7 @@ public class MypageDTO {
 	private StudentsDTO student;
 	
 //	교수 
-	private ProfessorDTO professor;
+	private InstructorDTO professor;
 	
 
 	
