@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.dto.LectureDTO;
+import java.util.ArrayList;
+
+import database.DBConnection;
+import model.dto.LectureDTO;
+import model.dto.LectureScheduleDTO;
 
 public class LectureDAO {
 	public static final LectureDAO instance = new LectureDAO();
@@ -96,5 +101,29 @@ public class LectureDAO {
         }
         return list;
     }
+	public void setLectureValidation(String validation, String lectureId) { // 강의 개설 상태 업데이트
+		
+		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
+		
+		try (	Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);	){
+			
+			pstmt.setString(1, validation);
+			pstmt.setString(2, lectureId);
+			
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			System.out.println("setLectureValidation() 예외 발생");
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }

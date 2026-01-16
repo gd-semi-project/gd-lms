@@ -7,9 +7,9 @@
     </div>
 
     <!-- 이미지 클릭 트리거 -->
-    <a href="#"
-       data-bs-toggle="modal"
-       data-bs-target="#keronModal"
+    <a href="javascript:void(0)"
+       id="keronBallLauncher"
+       data-ctx="${pageContext.request.contextPath}"
        class="d-inline-block">
       <img
         alt="keronBall"
