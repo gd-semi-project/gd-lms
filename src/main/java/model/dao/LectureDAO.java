@@ -116,9 +116,7 @@ public class LectureDAO {
 			System.out.println("setLectureValidation() 예외 발생");
 		}
 	}
-	
-	
-	
+		
 	
 	
 	

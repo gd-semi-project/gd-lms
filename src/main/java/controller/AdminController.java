@@ -44,6 +44,11 @@ public class AdminController extends HttpServlet {
 			
 		case "/lectureRequest":
 			contentPage = "/WEB-INF/testViewSihyeon/adminLectureRequestTest.jsp";
+			
+			
+			
+			sadfasdf
+			
 			request.setAttribute("pendingLectureList",service.getPendingLectureList());
 			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
 			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
