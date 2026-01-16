@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import database.DBConnection;
 import model.dto.ProfessorDTO;
 
 public class ProfessorDAO {
@@ -19,19 +20,18 @@ public class ProfessorDAO {
 	}
 
 	// 교수 기본 정보 조회
-	public ProfessorDTO selectProfessorInfo(Connection conn, int userId) throws SQLException {
-
+	public ProfessorDTO selectProfessorInfo(Long userId) {
+		ProfessorDTO professor = new ProfessorDTO();
 		String sql = "SELECT * FROM professors WHERE user_id = ?";
 
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setInt(1, userId);
+		try (Connection conn = DBConnection.getConnection()) {
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				if (!rs.next())
-					return null;
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			ResultSet rs = pstmt.executeQuery();
 
-				ProfessorDTO professor = new ProfessorDTO();
-				professor.setUserId(rs.getInt("user_id"));
+			if (rs.next()) {
+				professor.setUserId(rs.getLong("user_id"));
 				professor.setEmployeeNo(rs.getString("employee_no"));
 				professor.setDepartment(rs.getString("department"));
 				professor.setOfficeRoom(rs.getString("office_room"));
@@ -39,9 +39,13 @@ public class ProfessorDAO {
 				professor.setHireDate(rs.getDate("hire_date") != null ? rs.getDate("hire_date").toLocalDate() : null);
 				professor.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
 				professor.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-
 				return professor;
 			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		return null;
+
 	}
 }

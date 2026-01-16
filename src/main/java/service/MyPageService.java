@@ -4,7 +4,9 @@ import model.dao.DepartmentDAO;
 import model.dao.ProfessorDAO;
 import model.dao.StudentDAO;
 import model.dao.UserDAO;
+import model.dto.DepartmentDTO;
 import model.dto.MypageDTO;
+import model.dto.ProfessorDTO;
 import model.dto.StudentsDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
@@ -16,40 +18,50 @@ public class MyPageService {
 	private StudentDAO studentDAO = StudentDAO.getInstance();
 	private ProfessorDAO professorDAO = ProfessorDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
-	
+
 	public MypageDTO geMypageDTO(String Id) {
-		
+
 		// users 테이블 조회
 		UserDTO user = userDAO.SelectUsersById(Id);
-		
+
 		// 결과 DTO 생성
 		MypageDTO mypage = new MypageDTO();
 		mypage.setUser(user);
-		
+
 		// 역할(학생, 교수, 관리자) 조건문
 		// 학생이면
-		if(user.getRole() == Role.STUDENT) {
-			buildStudentPage(mypage, Id);
-		}// 교수면
-		else if(user.getRole() == Role.INSTRUCTOR) {
-			buildProfessorPage(mypage, Id);
-		}// 관리자면
-		else if(user.getRole() == Role.ADMIN) {
+		if (user.getRole() == Role.STUDENT) {
+			buildStudentPage(mypage, user);
+		} // 교수면
+		else if (user.getRole() == Role.INSTRUCTOR) {
+			buildProfessorPage(mypage, user);
+		} // 관리자면
+		else if (user.getRole() == Role.ADMIN) {
 			// 관리자는 users정보만 사용
 		}
-		
+
 		return mypage;
-		
+
 	}
 
 	// 학생일때 볼 수 있는 페이지
-	private void buildProfessorPage(MypageDTO mypage, String id) {
-		StudentsDTO student = studentDAO.findStudentByUserId(id);
+	private void buildStudentPage(MypageDTO mypage, UserDTO user) {
+		StudentsDTO student =
+                studentDAO.findStudentByUserId(user.getUserId());
+
+		DepartmentDTO department = departmentDAO.finById(student.getDepartmentId());
+
+		mypage.setStudent(student);
+		mypage.setDepartment(department);
 	}
 
 	// 교수가 볼 수 있는 페이지
-	private void buildStudentPage(MypageDTO mypage, String id) {
-		// TODO Auto-generated method stub
+	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
+		ProfessorDTO professor = professorDAO.selectProfessorInfo(user.getUserId());
 		
+		DepartmentDTO department = departmentDAO.finById(professor.getDepartmentId());
+		
+		mypage.setProfessor(professor);
+		mypage.setDepartment(department);
 	}
 }

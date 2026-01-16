@@ -59,7 +59,7 @@ public class LectureDAO {
 	
 	// 교수 담당 강의 목록 조회
     public List<LectureDTO> selectLecturesByProfessor(
-            Connection conn, int professorId) throws SQLException {
+            Connection conn, Long professorId) throws SQLException {
 
         String sql = """
             SELECT
@@ -80,12 +80,12 @@ public class LectureDAO {
         List<LectureDTO> list = new ArrayList<>();
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, professorId);
+            pstmt.setLong(1, professorId);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     LectureDTO lecture = new LectureDTO();
-                    lecture.setLectureId(rs.getInt("lecture_id"));
+                    lecture.setLectureId(rs.getLong("lecture_id"));
                     lecture.setLectureTitle(rs.getString("lecture_title"));
                     lecture.setLectureRound(rs.getInt("lecture_round"));
                     lecture.setStartDate(rs.getDate("start_date").toLocalDate());

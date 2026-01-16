@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 public class ProfessorDTO {
 
     // PK, FK → users.user_id
-    private int userId;
+    private Long userId;
+    private Long departmentId;
 
     private String employeeNo;    // 교번
     private String department;    // 소속 학과

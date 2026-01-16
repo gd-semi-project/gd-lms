@@ -41,12 +41,12 @@ public class ProfessorController extends HttpServlet {
 
         UserDTO loginUser = (UserDTO) session.getAttribute("UserInfo");
 
-        if (loginUser.getRole() != Role.TEACHER) {
+        if (loginUser.getRole() != Role.INSTRUCTOR) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        int professorId = loginUser.getUser_id();
+        Long professorId = loginUser.getUserId();
 
         switch (action) {
 

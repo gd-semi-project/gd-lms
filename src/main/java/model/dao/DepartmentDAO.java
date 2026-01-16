@@ -16,14 +16,14 @@ public class DepartmentDAO {
 		return instance;
 	}
 	
-	public DepartmentDTO finById(int departmentId) {
+	public DepartmentDTO finById(Long departmentId) {
 		DepartmentDTO depart = new DepartmentDTO();
 		
 		String sql = "SELECT * FROM department WHERE department_id = ?";
 		
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, departmentId);
+			pstmt.setLong(1, departmentId);
 			
 			ResultSet rs = pstmt.executeQuery();
 			
