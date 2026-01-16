@@ -1,5 +1,14 @@
 package model.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import model.dto.LectureDTO;
+
 public class LectureDAO {
 	public static final LectureDAO instance = new LectureDAO();
 	
@@ -42,5 +51,50 @@ public class LectureDAO {
 		return 0;
 	}
 	
+	
+	// 교수 담당 강의 목록 조회
+    public List<LectureDTO> selectLecturesByProfessor(
+            Connection conn, int professorId) throws SQLException {
+
+        String sql = """
+            SELECT
+                lecture_id,
+                lecture_title,
+                lecture_round,
+                start_date,
+                end_date,
+                room,
+                capacity,
+                created_at,
+                updated_at
+            FROM lectures
+            WHERE professor_id = ?
+            ORDER BY start_date DESC
+        """;
+
+        List<LectureDTO> list = new ArrayList<>();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, professorId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LectureDTO lecture = new LectureDTO();
+                    lecture.setLecture_id(rs.getInt("lecture_id"));
+                    lecture.setLecture_title(rs.getString("lecture_title"));
+                    lecture.setLecture_round(rs.getInt("lecture_round"));
+                    lecture.setStart_date(rs.getDate("start_date").toLocalDate());
+                    lecture.setEnd_date(rs.getDate("end_date").toLocalDate());
+                    lecture.setRoom(rs.getString("room"));
+                    lecture.setCapacity(rs.getInt("capacity"));
+                    lecture.setCreated_at(rs.getTimestamp("created_at").toLocalDateTime());
+                    lecture.setUpdated_at(rs.getTimestamp("updated_at").toLocalDateTime());
+
+                    list.add(lecture);
+                }
+            }
+        }
+        return list;
+    }
 	
 }

@@ -31,8 +31,6 @@
 
   <!-- 헤더 include -->
   <jsp:include page="/WEB-INF/testViewSihyeon/common/header.jsp" />
-  ${requestScope.contentPage}
-
   <div class="container-fluid">
     <div class="row">
 
@@ -41,10 +39,6 @@
 
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
-      
-      <div style="color:red; font-weight:bold;">
-        contentPage = ${requestScope.contentPage}
-    </div>
       
       <c:if test="${not empty requestScope.contentPage}">
 	      <jsp:include page = "${requestScope.contentPage}"/>
