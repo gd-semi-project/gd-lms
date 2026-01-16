@@ -69,7 +69,7 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 			ls.RegistUser(userDTO);
 			
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+			response.sendRedirect("/WEB-INF/views/user/index_goheekwon.jsp");
 		}
 	}
 
