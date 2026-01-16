@@ -26,13 +26,7 @@
                             <select class="form-select" id="noticeType" name="noticeType" required>
                                 <option value="">-- 선택하세요 --</option>
                                 <option value="ANNOUNCEMENT" ${notice.noticeType == 'ANNOUNCEMENT' ? 'selected' : ''}>
-                                    📢 일반 공지
-                                </option>
-                                <option value="URGENT" ${notice.noticeType == 'URGENT' ? 'selected' : ''}>
-                                    🚨 긴급 공지
-                                </option>
-                                <option value="EVENT" ${notice.noticeType == 'EVENT' ? 'selected' : ''}>
-                                    🎉 행사 안내
+                                    📢 전체 공지
                                 </option>
                                 <option value="LECTURE" ${notice.noticeType == 'LECTURE' ? 'selected' : ''}>
                                     📚 강의 공지

@@ -117,9 +117,7 @@ public class LectureDAO {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	
+		
 	
 	
 	

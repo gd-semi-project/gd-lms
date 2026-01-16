@@ -18,9 +18,7 @@
                             <label for="noticeType" class="form-label">공지 분류 <span class="text-danger">*</span></label>
                             <select class="form-select" id="noticeType" name="noticeType" required>
                                 <option value="">-- 선택하세요 --</option>
-                                <option value="ANNOUNCEMENT">📢 일반 공지</option>
-                                <option value="URGENT">🚨 긴급 공지</option>
-                                <option value="EVENT">🎉 행사 안내</option>
+                                <option value="ANNOUNCEMENT">📢 전체 공지</option>
                                 <option value="LECTURE">📚 강의 공지</option>
                             </select>
                         </div>
