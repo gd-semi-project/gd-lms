@@ -123,7 +123,15 @@ public class LectureDAO {
 			pstmt.executeUpdate();
 		} catch (Exception e) {
 			System.out.println("setLectureValidation() 예외 발생");
+			e.printStackTrace();
 		}
 	}
-
+		
+	
+	
+	
+	
+	
+	
+	
 }

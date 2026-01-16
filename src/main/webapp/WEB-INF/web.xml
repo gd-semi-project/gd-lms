@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app>
-	<!-- <filter>
+<!--  
+	<filter>
 	    <filter-name>AccessFilter</filter-name>
 	    <filter-class>filter.AccessFilter</filter-class>
 	    <init-param>
@@ -10,6 +11,7 @@
 	</filter>
 	<filter-mapping>
 	    <filter-name>AccessFilter</filter-name>
-	    <url-pattern>aaaaa</url-pattern>
-	</filter-mapping> -->
+	    <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	-->
 </web-app>

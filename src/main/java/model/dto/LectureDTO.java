@@ -26,4 +26,5 @@ public class LectureDTO {
 	private LocalDateTime updatedAt;
 	private LectureValidation validation;
 	private String section;
+
 }
