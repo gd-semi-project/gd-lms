@@ -1,153 +1,175 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<c:set var="cpath" value="${pageContext.request.contextPath}" />
-<c:set var="loginRole" value="${sessionScope.role}" />
-<c:set var="loginUserId" value="${sessionScope.userId}" />
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div>
-    <h3 class="mb-0">공지사항</h3>
-    <div class="text-muted small">
-      <c:if test="${not empty lectureId}">강의 공지 (lectureId: ${lectureId})</c:if>
-      <c:if test="${empty lectureId}">전체 공지</c:if>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">
+                <c:choose>
+                    <c:when test="${empty lectureId}">📢 전체 공지사항</c:when>
+                    <c:otherwise>📚 강의 공지사항</c:otherwise>
+                </c:choose>
+            </h2>
+
+            <!-- 탭 메뉴: 전체 공지 / 강의별 공지 -->
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link ${empty lectureId ? 'active' : ''}" 
+                       href="${ctx}/notice/list">전체 공지사항</a>
+                </li>
+                <!-- 
+                    실제 구현 시: 사용자가 수강/담당하는 강의 목록을 동적으로 출력
+                    여기서는 예시로 고정된 강의 표시
+                -->
+                <c:if test="${role == 'INSTRUCTOR' || role == 'STUDENT'}">
+                    <li class="nav-item">
+                        <a class="nav-link ${lectureId == 1 ? 'active' : ''}" 
+                           href="${ctx}/notice/list?lectureId=1">자바 프로그래밍</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ${lectureId == 2 ? 'active' : ''}" 
+                           href="${ctx}/notice/list?lectureId=2">데이터베이스</a>
+                    </li>
+                </c:if>
+            </ul>
+
+            <!-- 검색 폼 -->
+            <form method="get" action="${ctx}/notice/list" class="mb-4">
+                <div class="row g-2">
+                    <div class="col-auto">
+                        <select name="items" class="form-select">
+                            <option value="all" ${items == 'all' ? 'selected' : ''}>전체</option>
+                            <option value="title" ${items == 'title' ? 'selected' : ''}>제목</option>
+                            <option value="content" ${items == 'content' ? 'selected' : ''}>내용</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <input type="text" name="text" value="${text}" 
+                               class="form-control" placeholder="검색어 입력">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">🔍 검색</button>
+                    </div>
+                    <c:if test="${not empty lectureId}">
+                        <input type="hidden" name="lectureId" value="${lectureId}">
+                    </c:if>
+                </div>
+            </form>
+
+            <!-- 작성 버튼 (관리자/교수만) -->
+            <c:if test="${role == 'ADMIN' || role == 'INSTRUCTOR'}">
+                <div class="text-end mb-3">
+                    <a href="${ctx}/notice/new${not empty lectureId ? '?lectureId='.concat(lectureId) : ''}" 
+                       class="btn btn-success">✏️ 새 공지 작성</a>
+                </div>
+            </c:if>
+
+            <!-- 공지사항 목록 테이블 -->
+            <c:choose>
+                <c:when test="${empty noticeList}">
+                    <div class="alert alert-info text-center">
+                        📭 등록된 공지사항이 없습니다.
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="8%">번호</th>
+                                    <th width="10%">분류</th>
+                                    <th width="45%">제목</th>
+                                    <th width="12%">작성자</th>
+                                    <th width="10%">조회수</th>
+                                    <th width="15%">작성일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="notice" items="${noticeList}" varStatus="status">
+                                    <tr>
+                                        <td class="text-center">
+                                            ${totalCount - ((page - 1) * size + status.index)}
+                                        </td>
+                                        <td class="text-center">
+                                            <c:choose>
+                                                <c:when test="${empty notice.lectureId}">
+                                                    <span class="badge bg-danger">전체</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-info">강의</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>
+                                            <a href="${ctx}/notice/view?noticeId=${notice.noticeId}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}" 
+                                               class="text-decoration-none">
+                                                <c:out value="${notice.title}" />
+                                            </a>
+                                        </td>
+                                        <td class="text-center">${notice.authorId}</td>
+                                        <td class="text-center">${notice.viewCount}</td>
+                                        <td class="text-center">
+                                            <%-- LocalDateTime을 문자열로 포맷 --%>
+                                            <c:set var="dateStr" value="${notice.createdAt.toString()}" />
+                                            ${fn:substring(dateStr, 0, 10)}
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 페이징 -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <!-- 이전 페이지 -->
+                            <c:if test="${page > 1}">
+                                <li class="page-item">
+                                    <a class="page-link" 
+                                       href="${ctx}/notice/list?page=${page-1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                        이전
+                                    </a>
+                                </li>
+                            </c:if>
+
+                            <!-- 페이지 번호 -->
+                            <c:forEach var="i" begin="${page - 2 < 1 ? 1 : page - 2}" 
+                                       end="${page + 2 > totalPages ? totalPages : page + 2}">
+                                <li class="page-item ${i == page ? 'active' : ''}">
+                                    <a class="page-link" 
+                                       href="${ctx}/notice/list?page=${i}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                        ${i}
+                                    </a>
+                                </li>
+                            </c:forEach>
+
+                            <!-- 다음 페이지 -->
+                            <c:if test="${page < totalPages}">
+                                <li class="page-item">
+                                    <a class="page-link" 
+                                       href="${ctx}/notice/list?page=${page+1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                        다음
+                                    </a>
+                                </li>
+                            </c:if>
+                        </ul>
+                    </nav>
+
+                    <!-- 페이징 정보 -->
+                    <div class="text-center text-muted">
+                        전체 ${totalCount}개 | 현재 ${page} / ${totalPages} 페이지
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
-  </div>
-
-
-	<!-- 글쓰기 버튼 정책 -->
-	<c:set var="loginRole" value="${sessionScope.role}" />
-	
-	<c:if test="${loginRole == 'ADMIN' || (loginRole == 'INSTRUCTOR' && not empty lectureId)}">
-	  <c:url var="newUrl" value="/notice/new">
-	    <c:if test="${not empty lectureId}">
-	      <c:param name="lectureId" value="${lectureId}" />
-	    </c:if>
-	  </c:url>
-	
-
-	  <a class="btn btn-primary" href="${newUrl}">글쓰기</a>
-	</c:if>
 </div>
 
-<!-- 검색 -->
-<form class="row g-2 mb-3" method="get" action="${cpath}/notice/list">
-  <c:if test="${not empty lectureId}">
-    <input type="hidden" name="lectureId" value="${lectureId}" />
-  </c:if>
-
-  <div class="col-auto">
-    <select class="form-select" name="items">
-      <option value="" ${empty items ? 'selected' : ''}>전체</option>
-      <option value="title" ${items == 'title' ? 'selected' : ''}>제목</option>
-      <option value="content" ${items == 'content' ? 'selected' : ''}>내용</option>
-      <option value="notice_type" ${items == 'notice_type' ? 'selected' : ''}>유형</option>
-    </select>
-  </div>
-
-  <div class="col-auto">
-    <input class="form-control" type="text" name="text" value="${text}" placeholder="검색어" />
-  </div>
-
-  <div class="col-auto">
-    <input type="hidden" name="page" value="1" />
-    <input type="hidden" name="size" value="${size}" />
-    <button class="btn btn-outline-secondary" type="submit">검색</button>
-  </div>
-
-  <div class="col-auto ms-auto text-muted align-self-center">
-    총 <strong>${totalCount}</strong>건
-  </div>
-</form>
-
-<!-- 목록 -->
-<div class="table-responsive">
-  <table class="table table-hover align-middle">
-    <thead class="table-light">
-      <tr>
-        <th style="width: 90px;">ID</th>
-        <th style="width: 140px;">유형</th>
-        <th>제목</th>
-        <th style="width: 180px;">작성일</th>
-        <th style="width: 100px;">조회수</th>
-      </tr>
-    </thead>
-    <tbody>
-      <c:choose>
-        <c:when test="${empty noticeList}">
-          <tr>
-            <td colspan="5" class="text-center text-muted py-5">등록된 공지사항이 없습니다.</td>
-          </tr>
-        </c:when>
-        <c:otherwise>
-          <c:forEach var="n" items="${noticeList}">
-            <c:url var="viewUrl" value="/notice/view">
-              <c:param name="noticeId" value="${n.noticeId}" />
-              <c:if test="${not empty lectureId}">
-                <c:param name="lectureId" value="${lectureId}" />
-              </c:if>
-            </c:url>
-            <tr>
-              <td>${n.noticeId}</td>
-              <td>${n.noticeType}</td>
-              <td>
-                <a class="text-decoration-none" href="${cpath}${viewUrl}">
-                  <c:out value="${n.title}" />
-                </a>
-              </td>
-              <td>${n.createdAt}</td>
-              <td>${n.viewCount}</td>
-            </tr>
-          </c:forEach>
-        </c:otherwise>
-      </c:choose>
-    </tbody>
-  </table>
-</div>
-
-<!-- 페이징 -->
-<c:if test="${totalPages > 1}">
-  <nav>
-    <ul class="pagination justify-content-center">
-
-      <!-- Prev -->
-      <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-        <c:url var="prevUrl" value="/notice/list">
-          <c:if test="${not empty lectureId}"><c:param name="lectureId" value="${lectureId}" /></c:if>
-          <c:if test="${not empty items}"><c:param name="items" value="${items}" /></c:if>
-          <c:if test="${not empty text}"><c:param name="text" value="${text}" /></c:if>
-          <c:param name="page" value="${page - 1}" />
-          <c:param name="size" value="${size}" />
-        </c:url>
-        <a class="page-link" href="${cpath}${prevUrl}">이전</a>
-      </li>
-
-      <!-- Pages -->
-      <c:forEach var="p" begin="1" end="${totalPages}">
-        <li class="page-item ${p == page ? 'active' : ''}">
-          <c:url var="pageUrl" value="/notice/list">
-            <c:if test="${not empty lectureId}"><c:param name="lectureId" value="${lectureId}" /></c:if>
-            <c:if test="${not empty items}"><c:param name="items" value="${items}" /></c:if>
-            <c:if test="${not empty text}"><c:param name="text" value="${text}" /></c:if>
-            <c:param name="page" value="${p}" />
-            <c:param name="size" value="${size}" />
-          </c:url>
-          <a class="page-link" href="${cpath}${pageUrl}">${p}</a>
-        </li>
-      </c:forEach>
-
-      <!-- Next -->
-      <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
-        <c:url var="nextUrl" value="/notice/list">
-          <c:if test="${not empty lectureId}"><c:param name="lectureId" value="${lectureId}" /></c:if>
-          <c:if test="${not empty items}"><c:param name="items" value="${items}" /></c:if>
-          <c:if test="${not empty text}"><c:param name="text" value="${text}" /></c:if>
-          <c:param name="page" value="${page + 1}" />
-          <c:param name="size" value="${size}" />
-        </c:url>
-        <a class="page-link" href="${cpath}${nextUrl}">다음</a>
-      </li>
-
-    </ul>
-  </nav>
-</c:if>
+<style>
+    .badge { font-size: 0.85rem; }
+    .table td { vertical-align: middle; }
+    .pagination { margin-top: 2rem; }
+</style>
