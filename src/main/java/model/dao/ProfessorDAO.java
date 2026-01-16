@@ -21,19 +21,7 @@ public class ProfessorDAO {
 	// 교수 기본 정보 조회
 	public ProfessorDTO selectProfessorInfo(Connection conn, int userId) throws SQLException {
 
-		String sql = """
-				    SELECT
-				        user_id,
-				        employee_no,
-				        department,
-				        office_room,
-				        office_phone,
-				        hire_date,
-				        created_at,
-				        updated_at
-				    FROM professors
-				    WHERE user_id = ?
-				""";
+		String sql = "SELECT * FROM professors WHERE user_id = ?";
 
 		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setInt(1, userId);

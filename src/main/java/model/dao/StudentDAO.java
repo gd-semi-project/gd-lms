@@ -25,7 +25,7 @@ public class StudentDAO {
 	public StudentsDTO findStudentByUserId(int userId) {
 		StudentsDTO student = new StudentsDTO();
 		
-		String sql = "SELECET * FROM student WHERE user_id = ?";
+		String sql = "SELECT * FROM student WHERE user_id = ?";
 		
 		try (Connection conn = DBConnection.getConnection())
 		{

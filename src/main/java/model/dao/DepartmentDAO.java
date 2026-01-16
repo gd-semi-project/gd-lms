@@ -28,7 +28,7 @@ public class DepartmentDAO {
 			ResultSet rs = pstmt.executeQuery();
 			
 			if(rs.next()) {
-				depart.setDepartmentName("department_name");
+				depart.setDepartmentName(rs.getString("department_name"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
