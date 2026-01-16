@@ -19,7 +19,7 @@ public class MyPageService {
 	private ProfessorDAO professorDAO = ProfessorDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
 
-	public MypageDTO geMypageDTO(String Id) {
+	public MypageDTO getMypageDTO(String Id) {
 
 		// users 테이블 조회
 		UserDTO user = userDAO.SelectUsersById(Id);
