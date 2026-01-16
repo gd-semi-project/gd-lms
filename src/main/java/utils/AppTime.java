@@ -22,7 +22,7 @@ public final class AppTime {
 		} else return LocalDateTime.now(ZONE);
 	}
 	
-	static synchronized void setReal() {
+	static synchronized void setReal() {	
 		mode = Mode.REAL;
 		keronBallSeconds = 0L;
 	}
