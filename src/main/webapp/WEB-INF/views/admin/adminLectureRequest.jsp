@@ -97,25 +97,36 @@
 
                 <td>
                   <!-- 상태가 PENDING일 때만 승인/반려 버튼 노출 -->
-                  <c:if test="${r.validation == 'PENDING'}">
-                    <!-- 승인 -->
-                    <form method="post" action="${pageContext.request.contextPath}/admin/lecture-requests/approve" class="m-0">
-	                   <div class="d-flex flex-wrap gap-2">
-	                       <input type="hidden" name="lectureId" value="${r.lectureId}">
-	                       <button type="submit" class="btn btn-sm btn-success"
-	                               onclick="return confirm('승인하시겠습니까?');">
-	                         승인
-	                       </button>
-	                       <input type="hidden" name="lectureId" value="${r.lectureId}">
-                        <button type="submit" class="btn btn-sm btn-danger"
-                                onclick="return confirm('반려하시겠습니까?');">
-                          반려
-                        </button>
-	                   </div>
-                        <input type="text" name="reason" class="form-control form-control-sm"
-                               placeholder="반려 사유(선택)">
-                      </form>
-                  </c:if>
+					<c:if test="${r.validation == 'PENDING'}">
+					  <div class="d-flex flex-wrap gap-2">
+					
+					    <!-- 승인 -->
+					    <form method="post"
+					          action="${pageContext.request.contextPath}/admin/lectureRequest?action=CONFIRMED"
+					          class="m-0">
+					      <input type="hidden" name="lectureId" value="${r.lectureId}">
+					      <button type="submit" class="btn btn-sm btn-success"
+					              onclick="return confirm('승인하시겠습니까?');">
+					        승인
+					      </button>
+					    </form>
+					
+					    <!-- 반려 -->
+					    <form method="post"
+					          action="${pageContext.request.contextPath}/admin/lectureRequest?action=CANCELED"
+					          class="m-0">
+					      <input type="hidden" name="lectureId" value="${r.lectureId}">
+					      <input type="text" name="reason" class="form-control form-control-sm"
+					             placeholder="반려 사유(선택)">
+					      <button type="submit" class="btn btn-sm btn-danger"
+					              onclick="return confirm('반려하시겠습니까?');">
+					        반려
+					      </button>
+					    </form>
+					
+					  </div>
+					</c:if>
+
 				
                   <!-- 이미 처리된 건 안내 -->
                   <c:if test="${r.validation != 'PENDING'}">

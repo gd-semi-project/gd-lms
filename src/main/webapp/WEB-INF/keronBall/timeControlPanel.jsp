@@ -1,22 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
 <div class="container my-4">
+
 
   <form method="post" action="${pageContext.request.contextPath}/keron/time/apply">
     <div class="card shadow-sm">
       <div class="card-body">
-
-        <!-- 현재 시간 표시 -->
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="fw-semibold">현재 시간</div>
-          <div class="badge text-bg-dark" id="keronNowText">--</div>
-        </div>
-        <div class="text-muted small mb-4">
-          기준: AppDateTime.now() (KST)
-        </div>
-
-        <!-- 이동할 시간 선택 -->
-        <div class="fw-semibold mb-2">이동할 시간 설정</div>
+        <div class="fw-semibold mb-2">시간 이동</div>
 
         <div class="row g-3">
           <!-- 년도 -->
@@ -84,8 +76,8 @@
         </div>
 
         <div class="d-flex gap-2 mt-4">
-          <button type="submit" class="btn btn-primary">적용</button>
-          <button type="button" class="btn btn-outline-secondary" disabled>REAL로 복귀</button>
+          <button type="submit" class="btn btn-success">적용</button>
+          <button type="button" class="btn btn-outline-secondary" disabled>복원</button>
         </div>
 
       </div>
