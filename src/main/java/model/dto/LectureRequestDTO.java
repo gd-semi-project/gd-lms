@@ -6,18 +6,19 @@ import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import model.enumtype.LectureValidation;
 import model.enumtype.Week;
 
 @NoArgsConstructor
-@ToString
 @AllArgsConstructor
 @Data
-public class LectureScheduleDTO {
-	private int scheduleId;
-	private int lectureId;
-	private Week weekDay;
-	private LocalTime startTime;
-	private LocalTime endTime;
+public class LectureRequestDTO {
+	private long lectureId;
+	private String instructorName;
+	private String lectureTitle;
+	private String schedule;
+	private int capacity;
+	private LectureValidation validation;
 	private LocalDateTime createdAt;
+	private String section;
 }

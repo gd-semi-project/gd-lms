@@ -6,20 +6,24 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import model.enumtype.LectureStatus;
+import model.enumtype.LectureValidation;
 @NoArgsConstructor
-@ToString
 @AllArgsConstructor
 @Data
 public class LectureDTO {
 
-	private int lecture_id;
-	private String lecture_title;
-	private int lecture_round;
-	private LocalDate start_date;
-	private LocalDate end_date;
+	private long lectureId;
+	private long userId;
+	private String lectureTitle;
+	private int lectureRound;
+	private LocalDate startDate;
+	private LocalDate endDate;
+	private LectureStatus status;
 	private String room;
 	private int capacity;
-	private LocalDateTime created_at;
-	private LocalDateTime updated_at;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	private LectureValidation validation;
+	private String section;
 }
