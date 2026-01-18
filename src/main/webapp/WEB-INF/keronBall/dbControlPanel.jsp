@@ -52,18 +52,10 @@
 		  </form>
 		</div>
 		<div class="col-12 col-md-4">
-		  <form method="post"
-		        action="${pageContext.request.contextPath}/keron/dbUpdate">
-		
-		    <input type="hidden" name="command" value="UPDATE">
-		
-	        <button
-	          type="submit"
-	          class="btn btn-warning w-100 db-action kb-btn"
-	          >
-	          UPDATE
-	        </button>
-		  </form>
+			<a class="btn btn-warning w-100 db-action kb-btn"
+			   href="${pageContext.request.contextPath}/keronBall/updateDB">
+			  UPDATE
+			</a>
 		</div>
     </div>
   </div>

@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,10 +51,9 @@ public class KeronBallService {
 			
 			for (File f : files) {
 				List<String> sqlStatements = readAndSplitSqlStatements(f);
-				System.out.println(sqlStatements.toString());
 				
+				System.out.println("생성:" + f.getName());
 				for (String sql : sqlStatements) {
-					
 					String s = sql.trim();
 					if(!s.isEmpty()) {
 						stmt.execute(s);
@@ -73,14 +73,26 @@ public class KeronBallService {
 	public void deleteAllDB() {
 		System.out.println("deleteAllDB");
 		
-		String sql =  "SELECT table_name FROM information_schema.tables WHERE table_schema='lms'";
 		try (
 				Connection conn = DBConnection.getConnection();
 				Statement stmt = conn.createStatement()
 				
 				) {
 			
-			stmt.executeUpdate(sql);
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
+
+            List<String> tables = getAllTables();
+
+            for (String tableName : tables) {
+                String dropSQL = "DROP TABLE IF EXISTS `" + tableName + "`";
+                System.out.println("삭제: " + tableName);
+                stmt.execute(dropSQL);
+            }
+
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
+
+            System.out.println("모든 테이블 삭제 완료");
+
 			
 		} catch (Exception e) {
 			System.out.println("DELETEALLDB 뭔가 잘못됨");
@@ -125,4 +137,24 @@ public class KeronBallService {
 		
 		return list;
 	}
+	
+	public List<String> getAllTables(){
+		List<String> tables = new ArrayList<>();
+
+	    String sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'lms'";
+	    try (	Connection conn = DBConnection.getConnection();
+	    		Statement stmt = conn.createStatement();
+	         ResultSet rs = stmt.executeQuery(sql)) {
+
+	        while (rs.next()) {
+	            tables.add(rs.getString("table_name"));
+	        }
+	    } catch (Exception e){
+	    	e.printStackTrace();
+	    }
+	    return tables;
+
+	}
+	
+	
 }

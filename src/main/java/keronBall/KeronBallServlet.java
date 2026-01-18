@@ -13,7 +13,10 @@ public class KeronBallServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+		
+		KeronBallService keronBallService = KeronBallService.getInstance();
+		
+		
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
@@ -37,7 +40,10 @@ public class KeronBallServlet extends HttpServlet {
 			contentPage = "/WEB-INF/keronBall/dbControlPanel.jsp";
 			break;
 			
-			
+		case "/updateDB":
+			contentPage = "/WEB-INF/keronBall/dbUpdatePanel.jsp";
+			request.setAttribute("tableNames", keronBallService.getAllTables());
+			break;
 			
 		default:
 			break;
