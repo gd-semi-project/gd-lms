@@ -38,9 +38,9 @@
     <div class="row">
 
       <!-- 사이드바 include -->
-      <%-- <jsp:include page="/WEB-INF/views/include/sidebar.jsp" /> --%>
+       <jsp:include page="/WEB-INF/views/include/sidebar.jsp" />
       <%-- <jsp:include page="/WEB-INF/views/include/commonSidebar.jsp" /> --%>
-      <jsp:include page="/WEB-INF/views/include/testSidebarForAdmin.jsp"/>
+     <%--  <jsp:include page="/WEB-INF/views/include/testSidebarForAdmin.jsp"/> --%>
 
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
