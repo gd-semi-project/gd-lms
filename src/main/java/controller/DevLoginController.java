@@ -36,6 +36,6 @@ public class DevLoginController extends HttpServlet {
         session.setAttribute("userName", "DEV-" + role);
 
         // 공지사항으로 이동
-        resp.sendRedirect(req.getContextPath() + "/notice/list");
+        resp.sendRedirect(req.getContextPath() + "/instructor/profile");
     }
 }

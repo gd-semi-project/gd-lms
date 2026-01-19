@@ -13,7 +13,7 @@ public class InstructorDTO {
     // PK, FK → users.user_id
     private Long InstructorId;
     private Long departmentId;
-    private long userId;
+    private Long userId;
 
 
     private String instructorNo;    // 교번

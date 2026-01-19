@@ -8,7 +8,7 @@ import model.enumtype.AttendanceStatus;
 @NoArgsConstructor
 public class SessionAttendanceDTO {
 
-    private long studentId;
+    private Long studentId;
     private String studentName;
     private Integer studentNumber;
     private int studentGrade;
