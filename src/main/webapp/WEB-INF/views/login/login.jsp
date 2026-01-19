@@ -30,7 +30,7 @@
 <body class="bg-light">
 
   <!-- 헤더 include -->
-  <jsp:include page="/WEB-INF/testViewSihyeon/common/header.jsp" />
+  <jsp:include page="/WEB-INF/views/include/header.jsp" />
 
   <div class="container-fluid">
     <div class="row">
@@ -66,7 +66,7 @@
   </div>
 
   <!-- 푸터 include -->
-  <jsp:include page="/WEB-INF/testViewSihyeon/common/footer.jsp" />
+  <jsp:include page="/WEB-INF/views/include/footer.jsp" />
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

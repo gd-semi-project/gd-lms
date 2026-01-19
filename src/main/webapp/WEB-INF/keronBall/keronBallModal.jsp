@@ -1,4 +1,8 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
 <style>
   /* ===== KeronBall Remote Layout (viewport-based) ===== */
@@ -106,12 +110,7 @@
 <div class="keron-viewport">
 
   <!-- 최상단 중앙 케론볼 -->
-  <div class="keron-top">
-    <a href="${pageContext.request.contextPath}/" title="메인으로">
-      <img src="${pageContext.request.contextPath}/resources/images/keronBall.png" alt="keronBall">
-    </a>
-  </div>
-
+<jsp:include page="/WEB-INF/keronBall/keronBall.jsp" />
   <!-- 중앙 큰 박스 + 4분할 -->
   <div class="keron-center">
     <div class="keron-box">
@@ -123,8 +122,8 @@
         </a>
 
         <!-- 2번 기능 -->
-        <a class="keron-tile" href="javascript:void(0)">
-          <span>기능 2</span>
+        <a class="keron-tile" href="${pageContext.request.contextPath}/keronBall/db">
+          <span>DB 조작</span>
         </a>
 
         <!-- 3번 기능 -->

@@ -1,41 +1,122 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<h3 class="mb-3">공지사항 등록</h3>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 
-<%-- create / list URL은 c:url로 통일 (contextPath 자동 포함) --%>
-<c:url var="createUrl" value="/notice/create" />
-<c:url var="listUrl" value="/notice/list">
-  <c:if test="${not empty lectureId}">
-    <c:param name="lectureId" value="${lectureId}" />
-  </c:if>
-</c:url>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">✏️ 새 공지사항 작성</h4>
+                </div>
+                <div class="card-body">
+                    <form action="${ctx}/notice/create" method="post" onsubmit="return validateForm()">
+                        
+                        <!-- 공지 타입 선택 -->
+                        <div class="mb-3">
+                            <label for="noticeType" class="form-label">공지 분류 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="noticeType" name="noticeType" required>
+                                <option value="">-- 선택하세요 --</option>
+                                <option value="ANNOUNCEMENT">📢 전체 공지</option>
+                                <option value="LECTURE">📚 강의 공지</option>
+                            </select>
+                        </div>
 
-<form method="post" action="${createUrl}">
-  <c:if test="${not empty lectureId}">
-    <input type="hidden" name="lectureId" value="${lectureId}" />
-  </c:if>
+                        <!-- 강의 선택 (관리자만 선택 가능, 교수는 파라미터로 받음) -->
+                        <c:if test="${role == 'ADMIN'}">
+                            <div class="mb-3">
+                                <label for="lectureId" class="form-label">공지 대상</label>
+                                <select class="form-select" id="lectureId" name="lectureId">
+                                    <option value="">전체 공지 (모든 사용자)</option>
+                                    <!-- 실제로는 DB에서 강의 목록 조회해서 출력 -->
+                                    <option value="1" ${lectureId == 1 ? 'selected' : ''}>자바 프로그래밍</option>
+                                    <option value="2" ${lectureId == 2 ? 'selected' : ''}>데이터베이스</option>
+                                    <option value="3" ${lectureId == 3 ? 'selected' : ''}>웹 프로그래밍</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    전체 공지는 모든 사용자에게 표시되며, 강의 선택 시 해당 강의 수강생에게만 표시됩니다.
+                                </small>
+                            </div>
+                        </c:if>
 
-  <div class="mb-3">
-    <label class="form-label">유형</label>
-    <select class="form-select" name="noticeType" required>
-      <option value="GENERAL">GENERAL</option>
-      <option value="IMPORTANT">IMPORTANT</option>
-    </select>
-  </div>
+                        <!-- 교수인 경우 lectureId는 hidden으로 전달 -->
+                        <c:if test="${role == 'INSTRUCTOR' && not empty lectureId}">
+                            <input type="hidden" name="lectureId" value="${lectureId}">
+                            <div class="alert alert-info">
+                                📚 이 공지는 선택된 강의의 수강생에게만 표시됩니다.
+                            </div>
+                        </c:if>
 
-  <div class="mb-3">
-    <label class="form-label">제목</label>
-    <input class="form-control" type="text" name="title" maxlength="200" required />
-  </div>
+                        <!-- 제목 -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">제목 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   required maxlength="200" placeholder="공지사항 제목을 입력하세요">
+                        </div>
 
-  <div class="mb-3">
-    <label class="form-label">내용</label>
-    <textarea class="form-control" name="content" rows="10" required></textarea>
-  </div>
+                        <!-- 내용 -->
+                        <div class="mb-4">
+                            <label for="content" class="form-label">내용 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="content" name="content" 
+                                      rows="15" required placeholder="공지사항 내용을 입력하세요"></textarea>
+                            <small class="form-text text-muted">
+                                최대 5,000자까지 입력 가능합니다.
+                            </small>
+                        </div>
 
-  <div class="d-flex gap-2">
-    <button class="btn btn-primary" type="submit">등록</button>
-    <a class="btn btn-outline-secondary" href="${listUrl}">취소</a>
-  </div>
-</form>
+                        <!-- 버튼 -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" 
+                                    onclick="history.back()">취소</button>
+                            <button type="submit" class="btn btn-success">✅ 작성 완료</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function validateForm() {
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    const noticeType = document.getElementById('noticeType').value;
+
+    if (!noticeType) {
+        alert('공지 분류를 선택해주세요.');
+        return false;
+    }
+
+    if (title.length < 2) {
+        alert('제목은 최소 2자 이상 입력해주세요.');
+        return false;
+    }
+
+    if (content.length < 10) {
+        alert('내용은 최소 10자 이상 입력해주세요.');
+        return false;
+    }
+
+    if (content.length > 5000) {
+        alert('내용은 최대 5,000자까지 입력 가능합니다.');
+        return false;
+    }
+
+    return confirm('공지사항을 작성하시겠습니까?');
+}
+</script>
+
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+    .text-danger {
+        font-weight: bold;
+    }
+    textarea {
+        resize: vertical;
+    }
+</style>
