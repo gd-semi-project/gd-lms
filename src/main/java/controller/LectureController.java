@@ -36,8 +36,8 @@ public class LectureController extends HttpServlet {
 
         if (session.getAttribute("UserInfo") == null) {
             UserDTO testUser = new UserDTO();
-            testUser.setUser_id(1L);            // 김도윤 강사
-            testUser.setLogin_id("inst_kim");
+            testUser.setUserId(1L);            // 김도윤 강사
+            testUser.setLoginId("inst_kim");
             testUser.setName("김도윤");
             testUser.setRole(Role.INSTRUCTOR); // ⭐ 강사 권한
 

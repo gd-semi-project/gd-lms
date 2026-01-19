@@ -2,6 +2,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
-  request.getRequestDispatcher("/WEB-INF/test.jsp")
+  request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
          .forward(request, response);
 %>

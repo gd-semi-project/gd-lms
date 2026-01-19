@@ -38,8 +38,8 @@ public class InstructorController extends HttpServlet {
 
 		if (session.getAttribute("UserInfo") == null) {
 			UserDTO devInstructor = new UserDTO();
-			devInstructor.setUser_id(1L); // lecture.user_id 와 맞추기
-			devInstructor.setLogin_id("dev_instructor");
+			devInstructor.setUserId(1L); // lecture.user_id 와 맞추기
+			devInstructor.setLoginId("dev_instructor");
 			devInstructor.setName("개발용 강사");
 			devInstructor.setRole(Role.INSTRUCTOR);
 
@@ -56,13 +56,13 @@ public class InstructorController extends HttpServlet {
 			return;
 		}
 
-		long instructorId = loginUser.getUser_id();
+		long instructorId = loginUser.getUserId();
 		
 		switch (action) {
 
 		// 강사 프로필
 		case "/profile": {
-			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId, loginUser.getLogin_id());
+			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId, loginUser.getLoginId());
 
 			request.setAttribute("instructor", profile.get("instructor"));
 			request.setAttribute("user", profile.get("user"));
