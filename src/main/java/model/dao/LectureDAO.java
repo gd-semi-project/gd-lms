@@ -75,7 +75,7 @@ public class LectureDAO {
 				        capacity,
 				        created_at,
 				        updated_at
-				    FROM lectures
+				    FROM lecture
 				    WHERE instructor_id = ?
 				    ORDER BY start_date DESC
 				""";
