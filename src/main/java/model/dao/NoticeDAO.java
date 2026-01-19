@@ -588,7 +588,7 @@ public class NoticeDAO {
         try (Connection conn = DBConnection.getConnection()) {
             return findById(conn, noticeId);
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.findById error", e);
+            throw new RuntimeException("NoticeDAO.findById error", e); //
         }
     }
 }
