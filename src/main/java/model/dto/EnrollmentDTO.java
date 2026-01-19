@@ -15,7 +15,7 @@ import model.enumtype.EnrollmentStatus;
 @Data
 public class EnrollmentDTO {
 	private long enroll_id;		//수강신청 테이블의 PK
-	private long course_id;		//강의 테이블의 PK
+	private long lecture_id;		//강의 테이블의 PK
 	private long student_id;		//학생 테이블의 PK
 	private EnrollmentStatus status;
 	private LocalDateTime applied_at;

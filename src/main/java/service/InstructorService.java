@@ -15,54 +15,38 @@ import model.dto.UserDTO;
 
 public class InstructorService {
 
-	private static final InstructorService instance = new InstructorService();
+    private static final InstructorService instance = new InstructorService();
 
-	private InstructorDAO instructorDAO = InstructorDAO.getInstance();
-	private LectureDAO lectureDAO = LectureDAO.getInstance();
-	private UserDAO userDAO = UserDAO.getInstance();
+    private InstructorService() {} 
 
-	private InstructorService() {
-	}
+    public static InstructorService getInstance() {
+        return instance;
+    }
 
-	public static InstructorService getInstance() {
-		return instance;
-	}
+    private InstructorDAO instructorDAO = InstructorDAO.getInstance();
+    private LectureDAO lectureDAO = LectureDAO.getInstance();
+    private UserDAO userDAO = UserDAO.getInstance();
 
-	// 강사 본인 정보 조회
-	public InstructorDTO getInstructorInfo(long userId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			return instructorDAO.selectInstructorInfo(userId);
-		} catch (Exception e) {
-			throw new RuntimeException("강사 정보 조회 실패", e);
-		}
-	}
+    // 강사 프로필
+    public Map<String, Object> getInstructorProfile(long userId, String loginId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("instructor",
+                    instructorDAO.selectInstructorInfo(conn, userId));
+            map.put("user",
+                    userDAO.SelectUsersById(loginId));
+            return map;
+        } catch (Exception e) {
+            throw new RuntimeException("강사 프로필 조회 실패", e);
+        }
+    }
 
-	public List<LectureDTO> getMyLectures(long instructorId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			return lectureDAO.selectLecturesByInstructor(conn, instructorId);
-		} catch (Exception e) {
-			throw new RuntimeException("강사 강의 목록 조회 실패", e);
-		}
-		
-	}
-
-	public Map<String, Object> getInstructorProfile(long userId, String loginId) {
-
-		try (Connection conn = DBConnection.getConnection()) {
-
-			InstructorDTO instructor = instructorDAO.selectInstructorInfo(userId);
-
-			UserDTO user = userDAO.SelectUsersById(loginId);
-
-			Map<String, Object> result = new HashMap<>();
-			result.put("instructor", instructor);
-			result.put("user", user);
-
-			return result;
-
-		} catch (Exception e) {
-			throw new RuntimeException("강사 프로필 조회 실패", e);
-		}
-	}
-
+    // 담당 강의 목록
+    public List<LectureDTO> getMyLectures(long instructorId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return lectureDAO.selectLecturesByInstructor(conn, instructorId);
+        } catch (Exception e) {
+            throw new RuntimeException("강사 강의 목록 조회 실패", e);
+        }
+    }
 }
