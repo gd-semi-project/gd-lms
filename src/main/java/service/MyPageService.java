@@ -1,7 +1,7 @@
 package service;
 
 import model.dao.DepartmentDAO;
-import model.dao.ProfessorDAO;
+import model.dao.InstructorDAO;
 import model.dao.StudentDAO;
 import model.dao.UserDAO;
 import model.dto.DepartmentDTO;
@@ -16,7 +16,7 @@ public class MyPageService {
 	// DAO 불러오기
 	private UserDAO userDAO = UserDAO.getInstance();
 	private StudentDAO studentDAO = StudentDAO.getInstance();
-	private ProfessorDAO professorDAO = ProfessorDAO.getInstance();
+	private InstructorDAO instructorDAO = InstructorDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
 
 	public MypageDTO getMypageDTO(String Id) {
@@ -57,11 +57,11 @@ public class MyPageService {
 
 	// 교수가 볼 수 있는 페이지
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
-		InstructorDTO professor = professorDAO.selectProfessorInfo(user.getUserId());
+		InstructorDTO instructor = instructorDAO.selectInstructorInfo(user.getUserId());
 		
-		DepartmentDTO department = departmentDAO.finById(professor.getDepartmentId());
+		DepartmentDTO department = departmentDAO.finById(instructor.getDepartmentId());
 		
-		mypage.setProfessor(professor);
+		mypage.setProfessor(instructor);
 		mypage.setDepartment(department);
 	}
 }
