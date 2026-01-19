@@ -1,43 +1,77 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
   String ctx = request.getContextPath();
 %>
 
 <aside class="col-12 col-md-3 col-lg-2 bg-secondary text-white p-3 sidebar">
-  <ul class="nav nav-pills flex-column gap-1">
-    <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/dashboard">대시보드</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/lectureRequest">강의 개설 관리</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/noticeList">공지사항 관리</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="${pageContext.request.contextPath}/notice/list">공지사항</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/calendar">학사일정 관리</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/campus">캠퍼스 관리</a>
-    </li>
-  </ul>
-  
-  <hr class="border-light opacity-50 my-3">
 
-  <div>
-  관리자의 TODO  <br>
-  1. 학생 개개인 열람 페이지 <br>
-  2. 강사진 개개인 열람 페이지 <br>
-  3. 특정 강의 개별 열람 페이지 <br>
-  4. 푸터에 케론볼 만들기 <br>
-  </div>
-  
-  <hr class="border-light opacity-50 my-3">
-  <div class="small opacity-75">
-    로그인 사용자: 홍길동<br/>
-    권한: ADMIN
-  </div>
+  <ul class="nav nav-pills flex-column gap-1">
+
+    <!-- 대학소개 -->
+    <li class="nav-item">
+      <a class="nav-link text-white" href="<%=ctx%>/about">
+        🎓 대학소개
+      </a>
+    </li>
+
+    <!-- 강의 (토글 메뉴) -->
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex justify-content-between align-items-center"
+         data-bs-toggle="collapse"
+         href="#lectureMenu"
+         role="button"
+         aria-expanded="false"
+         aria-controls="lectureMenu">
+        📚 강의
+        <span>▾</span>
+      </a>
+
+      <!-- 하위 메뉴 -->
+      <div class="collapse ps-3" id="lectureMenu">
+        <ul class="nav flex-column mt-1">
+
+          <!-- 내 강의 목록 -->
+          <li class="nav-item">
+            <a class="nav-link text-white small"
+               href="<%=ctx%>/instructor/lectures">
+              ▸ 내 강의 목록
+            </a>
+          </li>
+
+          <!-- 강의 개설 신청 -->
+          <li class="nav-item">
+            <a class="nav-link text-white small"
+               href="<%=ctx%>/lecture/request">
+              ▸ 강의 개설 신청
+            </a>
+          </li>
+
+          <!-- 수강신청 -->
+          <li class="nav-item">
+            <a class="nav-link text-white small"
+               href="<%=ctx%>/lecture/enroll">
+              ▸ 수강신청
+            </a>
+          </li>
+
+        </ul>
+      </div>
+    </li>
+
+    <!-- 공지사항 -->
+    <li class="nav-item">
+      <a class="nav-link text-white" href="<%=ctx%>/notice/list">
+        📢 공지사항
+      </a>
+    </li>
+
+    <!-- 성적 -->
+    <li class="nav-item">
+      <a class="nav-link text-white" href="<%=ctx%>/score/my">
+        📝 성적
+      </a>
+    </li>
+
+  </ul>
+
 </aside>

@@ -10,9 +10,9 @@ import model.enumtype.StudentType;
 @Data
 @NoArgsConstructor
 public class StudentsDTO {
-	private int studentId;
-	private int departmentId;
-	private int userId;
+	private long studentId;
+	private long departmentId;
+	private long userId;
 	
 	private Integer studentNumber;	// 학번
 	private int studenGrade;	// 학년
