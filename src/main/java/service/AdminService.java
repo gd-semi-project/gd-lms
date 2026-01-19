@@ -79,10 +79,7 @@ public class AdminService {
 	}
 	
 	
-	public void LectureValidate() {
-		
-		String validation="";
-		String lectureId="";
+	public void LectureValidate(Long lectureId, String validation) {
 		
 		lectureDAO.setLectureValidation(validation, lectureId);
 	}

@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import database.DBConnection;
+import model.dto.InstructorDTO;
 import model.dto.ProfessorDTO;
 
 public class ProfessorDAO {
@@ -20,8 +21,8 @@ public class ProfessorDAO {
 	}
 
 	// 교수 기본 정보 조회
-	public ProfessorDTO selectProfessorInfo(Long userId) {
-		ProfessorDTO professor = new ProfessorDTO();
+	public InstructorDTO selectProfessorInfo(Long userId) {
+		InstructorDTO professor = new InstructorDTO();
 		String sql = "SELECT * FROM professors WHERE user_id = ?";
 
 		try (Connection conn = DBConnection.getConnection()) {
@@ -32,7 +33,7 @@ public class ProfessorDAO {
 
 			if (rs.next()) {
 				professor.setUserId(rs.getLong("user_id"));
-				professor.setEmployeeNo(rs.getString("employee_no"));
+				professor.setInstructorNo("instructor_num");
 				professor.setDepartment(rs.getString("department"));
 				professor.setOfficeRoom(rs.getString("office_room"));
 				professor.setOfficePhone(rs.getString("office_phone"));

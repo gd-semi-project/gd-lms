@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.dto.InstructorDTO;
 import model.dto.LectureDTO;
 import model.dto.ProfessorDTO;
 import model.dto.UserDTO;
@@ -52,8 +53,8 @@ public class ProfessorController extends HttpServlet {
 
             // 교수 정보
             case "/profile": {
-                ProfessorDTO professor =
-                        professorService.getProfessorInfo(professorId);
+            	InstructorDTO professor =
+                        professorService.getInstructorDTO(InstructorId);
                 request.setAttribute("professor", professor);
                 request.getRequestDispatcher("/jiyun/professor/profile.jsp")
                        .forward(request, response);
