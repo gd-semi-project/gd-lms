@@ -42,7 +42,7 @@ public class MypageController extends HttpServlet {
 				request.setAttribute("mypage", mypage);
 				
 				// 마이페이지 화면 이동
-				request.getRequestDispatcher("/webapp/test.jsp").forward(request, response);
+				request.getRequestDispatcher("/WEB-INF/test.jsp").forward(request, response);
 			} catch (Exception e) {
 				request.setAttribute("errorMessage", e.getMessage());
 				request.getRequestDispatcher("에러메세지 화면").forward(request, response);
