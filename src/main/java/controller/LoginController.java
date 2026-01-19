@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.websocket.Session;
-import model.dao.UserDAO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LoginService;
@@ -26,12 +24,25 @@ public class LoginController extends HttpServlet {
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
 		String action = command.substring("/login".length());
-
+		String contentPage = "";
+		
 		if (action.equals("/login.do")) {
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
-		} else if (action.equals("/registUser.do")) {
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+			contentPage = "/index.jsp";
+		} else if (action.equals("/logout.do")) {
+			HttpSession session = request.getSession(false);
+	        if (session != null) {
+	            session.invalidate(); // 세션 무효화
+	        }
+	        contentPage = "/index.jsp";
 		}
+		// TODO : adminController 로 이전 필요
+		else if (action.equals("/registUser.do")) {
+			// response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+			contentPage = "/index.jsp";
+		}
+		request.setAttribute("contentPage", contentPage);
+		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/loginLayout.jsp");
+		rd.forward(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,6 +50,8 @@ public class LoginController extends HttpServlet {
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
 		String action = command.substring("/login".length());
+		String contentPage = "";
+		
 		
 		if (action.equals("/login.do")) {
 			String user_id = request.getParameter("id");
@@ -50,17 +63,20 @@ public class LoginController extends HttpServlet {
 			HttpSession session = request.getSession();
 			if (userDTO != null) {
 				session.setAttribute("UserInfo", userDTO);
-				response.sendRedirect("/gd-lms/test.jsp");
+				response.sendRedirect("/adminDashboard.jsp");
 			} else {
 				session.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
-				response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+				response.sendRedirect("/gd-lms");
+				return;
 			}
-		} else if (action.equals("/registUser.do")) {
+		} 
+		// DOTO : AdminController로 이전 필요
+		else if (action.equals("/registUser.do")) {
 			UserDTO userDTO = new UserDTO();
 			userDTO.setLogin_id(request.getParameter("loginId"));
 			userDTO.setPassword(request.getParameter("password"));
 			userDTO.setName(request.getParameter("name"));
-			userDTO.setEmail(request.getParameter("enail"));
+			userDTO.setEmail(request.getParameter("email"));
 			userDTO.setBirth_date(LocalDate.parse(request.getParameter("birthDate")));
 			
 			Role role = Role.fromLabel(request.getParameter("role"));
@@ -69,7 +85,17 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 			ls.RegistUser(userDTO);
 			
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+			// response.sendRedirect("/gd-lms/login.jsp");
+			contentPage = "/index.jsp";
+		}
+		
+
+
+		request.setAttribute("contentPage", contentPage);
+		
+		if (contentPage.equals("/index.jsp")) {
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/loginLayout.jsp");
+			rd.forward(request, response);
 		}
 	}
 

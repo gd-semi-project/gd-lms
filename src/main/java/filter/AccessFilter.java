@@ -37,41 +37,43 @@ public class AccessFilter extends HttpFilter implements Filter {
 		HttpSession session = req.getSession(false);
 		
 		String uri = req.getRequestURI();
-		
-		if (uri.endsWith("index_goheekwon.jsp") || uri.endsWith("login.do")) {
-			chain.doFilter(request, response); // forward 대신 필터 체인 통과
-		    return;
+		if (uri.endsWith("index.jsp") || uri.endsWith("login.do") || uri.endsWith("")) {
+			chain.doFilter(request, response);
+			return;
 	    }
 		
 		UserDTO session_id;
+		System.out.println("어디서 걸리냐2");
 		if (session.getId() != null) {
 			session_id = (UserDTO) session.getAttribute("UserInfo");
 			// 2. 로그인 확인
 			if (session_id.getLogin_id() == null) {
-				res.sendRedirect(req.getContextPath() + "/index_goheekwon.jsp");
+				res.sendRedirect(req.getContextPath() + "/index.jsp");
+			} else {
+				System.out.println("어디서 걸리냐3");
+				chain.doFilter(request, response);
 			}
+			
 
-			// 3. role 별도 필터에서 확인? 아니면 필터1개에서 uri값 확인해서 처리?
-			if (session_id.getRole() != null) {
-				Role role = session_id.getRole(); 
-				
-				if (uri.contains("/admin/")) {
-		            if (!Role.ADMIN.equals(role)) {
-		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-		                return;
-		            }
-		        }
-
-		        if (uri.contains("/instructor/")) {
-		            if (!Role.INSTRUCTOR.equals(role) && !Role.ADMIN.equals(role)) {
-		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-		                return;
-		            }
-		        }
-			}
+//			// 3. role 별도 필터에서 확인? 아니면 필터 1개에서 uri값 확인해서 처리?
+//			if (session_id.getRole() != null) {
+//				Role role = session_id.getRole(); 
+//				
+//				if (uri.contains("/admin/")) {
+//		            if (!Role.ADMIN.equals(role)) {
+//		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
+//		                return;
+//		            }
+//		        }
+//
+//		        if (uri.contains("/instructor/")) {
+//		            if (!Role.INSTRUCTOR.equals(role) && !Role.ADMIN.equals(role)) {
+//		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
+//		                return;
+//		            }
+//		        }
+//			}
 		}
-		chain.doFilter(request, response); // forward 대신 필터 체인 통과
-	    return;
 	}
 
 	public void init(FilterConfig fConfig) throws ServletException {
