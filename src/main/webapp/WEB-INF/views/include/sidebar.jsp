@@ -2,6 +2,7 @@
 <%
   String ctx = request.getContextPath();
 %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <aside class="col-12 col-md-3 col-lg-2 bg-secondary text-white p-3 sidebar">
 
@@ -38,14 +39,16 @@
             </a>
           </li>
 
-          <!-- 강의 개설 신청 -->
+          <!-- 강의 개설 신청(교수면) -->
+          <c:if test="${mypage.user.role eq 'INSTRUCTOR'}">
           <li class="nav-item">
             <a class="nav-link text-white small"
                href="<%=ctx%>/lecture/request">
               ▸ 강의 개설 신청
             </a>
           </li>
-
+          </c:if>
+	
           <!-- 수강신청 -->
           <li class="nav-item">
             <a class="nav-link text-white small"
@@ -65,11 +68,32 @@
 
     <!-- 성적 -->
     <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/score/my">
+      <a class="nav-link text-white d-flex justify-content-between align-items-center"
+         data-bs-toggle="collapse"
+         href="#ScoreMenu"
+         role="button"
+         aria-expanded="false"
+         aria-controls="ScoreMenu">
         📝 성적
+        <span>▾</span>
       </a>
-    </li>
-
-  </ul>
+    
+	<div class="collapse ps-3" id="ScoreMenu">
+        <ul class="nav flex-column mt-1">
+    	<!-- 수강신청 -->
+          <li class="nav-item">
+            <a href="?page=semesterScore" class="nav-link text-white small">
+              ▸ 학기별 집계성적
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white small"
+               href="?page=totScore">
+              ▸ 전체성적조회
+            </a>
+          </li>
+        </ul>
+    </div>
+  </li>
 
 </aside>

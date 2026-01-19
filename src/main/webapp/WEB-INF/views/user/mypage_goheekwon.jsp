@@ -31,47 +31,72 @@
 							<tbody>
 								<tr>
 									<th scope="row">로그인 아이디</th>
-									<td>${user.login_id}</td>
+									<td>${mypage.user.login_id}</td>
 								</tr>
 								<tr>
 									<th scope="row">이름</th>
-									<td>${user.name}</td>
+									<td>${mypage.user.name}</td>
 								</tr>
 								<tr>
 									<th scope="row">생년월일</th>
-									<td>${user.birth_date}</td>
+									<td>${mypage.user.birth_date}</td>
 								</tr>
 								<tr>
 									<th scope="row">이메일</th>
-									<td>${user.email}</td>
+									<td>${mypage.user.email}</td>
 								</tr>
 								<tr>
 									<th scope="row">전화번호</th>
-									<td>${user.phone}</td>
+									<td>${mypage.user.phone}</td>
 								</tr>
 								<tr>
 									<th scope="row">신분</th>
-									<td>${user.role}</td>
+									<td>${mypage.user.role}</td>
 								</tr>
 								<tr>
 									<th scope="row">비밀번호 변경 필요 여부</th>
-									<td>${user.must_change_pw}</td>
+									<td>${mypage.user.must_change_pw}</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
+
+
+				<%-- 1. 기본값 --%>
+				<c:if test="${empty contentPage}">
+					<c:set var="contentPage" value="student" />
+				</c:if>
+
+				<%-- 2. 파라미터로 덮어쓰기 --%>
+				<c:if test="${param.page eq 'semesterScore'}">
+					<c:set var="contentPage" value="semesterScore" />
+				</c:if>
 				
-<!-- 				학생이면 학생정보 페이지 뜸 -->
-<%-- 				<c:if test="${mypage.user.role eq 'STUDENT'}"> --%>
-					<jsp:include page="/WEB-INF/views/include/studentPage.jsp" />
-<%-- 				</c:if> --%>
+				<c:if test="${param.page eq 'totScore'}">
+					<c:set var="contentPage" value="totScore" />
+				</c:if>
+
+				<%-- 3. 실제 화면 출력 --%>
+				<c:choose>
+					<c:when test="${contentPage eq 'student'}">
+						<jsp:include page="/WEB-INF/views/include/studentPage.jsp" />
+					</c:when>
+
+					<c:when test="${contentPage eq 'semesterScore'}">
+						<jsp:include page="/WEB-INF/views/include/semesterScore.jsp" />
+					</c:when>
+					
+					<c:when test="${contentPage eq 'totScore'}">
+						<jsp:include page="/WEB-INF/views/include/totScore.jsp" />
+					</c:when>
+				</c:choose>
 
 
 				<div class="mt-3">
 					<a href="${pageContext.request.contextPath}/user/edit"
-						class="btn btn-primary">정보 수정</a> <a
-						href="${pageContext.request.contextPath}/user/changePassword"
+						class="btn btn-primary">정보 수정</a> 
+					<a href="${pageContext.request.contextPath}/user/changePassword"
 						class="btn btn-warning">비밀번호 변경</a>
 				</div>
 			</main>
