@@ -1,9 +1,11 @@
 package model.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +15,8 @@ import java.util.ArrayList;
 import database.DBConnection;
 import model.dto.LectureDTO;
 import model.dto.LectureScheduleDTO;
+import model.enumtype.LectureStatus;
+import model.enumtype.LectureValidation;
 
 public class LectureDAO {
 	public static final LectureDAO instance = new LectureDAO();
@@ -56,62 +60,9 @@ public class LectureDAO {
 		return 0;
 	}
 
-	// 교수 담당 강의 목록 조회
-	public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
-
-		String sql = """
-				    SELECT
-				        lecture_id,
-				        lecture_title,
-				        lecture_round,
-				        start_date,
-				        end_date,
-				        room,
-				        capacity,
-				        created_at,
-				        updated_at
-				    FROM lectures
-				    WHERE instructor_id = ?
-				    ORDER BY start_date DESC
-				""";
-
-		List<LectureDTO> list = new ArrayList<>();
-
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setLong(1, instructorId);
-
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					LectureDTO lecture = new LectureDTO();
-
-					lecture.setLectureId(rs.getLong("lecture_id"));
-					lecture.setLectureTitle(rs.getString("lecture_title"));
-					lecture.setLectureRound(rs.getInt("lecture_round"));
-
-					lecture.setStartDate(
-							rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null);
-
-					lecture.setEndDate(rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null);
-
-					lecture.setRoom(rs.getString("room"));
-					lecture.setCapacity(rs.getInt("capacity"));
-
-					lecture.setCreatedAt(
-							rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime()
-									: null);
-
-					lecture.setUpdatedAt(
-							rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime()
-									: null);
-
-					list.add(lecture);
-				}
-			}
-		}
-		return list;
-	}
 
 	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
+
 
 		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
 
@@ -126,10 +77,322 @@ public class LectureDAO {
 			e.printStackTrace();
 		}
 	}
+	
+	
+
+    // 교수 담당 강의 목록 : 지윤
+    public List<LectureDTO> selectLecturesByInstructor(
+            Connection conn, long instructorId) throws SQLException {
+
+        String sql = """
+            SELECT
+                lecture_id,
+                lecture_title,
+                lecture_round,
+                section,
+                start_date,
+                end_date,
+                room,
+                capacity,
+                status,
+                validation,
+                created_at,
+                updated_at
+            FROM lecture
+            WHERE user_id = ?
+            ORDER BY start_date DESC
+        """;
+
+        List<LectureDTO> list = new ArrayList<>();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, instructorId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LectureDTO lecture = new LectureDTO();
+
+                    lecture.setLectureId(rs.getLong("lecture_id"));
+                    lecture.setLectureTitle(rs.getString("lecture_title"));
+                    lecture.setLectureRound(rs.getInt("lecture_round"));
+                    lecture.setSection(rs.getString("section"));
+
+                    lecture.setStartDate(
+                        rs.getDate("start_date") != null
+                            ? rs.getDate("start_date").toLocalDate()
+                            : null
+                    );
+
+                    lecture.setEndDate(
+                        rs.getDate("end_date") != null
+                            ? rs.getDate("end_date").toLocalDate()
+                            : null
+                    );
+
+                    lecture.setRoom(rs.getString("room"));
+                    lecture.setCapacity(rs.getInt("capacity"));
+
+                    lecture.setStatus(
+                        LectureStatus.valueOf(rs.getString("status"))
+                    );
+
+                    lecture.setValidation(
+                        LectureValidation.valueOf(rs.getString("validation"))
+                    );
+
+                    lecture.setCreatedAt(
+                        rs.getTimestamp("created_at").toLocalDateTime()
+                    );
+
+                    lecture.setUpdatedAt(
+                        rs.getTimestamp("updated_at").toLocalDateTime()
+                    );
+
+                    list.add(lecture);
+                }
+            }
+        }
+
+        return list;
+    }
+
+    // 강의 상세 조회 : 지윤
+    public LectureDTO selectLectureById(
+            Connection conn, long lectureId) throws SQLException {
+
+        String sql = """
+            SELECT
+                lecture_id,
+                lecture_title,
+                lecture_round,
+                section,
+                user_id,
+                start_date,
+                end_date,
+                room,
+                capacity,
+                status,
+                validation,
+                created_at,
+                updated_at
+            FROM lecture
+            WHERE lecture_id = ?
+        """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, lectureId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) return null;
+
+                LectureDTO lecture = new LectureDTO();
+
+                lecture.setLectureId(rs.getLong("lecture_id"));
+                lecture.setLectureTitle(rs.getString("lecture_title"));
+                lecture.setLectureRound(rs.getInt("lecture_round"));
+                lecture.setSection(rs.getString("section"));
+                lecture.setUserId(rs.getLong("user_id"));
+
+                lecture.setStartDate(
+                    rs.getDate("start_date") != null
+                        ? rs.getDate("start_date").toLocalDate()
+                        : null
+                );
+
+                lecture.setEndDate(
+                    rs.getDate("end_date") != null
+                        ? rs.getDate("end_date").toLocalDate()
+                        : null
+                );
+
+                lecture.setRoom(rs.getString("room"));
+                lecture.setCapacity(rs.getInt("capacity"));
+
+                lecture.setStatus(
+                    LectureStatus.valueOf(rs.getString("status"))
+                );
+
+                lecture.setValidation(
+                    LectureValidation.valueOf(rs.getString("validation"))
+                );
+
+                lecture.setCreatedAt(
+                    rs.getTimestamp("created_at").toLocalDateTime()
+                );
+
+                lecture.setUpdatedAt(
+                    rs.getTimestamp("updated_at").toLocalDateTime()
+                );
+
+                return lecture;
+            }
+        }
+    }
+
 		
 	
 	
+	// ========== 공지사항용 메서드 추가 ==========
 	
+	/**
+	 * 모든 강의 목록 조회 (관리자용)
+	 */
+	public List<LectureDTO> findAll() {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE validation = 'CONFIRMED' " +
+			"ORDER BY lecture_title, lecture_round";
+		
+		List<LectureDTO> list = new ArrayList<>();
+		
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql);
+			 ResultSet rs = pstmt.executeQuery()) {
+			
+			while (rs.next()) {
+				list.add(mapResultSetToDTO(rs));
+			}
+			
+			return list;
+			
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findAll error", e);
+		}
+	}
+
+	/**
+	 * 특정 교수의 강의 목록 조회 (교수용)
+	 */
+	public List<LectureDTO> findByInstructor(Long instructorId) {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE validation = 'CONFIRMED' AND user_id = ? " +
+			"ORDER BY lecture_title, lecture_round";
+		
+		List<LectureDTO> list = new ArrayList<>();
+		
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			
+			pstmt.setLong(1, instructorId);
+			
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToDTO(rs));
+				}
+			}
+			
+			return list;
+			
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findByInstructor error", e);
+		}
+	}
+
+	/**
+	 * 특정 학생이 수강 중인 강의 목록 조회 (학생용)
+	 */
+	public List<LectureDTO> findByStudent(Long studentId) {
+		String sql = 
+			"SELECT l.lecture_id, l.user_id, l.lecture_title, l.lecture_round, " +
+			"       l.start_date, l.end_date, l.status, l.room, l.capacity, " +
+			"       l.created_at, l.updated_at, l.validation, l.section " +
+			"FROM lecture l " +
+			"INNER JOIN enrollments e ON l.lecture_id = e.lecture_id " +
+			"WHERE l.validation = 'CONFIRMED' AND e.user_id = ? AND e.status = 'ACTIVE' " +
+			"ORDER BY l.lecture_title, l.lecture_round";
+		
+		List<LectureDTO> list = new ArrayList<>();
+		
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			
+			pstmt.setLong(1, studentId);
+			
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToDTO(rs));
+				}
+			}
+			
+			return list;
+			
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findByStudent error", e);
+		}
+	}
+
+	/**
+	 * 강의 ID로 강의 정보 조회
+	 */
+	public LectureDTO findById(Long lectureId) {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE lecture_id = ?";
+		
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			
+			pstmt.setLong(1, lectureId);
+			
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					return mapResultSetToDTO(rs);
+				}
+			}
+			
+			return null;
+			
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findById error", e);
+		}
+	}
+
+	/**
+	 * ResultSet을 LectureDTO로 매핑
+	 */
+	private LectureDTO mapResultSetToDTO(ResultSet rs) throws SQLException {
+		LectureDTO dto = new LectureDTO();
+		
+		dto.setLectureId(rs.getLong("lecture_id"));
+		dto.setUserId(rs.getLong("user_id"));
+		dto.setLectureTitle(rs.getString("lecture_title"));
+		dto.setLectureRound(rs.getInt("lecture_round"));
+		
+		// Date -> LocalDate 변환
+		Date startDate = rs.getDate("start_date");
+		Date endDate = rs.getDate("end_date");
+		dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
+		dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
+		
+		// String -> Enum 변환
+		String statusStr = rs.getString("status");
+		dto.setStatus(statusStr != null ? LectureStatus.valueOf(statusStr) : null);
+		
+		String validationStr = rs.getString("validation");
+		dto.setValidation(validationStr != null ? LectureValidation.valueOf(validationStr) : null);
+		
+		dto.setRoom(rs.getString("room"));
+		dto.setCapacity(rs.getInt("capacity"));
+		dto.setSection(rs.getString("section"));
+		
+		// Timestamp -> LocalDateTime 변환
+		Timestamp createdAt = rs.getTimestamp("created_at");
+		Timestamp updatedAt = rs.getTimestamp("updated_at");
+		dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
+		dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
+		
+		return dto;
+	}
 	
 	
 	

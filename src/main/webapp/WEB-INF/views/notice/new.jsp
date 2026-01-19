@@ -29,10 +29,11 @@
                                 <label for="lectureId" class="form-label">공지 대상</label>
                                 <select class="form-select" id="lectureId" name="lectureId">
                                     <option value="">전체 공지 (모든 사용자)</option>
-                                    <!-- 실제로는 DB에서 강의 목록 조회해서 출력 -->
-                                    <option value="1" ${lectureId == 1 ? 'selected' : ''}>자바 프로그래밍</option>
-                                    <option value="2" ${lectureId == 2 ? 'selected' : ''}>데이터베이스</option>
-                                    <option value="3" ${lectureId == 3 ? 'selected' : ''}>웹 프로그래밍</option>
+									 	<c:forEach var="lec" items="${lectureList}">
+									        <option value="${lec.lectureId}">
+									            ${lec.lectureTitle}
+									        </option>
+									    </c:forEach>
                                 </select>
                                 <small class="form-text text-muted">
                                     전체 공지는 모든 사용자에게 표시되며, 강의 선택 시 해당 강의 수강생에게만 표시됩니다.

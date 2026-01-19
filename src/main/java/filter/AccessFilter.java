@@ -73,4 +73,3 @@ public class AccessFilter extends HttpFilter implements Filter {
     @Override
     public void destroy() {}
 }
-

@@ -22,23 +22,24 @@ public class UserDAO {
 		return instance;
 	}
 	
-	public UserDTO SelectUsersById(String id) {
+	public UserDTO SelectUsersById(String Id) {
 		String sql = "SELECT * FROM users WHERE login_id = ?";
 		UserDTO userDTO = new UserDTO();
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, id);
+			pstmt.setString(1, Id);
 			ResultSet rs = pstmt.executeQuery();
 
 			if(rs.next()) {
-				userDTO.setLogin_id(rs.getString("login_id"));
+				userDTO.setUserId(rs.getInt("user_id"));
+				userDTO.setLoginId(rs.getString("login_id"));
 				userDTO.setPassword(rs.getString("password_hash"));
 				userDTO.setName(rs.getString("name"));
 				
 				String genderStr = rs.getString("gender"); 
 				userDTO.setGender(Gender.valueOf(genderStr));
 				
-				userDTO.setBirth_date(rs.getDate("birth_date").toLocalDate());
+				userDTO.setBirthDate(rs.getDate("birth_date").toLocalDate());
 				userDTO.setEmail(rs.getString("email"));
 				userDTO.setPhone(rs.getString("phone"));
 				userDTO.setAddress(rs.getString("address"));
@@ -51,8 +52,8 @@ public class UserDAO {
 				
 				userDTO.setMustChangePw(rs.getBoolean("must_change_pw"));
 				
-				userDTO.setCreated_at(rs.getTimestamp("created_at").toLocalDateTime());
-				userDTO.setUpdated_at(rs.getTimestamp("updated_at").toLocalDateTime());
+				userDTO.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+				userDTO.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
 			}
 			return userDTO;
 		} catch (SQLException | ClassNotFoundException e) {
@@ -68,10 +69,10 @@ public class UserDAO {
 				
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, userDTO.getLogin_id());
+			pstmt.setString(1, userDTO.getLoginId());
 			pstmt.setString(2, userDTO.getPassword());
 			pstmt.setString(3, userDTO.getName());
-			pstmt.setObject(4, userDTO.getBirth_date());
+			pstmt.setObject(4, userDTO.getBirthDate());
 			pstmt.setString(5, userDTO.getEmail());
 			pstmt.setString(6, userDTO.getPhone());
 			pstmt.setString(7, userDTO.getRole().toString());

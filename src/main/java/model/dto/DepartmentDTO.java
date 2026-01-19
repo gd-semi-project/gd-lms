@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class DepartmentDTO {
-	private int departmentId;
+	private Long departmentId;
 	private String departmentName;	// 부서/전공
 }

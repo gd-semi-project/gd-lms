@@ -13,8 +13,8 @@ import model.enumtype.LectureValidation;
 @Data
 public class LectureDTO {
 
-	private long lectureId;
-	private long userId;
+	private Long lectureId;
+	private Long userId;
 	private String lectureTitle;
 	private int lectureRound;
 	private LocalDate startDate;

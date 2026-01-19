@@ -57,11 +57,11 @@ public class LoginController extends HttpServlet {
 			}
 		} else if (action.equals("/registUser.do")) {
 			UserDTO userDTO = new UserDTO();
-			userDTO.setLogin_id(request.getParameter("loginId"));
+			userDTO.setLoginId(request.getParameter("loginId"));
 			userDTO.setPassword(request.getParameter("password"));
 			userDTO.setName(request.getParameter("name"));
 			userDTO.setEmail(request.getParameter("enail"));
-			userDTO.setBirth_date(LocalDate.parse(request.getParameter("birthDate")));
+			userDTO.setBirthDate(LocalDate.parse(request.getParameter("birthDate")));
 			
 			Role role = Role.fromLabel(request.getParameter("role"));
 			userDTO.setRole(role);
@@ -69,7 +69,7 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 			ls.RegistUser(userDTO);
 			
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+			response.sendRedirect("/WEB-INF/views/user/index_goheekwon.jsp");
 		}
 	}
 

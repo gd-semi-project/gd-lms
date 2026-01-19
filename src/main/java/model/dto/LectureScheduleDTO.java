@@ -14,8 +14,8 @@ import model.enumtype.Week;
 @AllArgsConstructor
 @Data
 public class LectureScheduleDTO {
-	private int scheduleId;
-	private int lectureId;
+	private long scheduleId;
+	private long lectureId;
 	private Week weekDay;
 	private LocalTime startTime;
 	private LocalTime endTime;
