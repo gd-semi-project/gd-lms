@@ -60,6 +60,61 @@ public class LectureDAO {
 		return 0;
 	}
 
+	// 교수 담당 강의 목록 조회
+	public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
+
+
+		String sql = """
+				    SELECT
+				        lecture_id,
+				        lecture_title,
+				        lecture_round,
+				        start_date,
+				        end_date,
+				        room,
+				        capacity,
+				        created_at,
+				        updated_at
+				    FROM lecture
+				    WHERE instructor_id = ?
+				    ORDER BY start_date DESC
+				""";
+
+		List<LectureDTO> list = new ArrayList<>();
+
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setLong(1, instructorId);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					LectureDTO lecture = new LectureDTO();
+
+					lecture.setLectureId(rs.getLong("lecture_id"));
+					lecture.setLectureTitle(rs.getString("lecture_title"));
+					lecture.setLectureRound(rs.getInt("lecture_round"));
+
+					lecture.setStartDate(
+							rs.getDate("start_date") != null ? rs.getDate("start_date").toLocalDate() : null);
+
+					lecture.setEndDate(rs.getDate("end_date") != null ? rs.getDate("end_date").toLocalDate() : null);
+
+					lecture.setRoom(rs.getString("room"));
+					lecture.setCapacity(rs.getInt("capacity"));
+
+					lecture.setCreatedAt(
+							rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime()
+									: null);
+
+					lecture.setUpdatedAt(
+							rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime()
+									: null);
+
+					list.add(lecture);
+				}
+			}
+		}
+		return list;
+	}
 
 	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
 
