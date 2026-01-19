@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
 import service.NoticeService;
 
@@ -20,7 +21,6 @@ public class NoticeController extends HttpServlet {
 
     private final NoticeService noticeService = new NoticeService();
 
-    // Layout & Content 경로 상수 (사용자 입력 금지)
     private static final String LAYOUT_PAGE = "/WEB-INF/views/layout/layout.jsp";
     private static final String NOTICE_LIST = "/WEB-INF/views/notice/list.jsp";
     private static final String NOTICE_VIEW = "/WEB-INF/views/notice/view.jsp";
@@ -33,8 +33,6 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-
-        // ✅ DEV ONLY: 로그인 구현 전까지 임시 세션 주입
         injectDevLogin(req);
 
         String action = resolveAction(req);
@@ -57,7 +55,6 @@ public class NoticeController extends HttpServlet {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (NoticeService.AccessDeniedException e) {
-            // 권한 없음 에러 처리
             req.setAttribute("errorMessage", e.getMessage());
             forwardLayout(req, resp, ERROR_403);
         }
@@ -68,8 +65,6 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-
-        // ✅ DEV ONLY: 로그인 구현 전까지 임시 세션 주입
         injectDevLogin(req);
 
         String action = resolveAction(req);
@@ -89,7 +84,6 @@ public class NoticeController extends HttpServlet {
                     resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (NoticeService.AccessDeniedException e) {
-            // 권한 없음 에러 처리
             req.setAttribute("errorMessage", e.getMessage());
             forwardLayout(req, resp, ERROR_403);
         }
@@ -97,54 +91,58 @@ public class NoticeController extends HttpServlet {
 
     // ========== GET Handlers ==========
 
-    /**
-     * 공지사항 목록 조회
-     * - 검색 파라미터: items (title/content/all), text (검색어)
-     * - 페이징: page, size
-     * - 필터: lectureId (null이면 전체 공지, 있으면 특정 강의 공지)
-     */
     private void handleList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // 검색 조건 파라미터
         String items = trimToNull(req.getParameter("items"));
         String text  = trimToNull(req.getParameter("text"));
+        
+        // 탭 구분: "all" (전체 공지만), "lecture" (강의 공지만)
+        String tabType = trimToNull(req.getParameter("tabType"));
+        if (tabType == null) tabType = "all"; // 기본값: 전체 공지 탭
 
-        // items 값 검증 (허용된 값만)
         if (items != null && !items.equals("title") && 
             !items.equals("content") && !items.equals("all")) {
             items = null;
         }
 
-        // 페이징 파라미터
         int page = parseInt(req.getParameter("page"), 1, 1, 1_000_000);
         int size = parseInt(req.getParameter("size"), 10, 1, 100);
 
-        // 강의 필터
         Long lectureId = parseLongNullable(req.getParameter("lectureId"));
 
         int limit = size;
         int offset = (page - 1) * size;
 
-        // 세션에서 사용자 정보 가져오기
         Long userId = getLoginUserId(req.getSession(false));
         String role = getLoginRole(req.getSession(false));
 
         int totalCount;
         List<NoticeDTO> list;
 
-        // lectureId가 null이면 전체 공지, 있으면 특정 강의 공지
-        if (lectureId == null) {
-            totalCount = noticeService.countAll(items, text, userId, role);
-            list = noticeService.findPageAll(limit, offset, items, text, userId, role);
+        // 탭 타입에 따라 조회
+        if ("all".equals(tabType)) {
+            // 전체 공지사항 탭: lectureId가 NULL인 것만
+            totalCount = noticeService.countAllNotices(items, text, userId, role);
+            list = noticeService.findPageAllNotices(limit, offset, items, text, userId, role);
         } else {
-            totalCount = noticeService.countByLecture(lectureId, items, text, userId, role);
-            list = noticeService.findPageByLecture(lectureId, limit, offset, items, text, userId, role);
+            // 강의 공지사항 탭
+            if (lectureId == null) {
+                // 특정 강의 선택 안 함 → 모든 강의 공지 표시
+                totalCount = noticeService.countAllLectureNotices(items, text, userId, role);
+                list = noticeService.findPageAllLectureNotices(limit, offset, items, text, userId, role);
+            } else {
+                // 특정 강의 선택 → 해당 강의 공지만
+                totalCount = noticeService.countByLecture(lectureId, items, text, userId, role);
+                list = noticeService.findPageByLecture(lectureId, limit, offset, items, text, userId, role);
+            }
         }
 
         int totalPages = (int) Math.ceil(totalCount / (double) size);
 
-        // JSP로 전달할 속성 설정
+        // 사용자의 강의 목록 조회 (탭 표시용)
+        List<LectureDTO> userLectures = noticeService.getUserLectures(userId, role);
+
         req.setAttribute("noticeList", list);
         req.setAttribute("totalCount", totalCount);
         req.setAttribute("page", page);
@@ -153,15 +151,12 @@ public class NoticeController extends HttpServlet {
         req.setAttribute("lectureId", lectureId);
         req.setAttribute("items", items);
         req.setAttribute("text", text);
+        req.setAttribute("tabType", tabType);
+        req.setAttribute("userLectures", userLectures); // 강의 목록
 
         forwardLayout(req, resp, NOTICE_LIST);
     }
 
-    /**
-     * 공지사항 상세 조회
-     * - 조회수 증가
-     * - 학생은 수강 중인 강의의 공지만 접근 가능
-     */
     private void handleView(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -186,27 +181,21 @@ public class NoticeController extends HttpServlet {
         forwardLayout(req, resp, NOTICE_VIEW);
     }
 
-    /**
-     * 공지사항 작성 폼
-     * - ADMIN: 전체 공지 + 강의 공지 모두 가능
-     * - INSTRUCTOR: 강의 공지만 가능
-     * - STUDENT: 접근 불가
-     */
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        Long lectureId = parseLongNullable(req.getParameter("lectureId"));
-        req.setAttribute("lectureId", lectureId);
+        Long userId = getLoginUserId(req.getSession(false));
+        String role = getLoginRole(req.getSession(false));
+
+        // 작성 가능한 강의 목록 조회
+        List<LectureDTO> lectureList = noticeService.getAvailableLectures(userId, role);
+        
+        req.setAttribute("lectureList", lectureList);
+        req.setAttribute("role", role);
 
         forwardLayout(req, resp, NOTICE_NEW);
     }
 
-    /**
-     * 공지사항 수정 폼
-     * - ADMIN: 모든 공지 수정 가능
-     * - INSTRUCTOR: 본인이 작성한 강의 공지만
-     * - STUDENT: 접근 불가
-     */
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -231,18 +220,22 @@ public class NoticeController extends HttpServlet {
         forwardLayout(req, resp, NOTICE_EDIT);
     }
 
-    // ========== POST Handlers (PRG Pattern) ==========
+    // ========== POST Handlers ==========
 
-    /**
-     * 공지사항 생성
-     */
     private void handleCreate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         Long userId = getLoginUserId(req.getSession(false));
         String role = getLoginRole(req.getSession(false));
 
-        Long lectureId = parseLongNullable(req.getParameter("lectureId"));
+        // noticeScope로 전체/강의 구분
+        String noticeScope = trimToNull(req.getParameter("noticeScope"));
+        Long lectureId = null;
+        
+        if ("lecture".equals(noticeScope)) {
+            lectureId = parseLongNullable(req.getParameter("lectureId"));
+        }
+
         String noticeType = trimToNull(req.getParameter("noticeType"));
         String title = trimToNull(req.getParameter("title"));
         String content = trimToNull(req.getParameter("content"));
@@ -256,15 +249,11 @@ public class NoticeController extends HttpServlet {
 
         long newId = noticeService.createNotice(dto, userId, role);
 
-        // PRG 패턴: 생성 후 상세 페이지로 리다이렉트
         resp.sendRedirect(buildRedirectUrl(req, "/notice/view",
                 "noticeId", String.valueOf(newId),
                 "lectureId", lectureId == null ? null : String.valueOf(lectureId)));
     }
 
-    /**
-     * 공지사항 수정
-     */
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -293,15 +282,11 @@ public class NoticeController extends HttpServlet {
 
         noticeService.updateNotice(dto, userId, role);
 
-        // PRG 패턴: 수정 후 상세 페이지로 리다이렉트
         resp.sendRedirect(buildRedirectUrl(req, "/notice/view",
                 "noticeId", String.valueOf(noticeId),
                 "lectureId", lectureId == null ? null : String.valueOf(lectureId)));
     }
 
-    /**
-     * 공지사항 삭제
-     */
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -318,12 +303,11 @@ public class NoticeController extends HttpServlet {
 
         noticeService.deleteNotice(noticeId, lectureId, userId, role);
 
-        // PRG 패턴: 삭제 후 목록 페이지로 리다이렉트
         resp.sendRedirect(buildRedirectUrl(req, "/notice/list",
                 "lectureId", lectureId == null ? null : String.valueOf(lectureId)));
     }
 
-    // ========== Layout Helper ==========
+    // ========== Helpers ==========
 
     private void forwardLayout(HttpServletRequest req, HttpServletResponse resp, String contentPage)
             throws ServletException, IOException {
@@ -331,26 +315,14 @@ public class NoticeController extends HttpServlet {
         req.getRequestDispatcher(LAYOUT_PAGE).forward(req, resp);
     }
 
-    // ========== DEV Login Helper ==========
-
-    /**
-     * 개발용 임시 로그인 세션 주입
-     * 실제 프로덕션에서는 제거 필요!
-     */
     private void injectDevLogin(HttpServletRequest req) {
         HttpSession s = req.getSession(true);
         if (s.getAttribute("userId") == null) {
-            // 테스트용 계정 설정 (필요에 따라 변경)
-            s.setAttribute("userId", 1L);      // 관리자
+            s.setAttribute("userId", 1L);
             s.setAttribute("role", "ADMIN");
             s.setAttribute("userName", "DEV-ADMIN");
-            
-            // 교수 테스트: userId=2, role=INSTRUCTOR
-            // 학생 테스트: userId=4, role=STUDENT
         }
     }
-
-    // ========== Helper Methods ==========
 
     private String resolveAction(HttpServletRequest req) {
         String path = req.getPathInfo();

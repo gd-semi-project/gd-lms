@@ -1,4 +1,4 @@
-    <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -9,35 +9,70 @@
         <div class="col-md-12">
             <h2 class="mb-4">
                 <c:choose>
-                    <c:when test="${empty lectureId}">📢 전체 공지사항</c:when>
-                    <c:otherwise>📚 강의 공지사항</c:otherwise>
+                    <c:when test="${tabType == 'all'}">📢 전체 공지사항</c:when>
+                    <c:otherwise>
+                        <c:choose>
+                            <c:when test="${empty lectureId}">📚 모든 강의 공지사항</c:when>
+                            <c:otherwise>📚 강의 공지사항</c:otherwise>
+                        </c:choose>
+                    </c:otherwise>
                 </c:choose>
             </h2>
 
-            <!-- 탭 메뉴: 전체 공지 / 강의별 공지 -->
+            <!-- 탭 메뉴: 전체 공지 / 강의 공지 -->
             <ul class="nav nav-tabs mb-3">
+                <!-- 전체 공지사항 탭 -->
                 <li class="nav-item">
-                    <a class="nav-link ${empty lectureId ? 'active' : ''}" 
-                       href="${ctx}/notice/list">전체 공지사항</a>
+                    <a class="nav-link ${tabType == 'all' ? 'active' : ''}" 
+                       href="${ctx}/notice/list?tabType=all">
+                        📢 전체 공지사항
+                    </a>
                 </li>
-                <!-- 
-                    실제 구현 시: 사용자가 수강/담당하는 강의 목록을 동적으로 출력
-                    여기서는 예시로 고정된 강의 표시
-                -->
-                <c:if test="${role == 'INSTRUCTOR' || role == 'STUDENT'}">
-                    <li class="nav-item">
-                        <a class="nav-link ${lectureId == 1 ? 'active' : ''}" 
-                           href="${ctx}/notice/list?lectureId=1">자바 프로그래밍</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link ${lectureId == 2 ? 'active' : ''}" 
-                           href="${ctx}/notice/list?lectureId=2">데이터베이스</a>
-                    </li>
-                </c:if>
+                
+                <!-- 강의 공지사항 탭 -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle ${tabType == 'lecture' ? 'active' : ''}" 
+                       href="#" role="button" data-bs-toggle="dropdown">
+                        📚 강의 공지사항
+                    </a>
+                    <ul class="dropdown-menu">
+                        <!-- 모든 강의 공지 -->
+                        <li>
+                            <a class="dropdown-item ${tabType == 'lecture' && empty lectureId ? 'active' : ''}" 
+                               href="${ctx}/notice/list?tabType=lecture">
+                                전체 강의 공지
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <!-- 사용자별 강의 목록 -->
+                        <c:choose>
+                            <c:when test="${not empty userLectures}">
+                                <c:forEach var="lecture" items="${userLectures}">
+                                    <li>
+                                        <a class="dropdown-item ${lectureId == lecture.lectureId ? 'active' : ''}" 
+                                           href="${ctx}/notice/list?tabType=lecture&lectureId=${lecture.lectureId}">
+                                            ${lecture.lectureTitle} (${lecture.lectureRound}차)
+                                            <c:if test="${not empty lecture.section}"> - ${lecture.section}분반</c:if>
+                                        </a>
+                                    </li>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <li><span class="dropdown-item-text text-muted">강의가 없습니다</span></li>
+                            </c:otherwise>
+                        </c:choose>
+                    </ul>
+                </li>
             </ul>
 
             <!-- 검색 폼 -->
             <form method="get" action="${ctx}/notice/list" class="mb-4">
+                <input type="hidden" name="tabType" value="${tabType}">
+                <c:if test="${not empty lectureId}">
+                    <input type="hidden" name="lectureId" value="${lectureId}">
+                </c:if>
+                
                 <div class="row g-2">
                     <div class="col-auto">
                         <select name="items" class="form-select">
@@ -53,17 +88,13 @@
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary">🔍 검색</button>
                     </div>
-                    <c:if test="${not empty lectureId}">
-                        <input type="hidden" name="lectureId" value="${lectureId}">
-                    </c:if>
                 </div>
             </form>
 
             <!-- 작성 버튼 (관리자/교수만) -->
             <c:if test="${role == 'ADMIN' || role == 'INSTRUCTOR'}">
                 <div class="text-end mb-3">
-                    <a href="${ctx}/notice/new${not empty lectureId ? '?lectureId='.concat(lectureId) : ''}" 
-                       class="btn btn-success">✏️ 새 공지 작성</a>
+                    <a href="${ctx}/notice/new" class="btn btn-success">✏️ 새 공지 작성</a>
                 </div>
             </c:if>
 
@@ -104,7 +135,7 @@
                                             </c:choose>
                                         </td>
                                         <td>
-                                            <a href="${ctx}/notice/view?noticeId=${notice.noticeId}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}" 
+                                            <a href="${ctx}/notice/view?noticeId=${notice.noticeId}${not empty notice.lectureId ? '&lectureId='.concat(notice.lectureId) : ''}" 
                                                class="text-decoration-none">
                                                 <c:out value="${notice.title}" />
                                             </a>
@@ -112,7 +143,6 @@
                                         <td class="text-center">${notice.authorId}</td>
                                         <td class="text-center">${notice.viewCount}</td>
                                         <td class="text-center">
-                                            <%-- LocalDateTime을 문자열로 포맷 --%>
                                             <c:set var="dateStr" value="${notice.createdAt.toString()}" />
                                             ${fn:substring(dateStr, 0, 10)}
                                         </td>
@@ -129,7 +159,7 @@
                             <c:if test="${page > 1}">
                                 <li class="page-item">
                                     <a class="page-link" 
-                                       href="${ctx}/notice/list?page=${page-1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                       href="${ctx}/notice/list?tabType=${tabType}&page=${page-1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
                                         이전
                                     </a>
                                 </li>
@@ -140,7 +170,7 @@
                                        end="${page + 2 > totalPages ? totalPages : page + 2}">
                                 <li class="page-item ${i == page ? 'active' : ''}">
                                     <a class="page-link" 
-                                       href="${ctx}/notice/list?page=${i}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                       href="${ctx}/notice/list?tabType=${tabType}&page=${i}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
                                         ${i}
                                     </a>
                                 </li>
@@ -150,7 +180,7 @@
                             <c:if test="${page < totalPages}">
                                 <li class="page-item">
                                     <a class="page-link" 
-                                       href="${ctx}/notice/list?page=${page+1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
+                                       href="${ctx}/notice/list?tabType=${tabType}&page=${page+1}&size=${size}${not empty lectureId ? '&lectureId='.concat(lectureId) : ''}${not empty items ? '&items='.concat(items) : ''}${not empty text ? '&text='.concat(text) : ''}">
                                         다음
                                     </a>
                                 </li>
@@ -172,4 +202,8 @@
     .badge { font-size: 0.85rem; }
     .table td { vertical-align: middle; }
     .pagination { margin-top: 2rem; }
+    .dropdown-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
 </style>
