@@ -116,8 +116,6 @@
 					          action="${pageContext.request.contextPath}/admin/lectureRequest?action=CANCELED"
 					          class="m-0">
 					      <input type="hidden" name="lectureId" value="${r.lectureId}">
-					      <input type="text" name="reason" class="form-control form-control-sm"
-					             placeholder="반려 사유(선택)">
 					      <button type="submit" class="btn btn-sm btn-danger"
 					              onclick="return confirm('반려하시겠습니까?');">
 					        반려
