@@ -1,21 +1,20 @@
-CREATE TABLE student (
-    student_id BIGINT AUTO_INCREMENT PRIMARY KEY,   -- PK
+CREATE TABLE IF NOT EXISTS student (
+    student_id BIGINT AUTO_INCREMENT PRIMARY KEY,  
 
-    department_id BIGINT NOT NULL,                   -- 학과
-    user_id BIGINT NOT NULL,                         -- user 테이블 FK
+    department_id BIGINT NOT NULL,                  
+    user_id BIGINT NOT NULL,                        
 
-    student_number INT NOT NULL UNIQUE,              -- 학번
-    student_grade INT,                               -- 학년
+    student_number INT NOT NULL UNIQUE,             
+    student_grade INT,                              
 
-    status ENUM('학부','대학원') NOT NULL,           -- 학부상태
+    status ENUM('학부','대학원') NOT NULL,           
     student_status ENUM('재학','휴학','졸업') 
-                   NOT NULL DEFAULT '재학',          -- 학적상태
+                   NOT NULL DEFAULT '재학',       
 
-    enroll_date DATETIME,                            -- 입학일
-    end_date DATETIME,                               -- 졸업일
-    tuition_account VARCHAR(255),                    -- 등록금 계좌
+    enroll_date DATETIME,                           
+    end_date DATETIME,                               
+    tuition_account VARCHAR(255),                   
 
-    -- FK 설정
     CONSTRAINT fk_student_user
         FOREIGN KEY (user_id) 
         REFERENCES `user`(user_id),
@@ -25,10 +24,38 @@ CREATE TABLE student (
         REFERENCES department(department_id)
 );
 
-INSERT INTO `user`
-(login_id, password_hash, name, gender, email, phone, birth_date, role, status)
-VALUES
-('student01', 'hashed_pw_01', '김학생', 'M', 'student01@test.com', '010-1111-1111', '2002-03-15', 'STUDENT', 'ACTIVE'),
-('student02', 'hashed_pw_02', '이학생', 'F', 'student02@test.com', '010-2222-2222', '2001-07-21', 'STUDENT', 'ACTIVE'),
-('student03', 'hashed_pw_03', '박학생', 'M', 'student03@test.com', '010-3333-3333', '2000-12-05', 'STUDENT', 'ACTIVE');
-
+INSERT INTO student
+(
+  department_id,
+  user_id,
+  student_number,
+  student_grade,
+  status,
+  student_status,
+  enroll_date,
+  end_date,
+  tuition_account
+)
+SELECT
+  d.department_id,
+  u.user_id,
+  20260000 + u.user_id              AS student_number,
+  1 + ((u.user_id - 1) % 4)         AS student_grade,
+  '학부'                            AS status,
+  CASE
+    WHEN u.user_id % 10 = 0 THEN '휴학'
+    ELSE '재학'
+  END                               AS student_status,
+  DATE_ADD('2022-03-01', INTERVAL (u.user_id % 4) YEAR) AS enroll_date,
+  NULL                              AS end_date,
+  CONCAT('110-', LPAD(u.user_id, 3, '0'), '-567890') AS tuition_account
+FROM
+  (SELECT user_id FROM `user` WHERE user_id BETWEEN 1 AND 70 ORDER BY user_id) u
+JOIN
+  (
+    SELECT
+      department_id,
+      ROW_NUMBER() OVER (ORDER BY department_id) AS rn
+    FROM department
+  ) d
+  ON d.rn = ((u.user_id - 1) % (SELECT COUNT(*) FROM department)) + 1;
