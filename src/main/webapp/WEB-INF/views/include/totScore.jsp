@@ -18,9 +18,6 @@
 						<th>학기</th>
 						<th>교과목 코드</th>
 						<th>교과목명</th>
-						<th>이수구분</th>
-						<th>신청학점</th>
-						<th>취득학점</th>
 						<th>점수</th>
 						<th>등급</th>
 						<th>평점</th>
@@ -29,17 +26,14 @@
 				<tbody>
 					<c:forEach var="score" items="${scoreList}" varStatus="status">
 						<tr>
-							<td>${status.count}</td>
-							<td>${score.year}</td>
-							<td>${score.semester}</td>
-							<td>${score.subjectCode}</td>
-							<td class="text-start">${score.subjectName}</td>
-							<td>${score.type}</td>
-							<td>${score.applyCredit}</td>
-							<td>${score.earnedCredit}</td>
-							<td>${score.score}</td>
-							<td>${score.grade}</td>
-							<td>${score.gpa}</td>
+							<td>${순번값}</td>
+							<td>${학년도값}</td>
+							<td>${학기값}</td>
+							<td>${교과목코드값}</td>
+							<td>${교과목명값}</td>
+							<td>${점수값}</td>
+							<td>${등급값}</td>
+							<td>${평점값}</td>
 						</tr>
 					</c:forEach>
 					<!-- 데이터 없을 때 -->

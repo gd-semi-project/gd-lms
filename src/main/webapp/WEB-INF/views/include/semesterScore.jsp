@@ -18,27 +18,29 @@
           <th>No</th>
           <th>학년도</th>
           <th>학기</th>
-          <th>신청<br/>학점</th>
-          <th>취득<br/>학점</th>
-          <th>합계<br/>평점</th>
-          <th>평점<br/>평균</th>
-          <th>총<br/>점수</th>
-          <th>100점<br/>환산점수</th>
+          <th>과목명</th>
+          <th>중간점수</th>
+          <th>기말점수</th>
+          <th>과제점수</th>
+          <th>출석점수</th>
+          <th>환산점수</th>
+          <th>등급</th>
         </tr>
       </thead>
 
       <tbody>
         <c:forEach var="score" items="${scoreList}" varStatus="st">
           <tr>
-            <td>${st.index + 1}</td>
-            <td>${score.year}학년도</td>
-            <td>${score.semester}학기</td>
-            <td>${score.applyCredit}</td>
-            <td>${score.earnedCredit}</td>
-            <td>${score.totalGrade}</td>
-            <td>${score.avgGrade}</td>
-            <td>${score.totalScore}</td>
-            <td>${score.convertedScore}</td>
+            <td>${순번값}</td>
+            <td>${학년값}학년도</td>
+            <td>${학기값}학기</td>
+            <td>${과목명값}</td>
+            <td>${중간점수값}</td>
+            <td>${기말점수값}</td>
+            <td>${과제점수값}</td>
+            <td>${출석점수값}</td>
+            <td>${환산점수값}</td>
+            <td>${등급값}</td>
           </tr>
         </c:forEach>
 
