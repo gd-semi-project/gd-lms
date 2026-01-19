@@ -10,15 +10,12 @@ import model.dto.NoticeDTO;
 
 public class NoticeDAO {
 	
-	// 싱글톤 패턴
     private static final NoticeDAO instance = new NoticeDAO();
     private NoticeDAO() {}
     public static NoticeDAO getInstance() { return instance; }
 
-    // 검색 허용 컬럼만
     private static final Set<String> ALLOWED_ITEMS = Set.of("title", "content", "notice_type", "all");
     
-    // 검색 조건 생성 헬퍼
     private String buildSearchCondition(String items) {
         if ("all".equals(items)) {
             return "(title LIKE ? OR content LIKE ?)";
@@ -26,17 +23,15 @@ public class NoticeDAO {
         return items + " LIKE ?";
     }
     
-    // 검색 조건 유효성 검증
     private boolean isValidSearch(String items, String text) {
         return items != null && text != null
                 && !items.isBlank() && !text.isBlank()
                 && ALLOWED_ITEMS.contains(items);
     }
     
-    // 조회수 증가
     public int increaseViewCount(Connection conn, long noticeId) throws SQLException {
         String sql =
-            "UPDATE notices " +
+            "UPDATE notice " +  // ✅ 수정
             "SET view_count = view_count + 1 " +
             "WHERE notice_id = ? AND is_deleted = 'N'";
 
@@ -46,13 +41,13 @@ public class NoticeDAO {
         }
     }
 
-    // ========== 전체 공지사항 조회 (관리자/교수용) ==========
+    // ========== 전체 공지사항만 (lectureId = NULL) ==========
     
-    public int countAll(String items, String text) {
+    public int countOnlyGlobalNotices(String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
-            "FROM notices " +
-            "WHERE is_deleted = 'N'"
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NULL"
         );
 
         boolean hasSearch = isValidSearch(items, text);
@@ -77,16 +72,16 @@ public class NoticeDAO {
                 return rs.next() ? rs.getInt("cnt") : 0;
             }
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.countAll error", e);
+            throw new RuntimeException("NoticeDAO.countOnlyGlobalNotices error", e);
         }
     }
 
-    public List<NoticeDTO> findPageAll(int limit, int offset, String items, String text) {
+    public List<NoticeDTO> findPageOnlyGlobalNotices(int limit, int offset, String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
             "created_at, updated_at, view_count " +
-            "FROM notices " +
-            "WHERE is_deleted = 'N'"
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NULL"
         );
 
         boolean hasSearch = isValidSearch(items, text);
@@ -122,21 +117,100 @@ public class NoticeDAO {
             return list;
 
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.findPageAll error", e);
+            throw new RuntimeException("NoticeDAO.findPageOnlyGlobalNotices error", e);
         }
     }
 
-    // ========== 학생용 전체 공지사항 조회 (전체공지 + 본인 수강강의 공지만) ==========
+    // ========== 모든 강의 공지사항 (lectureId != NULL) ==========
     
-    public int countAllForStudent(Long userId, String items, String text) {
+    // ADMIN용: 모든 강의 공지
+    public int countAllLectureNotices(String items, String text) {
         StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(*) AS cnt FROM notices " +
-            "WHERE is_deleted = 'N' AND (" +
-            "  lecture_id IS NULL " +  // 전체 공지
-            "  OR lecture_id IN (" +     // 또는 본인이 수강하는 강의의 공지
-            "    SELECT lecture_id FROM enrollments " +
-            "    WHERE user_id = ? AND status = 'ACTIVE'" +
-            "  )" +
+            "SELECT COUNT(*) AS cnt " +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL"
+        );
+
+        boolean hasSearch = isValidSearch(items, text);
+        if (hasSearch) {
+            sql.append(" AND ").append(buildSearchCondition(items));
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            if (hasSearch) {
+                if ("all".equals(items)) {
+                    pstmt.setString(idx++, "%" + text + "%");
+                    pstmt.setString(idx, "%" + text + "%");
+                } else {
+                    pstmt.setString(idx, "%" + text + "%");
+                }
+            }
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() ? rs.getInt("cnt") : 0;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("NoticeDAO.countAllLectureNotices error", e);
+        }
+    }
+
+    public List<NoticeDTO> findPageAllLectureNotices(int limit, int offset, String items, String text) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
+            "created_at, updated_at, view_count " +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL"
+        );
+
+        boolean hasSearch = isValidSearch(items, text);
+        if (hasSearch) {
+            sql.append(" AND ").append(buildSearchCondition(items));
+        }
+
+        sql.append(" ORDER BY created_at DESC LIMIT ? OFFSET ?");
+
+        List<NoticeDTO> list = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            if (hasSearch) {
+                if ("all".equals(items)) {
+                    pstmt.setString(idx++, "%" + text + "%");
+                    pstmt.setString(idx++, "%" + text + "%");
+                } else {
+                    pstmt.setString(idx++, "%" + text + "%");
+                }
+            }
+
+            pstmt.setInt(idx++, limit);
+            pstmt.setInt(idx, offset);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToDTO(rs));
+                }
+            }
+            return list;
+
+        } catch (Exception e) {
+            throw new RuntimeException("NoticeDAO.findPageAllLectureNotices error", e);
+        }
+    }
+
+    // STUDENT용: 본인이 수강하는 강의 공지만
+    public int countAllLectureNoticesForStudent(Long userId, String items, String text) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) AS cnt " +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
+            "AND lecture_id IN (" +
+            "  SELECT lecture_id FROM enrollments " +
+            "  WHERE user_id = ? AND status = 'ACTIVE'" +
             ")"
         );
 
@@ -164,21 +238,19 @@ public class NoticeDAO {
                 return rs.next() ? rs.getInt("cnt") : 0;
             }
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.countAllForStudent error", e);
+            throw new RuntimeException("NoticeDAO.countAllLectureNoticesForStudent error", e);
         }
     }
 
-    public List<NoticeDTO> findPageAllForStudent(Long userId, int limit, int offset, String items, String text) {
+    public List<NoticeDTO> findPageAllLectureNoticesForStudent(Long userId, int limit, int offset, String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
             "created_at, updated_at, view_count " +
-            "FROM notices " +
-            "WHERE is_deleted = 'N' AND (" +
-            "  lecture_id IS NULL " +
-            "  OR lecture_id IN (" +
-            "    SELECT lecture_id FROM enrollments " +
-            "    WHERE user_id = ? AND status = 'ACTIVE'" +
-            "  )" +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
+            "AND lecture_id IN (" +
+            "  SELECT lecture_id FROM enrollments " +
+            "  WHERE user_id = ? AND status = 'ACTIVE'" +
             ")"
         );
 
@@ -217,16 +289,107 @@ public class NoticeDAO {
             return list;
 
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.findPageAllForStudent error", e);
+            throw new RuntimeException("NoticeDAO.findPageAllLectureNoticesForStudent error", e);
         }
     }
 
-    // ========== 특정 강의 공지사항 조회 ==========
+    // INSTRUCTOR용: 본인이 담당하는 강의 공지만
+    public int countAllLectureNoticesForInstructor(Long userId, String items, String text) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) AS cnt " +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
+            "AND lecture_id IN (" +
+            "  SELECT lecture_id FROM lecture " +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            ")"
+        );
+
+        boolean hasSearch = isValidSearch(items, text);
+        if (hasSearch) {
+            sql.append(" AND ").append(buildSearchCondition(items));
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            pstmt.setLong(idx++, userId);
+            
+            if (hasSearch) {
+                if ("all".equals(items)) {
+                    pstmt.setString(idx++, "%" + text + "%");
+                    pstmt.setString(idx, "%" + text + "%");
+                } else {
+                    pstmt.setString(idx, "%" + text + "%");
+                }
+            }
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() ? rs.getInt("cnt") : 0;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("NoticeDAO.countAllLectureNoticesForInstructor error", e);
+        }
+    }
+
+    public List<NoticeDTO> findPageAllLectureNoticesForInstructor(Long userId, int limit, int offset, String items, String text) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
+            "created_at, updated_at, view_count " +
+            "FROM notice " +  // ✅ 수정
+            "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
+            "AND lecture_id IN (" +
+            "  SELECT lecture_id FROM lecture " +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            ")"
+        );
+
+        boolean hasSearch = isValidSearch(items, text);
+        if (hasSearch) {
+            sql.append(" AND ").append(buildSearchCondition(items));
+        }
+
+        sql.append(" ORDER BY created_at DESC LIMIT ? OFFSET ?");
+
+        List<NoticeDTO> list = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            pstmt.setLong(idx++, userId);
+
+            if (hasSearch) {
+                if ("all".equals(items)) {
+                    pstmt.setString(idx++, "%" + text + "%");
+                    pstmt.setString(idx++, "%" + text + "%");
+                } else {
+                    pstmt.setString(idx++, "%" + text + "%");
+                }
+            }
+
+            pstmt.setInt(idx++, limit);
+            pstmt.setInt(idx, offset);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToDTO(rs));
+                }
+            }
+            return list;
+
+        } catch (Exception e) {
+            throw new RuntimeException("NoticeDAO.findPageAllLectureNoticesForInstructor error", e);
+        }
+    }
+
+    // ========== 특정 강의 공지사항 ==========
     
     public int countByLecture(long lectureId, String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
-            "FROM notices " +
+            "FROM notice " +  // ✅ 수정
             "WHERE is_deleted = 'N' AND lecture_id = ?"
         );
 
@@ -262,7 +425,7 @@ public class NoticeDAO {
         StringBuilder sql = new StringBuilder(
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
             "created_at, updated_at, view_count " +
-            "FROM notices " +
+            "FROM notice " +  // ✅ 수정
             "WHERE is_deleted = 'N' AND lecture_id = ?"
         );
 
@@ -311,7 +474,7 @@ public class NoticeDAO {
         String sql =
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
             "created_at, updated_at, view_count " +
-            "FROM notices " +
+            "FROM notice " +  // ✅ 수정
             "WHERE is_deleted = 'N' AND notice_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -328,7 +491,7 @@ public class NoticeDAO {
         String sql =
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
             "created_at, updated_at, view_count " +
-            "FROM notices " +
+            "FROM notice " +  // ✅ 수정
             "WHERE is_deleted = 'N' AND notice_id = ? AND lecture_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -346,7 +509,7 @@ public class NoticeDAO {
     
     public long insert(Connection conn, NoticeDTO notice) throws SQLException {
         String sql =
-            "INSERT INTO notices (lecture_id, author_id, notice_type, title, content) " +
+            "INSERT INTO notice (lecture_id, author_id, notice_type, title, content) " +  // ✅ 수정
             "VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -371,7 +534,7 @@ public class NoticeDAO {
 
     public int update(Connection conn, NoticeDTO dto) throws SQLException {
         String sql =
-            "UPDATE notices " +
+            "UPDATE notice " +  // ✅ 수정
             "SET notice_type = ?, title = ?, content = ?, updated_at = NOW() " +
             "WHERE is_deleted = 'N' AND notice_id = ?";
 
@@ -386,7 +549,7 @@ public class NoticeDAO {
 
     public int softDelete(Connection conn, long noticeId, Long lectureId) throws SQLException {
         StringBuilder sql = new StringBuilder(
-            "UPDATE notices SET is_deleted = 'Y' WHERE is_deleted = 'N' AND notice_id = ?"
+            "UPDATE notice SET is_deleted = 'Y' WHERE is_deleted = 'N' AND notice_id = ?"  // ✅ 수정
         );
         if (lectureId != null) {
             sql.append(" AND lecture_id = ?");
@@ -401,7 +564,7 @@ public class NoticeDAO {
         }
     }
 
-    // ========== Helper 메서드 ==========
+    // ========== Helper ==========
     
     private NoticeDTO mapResultSetToDTO(ResultSet rs) throws SQLException {
         NoticeDTO n = new NoticeDTO();
@@ -425,7 +588,7 @@ public class NoticeDAO {
         try (Connection conn = DBConnection.getConnection()) {
             return findById(conn, noticeId);
         } catch (Exception e) {
-            throw new RuntimeException("NoticeDAO.findById error", e);
+            throw new RuntimeException("NoticeDAO.findById error", e); // //
         }
     }
 }
