@@ -120,22 +120,20 @@ public class NoticeController extends HttpServlet {
         int totalCount;
         List<NoticeDTO> list;
 
-        // 탭 타입에 따라 조회
         if ("all".equals(tabType)) {
-            // 전체 공지사항 탭: lectureId가 NULL인 것만
+            // 1️⃣ 전체 공지 (lecture_id IS NULL)
             totalCount = noticeService.countAllNotices(items, text, userId, role);
             list = noticeService.findPageAllNotices(limit, offset, items, text, userId, role);
+
+        } else if ("lecture".equals(tabType) && lectureId == null) {
+            // 2️⃣ 모든 강의 공지 (lecture_id IS NOT NULL)
+            totalCount = noticeService.countAllLectureNotices(items, text, userId, role);
+            list = noticeService.findPageAllLectureNotices(limit, offset, items, text, userId, role);
+
         } else {
-            // 강의 공지사항 탭
-            if (lectureId == null) {
-                // 특정 강의 선택 안 함 → 모든 강의 공지 표시
-                totalCount = noticeService.countAllLectureNotices(items, text, userId, role);
-                list = noticeService.findPageAllLectureNotices(limit, offset, items, text, userId, role);
-            } else {
-                // 특정 강의 선택 → 해당 강의 공지만
-                totalCount = noticeService.countByLecture(lectureId, items, text, userId, role);
-                list = noticeService.findPageByLecture(lectureId, limit, offset, items, text, userId, role);
-            }
+            // 3️⃣ 특정 강의 공지
+            totalCount = noticeService.countByLecture(lectureId, items, text, userId, role);
+            list = noticeService.findPageByLecture(lectureId, limit, offset, items, text, userId, role);
         }
 
         int totalPages = (int) Math.ceil(totalCount / (double) size);
@@ -228,15 +226,13 @@ public class NoticeController extends HttpServlet {
         Long userId = getLoginUserId(req.getSession(false));
         String role = getLoginRole(req.getSession(false));
 
-        // noticeScope로 전체/강의 구분
-        String noticeScope = trimToNull(req.getParameter("noticeScope"));
+        String noticeType = trimToNull(req.getParameter("noticeType"));
         Long lectureId = null;
-        
-        if ("lecture".equals(noticeScope)) {
+
+        if ("LECTURE".equals(noticeType)) {
             lectureId = parseLongNullable(req.getParameter("lectureId"));
         }
 
-        String noticeType = trimToNull(req.getParameter("noticeType"));
         String title = trimToNull(req.getParameter("title"));
         String content = trimToNull(req.getParameter("content"));
 

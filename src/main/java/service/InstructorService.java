@@ -43,6 +43,7 @@ public class InstructorService {
 		} catch (Exception e) {
 			throw new RuntimeException("강사 강의 목록 조회 실패", e);
 		}
+		
 	}
 
 	public Map<String, Object> getInstructorProfile(long userId, String loginId) {
