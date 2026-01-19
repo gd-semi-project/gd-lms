@@ -13,18 +13,18 @@ import model.enumtype.YesOrNo;
 @Data
 @NoArgsConstructor
 public class UserDTO {
-	private long user_id;
-	private String login_id;
+	private long userId;
+	private String loginId;
 	private String password;
 	private String name;
 	private Gender gender;
-	private LocalDate birth_date;
+	private LocalDate birthDate;
 	private String email;
 	private String phone;
 	private String address;
 	private Role role;
 	private Status status;
 	private boolean mustChangePw;
-	private LocalDateTime created_at;
-	private LocalDateTime updated_at;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 }

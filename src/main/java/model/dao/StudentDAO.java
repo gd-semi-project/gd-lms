@@ -22,15 +22,15 @@ public class StudentDAO {
 	}
 	
 	// user_id(FK)을 통해서 학생테이블을 가져옴
-	public StudentsDTO findStudentByUserId(int userId) {
+	public StudentsDTO findStudentByUserId(long userId) {
 		StudentsDTO student = new StudentsDTO();
 		
-		String sql = "SELECET * FROM student WHERE user_id = ?";
+		String sql = "SELECT * FROM student WHERE user_id = ?";
 		
 		try (Connection conn = DBConnection.getConnection())
 		{
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, userId);
+			pstmt.setLong(1, userId);
 			
 			ResultSet rs = pstmt.executeQuery();
 			

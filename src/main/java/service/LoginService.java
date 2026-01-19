@@ -19,9 +19,9 @@ public class LoginService {
 			UserDTO userDTO = userDAO.SelectUsersById(id);
 			
 			if (userDTO != null) {
-				System.out.println(userDTO.getLogin_id());
+				System.out.println(userDTO.getLoginId());
 
-				if (id.equals(userDTO.getLogin_id())) {
+				if (id.equals(userDTO.getLoginId())) {
 					System.out.println(passwd);
 					System.out.println(userDTO.getPassword());
 					if (passwd.equals(userDTO.getPassword())) {

@@ -31,7 +31,7 @@ public class InstructorService {
 	// 강사 본인 정보 조회
 	public InstructorDTO getInstructorInfo(long userId) {
 		try (Connection conn = DBConnection.getConnection()) {
-			return instructorDAO.selectInstructorInfo(conn, userId);
+			return instructorDAO.selectInstructorInfo(userId);
 		} catch (Exception e) {
 			throw new RuntimeException("강사 정보 조회 실패", e);
 		}
@@ -49,7 +49,7 @@ public class InstructorService {
 
 		try (Connection conn = DBConnection.getConnection()) {
 
-			InstructorDTO instructor = instructorDAO.selectInstructorInfo(conn, userId);
+			InstructorDTO instructor = instructorDAO.selectInstructorInfo(userId);
 
 			UserDTO user = userDAO.SelectUsersById(loginId);
 

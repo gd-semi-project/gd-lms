@@ -59,6 +59,7 @@ public class LectureDAO {
 	// 교수 담당 강의 목록 조회
 	public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
 
+
 		String sql = """
 				    SELECT
 				        lecture_id,
@@ -112,6 +113,7 @@ public class LectureDAO {
 	}
 
 	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
+
 
 		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
 
