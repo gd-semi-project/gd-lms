@@ -5,8 +5,8 @@ import model.dao.ProfessorDAO;
 import model.dao.StudentDAO;
 import model.dao.UserDAO;
 import model.dto.DepartmentDTO;
+import model.dto.InstructorDTO;
 import model.dto.MypageDTO;
-import model.dto.ProfessorDTO;
 import model.dto.StudentsDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
@@ -57,7 +57,7 @@ public class MyPageService {
 
 	// 교수가 볼 수 있는 페이지
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
-		ProfessorDTO professor = professorDAO.selectProfessorInfo(user.getUserId());
+		InstructorDTO professor = professorDAO.selectProfessorInfo(user.getUserId());
 		
 		DepartmentDTO department = departmentDAO.finById(professor.getDepartmentId());
 		

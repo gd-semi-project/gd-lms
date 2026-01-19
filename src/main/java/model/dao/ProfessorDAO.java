@@ -7,7 +7,6 @@ import java.sql.SQLException;
 
 import database.DBConnection;
 import model.dto.InstructorDTO;
-import model.dto.ProfessorDTO;
 
 public class ProfessorDAO {
 
