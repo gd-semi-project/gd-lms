@@ -10,7 +10,7 @@ import model.enumtype.LectureValidation;
 @AllArgsConstructor
 @Data
 public class LectureRequestDTO {
-	private long lectureId;
+	private Long lectureId;
 	private String instructorName;
 	private String lectureTitle;
 	private String schedule;

@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventSummaryDTO {
-	private long id;
+	private Long id;
 	private String title;
 }

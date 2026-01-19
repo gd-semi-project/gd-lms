@@ -25,7 +25,7 @@
       <c:forEach var="lec" items="${lectures}">
         <tr>
           <td>
-            <a href="${pageContext.request.contextPath}/lecture/detail?id=${lec.lectureId}">
+            <a href="${pageContext.request.contextPath}/lecture/detail?lectureId=${lec.lectureId}">
               ${lec.lectureTitle}
             </a>
           </td>

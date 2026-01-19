@@ -10,8 +10,8 @@ import model.enumtype.EnrollmentStatus;
 @NoArgsConstructor
 public class LectureStudentDTO {	// 화면에 뿌릴 용도 : 수강중인 학생 조회
 
-    private long studentId;
-    private long userId;
+    private Long studentId;
+    private Long userId;
     private String studentName;
     private Integer studentNumber;
     private int studenGrade;

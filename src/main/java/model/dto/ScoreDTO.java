@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 public class ScoreDTO {
 	private Long gradeId;
 	
-	private long enrollmentId; // enroll FK
-	private long lectureId;	// lecture FK
-	private long usersId;	// user FK
+	private Long enrollmentId; // enroll FK
+	private Long lectureId;	// lecture FK
+	private Long usersId;	// user FK
 	
 	// 점수 입력전에 값은 NULL이여야 하기 때문 int대신 Integer사용(int는 NULL불가)
 	private Integer attendanceScore;	// 출석 점수

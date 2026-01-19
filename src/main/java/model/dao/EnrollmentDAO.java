@@ -3,74 +3,72 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import database.DBConnection;
-import model.dto.LectureDTO;
-import model.dto.LectureRequestDTO;
-import model.dto.LectureScheduleDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.EnrollmentStatus;
-import model.enumtype.LectureValidation;
-import model.enumtype.Week;
 
 public class EnrollmentDAO {
 
-	// 싱글톤 패턴
-	public static final EnrollmentDAO instance = new EnrollmentDAO();
+    private static final EnrollmentDAO instance = new EnrollmentDAO();
+    private EnrollmentDAO() {}
 
-	public static EnrollmentDAO getInstance() {
-		return instance;
-	}
+    public static EnrollmentDAO getInstance() {
+        return instance;
+    }
 
+    /**
+     * 🔥 강의별 수강생 목록 조회
+     */
+    public List<LectureStudentDTO> findStudentsByLectureId(long lectureId) {
 
+        String sql = """
+            SELECT
+                s.student_id,
+                u.user_id,
+                u.name,
+                s.student_number,
+                s.student_grade,
+                e.status,
+                e.applied_at
+            FROM enrollment e
+            JOIN student s ON e.student_id = s.student_id
+            JOIN users u ON s.user_id = u.user_id
+            WHERE e.lecture_id = ?
+            ORDER BY s.student_number
+        """;
 
-	// 강의별 수강생 조회
-	public List<LectureStudentDTO> selectStudentsByLectureId(Connection conn, long lectureId) throws SQLException {
-		
-		String sql = """
-				    SELECT
-				        s.student_id,
-				        s.user_id,
-				        s.student_number,
-				        s.student_grade,
-				        u.name AS student_name,
-				        e.status,
-				        e.applied_at
-				    FROM enrollment e
-				    JOIN student s ON e.student_id = s.student_id
-				    JOIN user u    ON s.user_id = u.user_id
-				    WHERE e.lecture_id = ?
-				    ORDER BY s.student_number
-				""";
+        List<LectureStudentDTO> list = new ArrayList<>();
 
-		List<LectureStudentDTO> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setLong(1, lectureId);
+            pstmt.setLong(1, lectureId);
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					LectureStudentDTO dto = new LectureStudentDTO();
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LectureStudentDTO dto = new LectureStudentDTO();
+                    dto.setStudentId(rs.getLong("student_id"));
+                    dto.setUserId(rs.getLong("user_id"));
+                    dto.setStudentName(rs.getString("name"));
+                    dto.setStudentNumber(rs.getInt("student_number"));
+                    dto.setStudenGrade(rs.getInt("student_grade"));
+                    dto.setEnrollmentStatus(
+                        EnrollmentStatus.valueOf(rs.getString("status"))
+                    );
+                    dto.setAppliedAt(
+                        rs.getTimestamp("applied_at").toLocalDateTime()
+                    );
 
-					dto.setStudentId(rs.getInt("student_id"));
-					dto.setUserId(rs.getInt("user_id"));
-					dto.setStudentNumber(rs.getInt("student_number"));
-					dto.setStudenGrade(rs.getInt("student_grade"));
-					dto.setStudentName(rs.getString("student_name"));
-					dto.setEnrollmentStatus(EnrollmentStatus.valueOf(rs.getString("status")));
-					dto.setAppliedAt(rs.getTimestamp("applied_at").toLocalDateTime());
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("수강생 목록 조회 실패", e);
+        }
 
-					list.add(dto);
-				}
-			}
-		}
-		return list;
-	}
-
+        return list;
+    }
 }
