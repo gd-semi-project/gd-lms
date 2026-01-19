@@ -26,33 +26,3 @@ CREATE TABLE IF NOT EXISTS instructor (
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
 COMMENT='강사 정보 테이블';
-
-
-TRUNCATE TABLE instructor;
-
-INSERT INTO instructor (
-    user_id,
-    instructor_no,
-    department,
-    office_room,
-    office_phone,
-    hire_date
-) VALUES
--- 김도윤 강사 (user_id = 1)
-(
-    1,
-    'INST-2026-001',
-    '컴퓨터공학과',
-    'A-301',
-    '02-123-4567',
-    '2020-03-01'
-),
--- 박서연 강사 (user_id = 2)
-(
-    2,
-    'INST-2026-002',
-    '소프트웨어학과',
-    'B-204',
-    '02-987-6543',
-    '2021-09-01'
-);
