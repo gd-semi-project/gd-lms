@@ -34,9 +34,35 @@
 </div>
 
 <div class="card shadow-sm">
-  <div class="card-header bg-white fw-bold">
-    요청 목록
-  </div>
+<div class="card-header bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+  <div class="fw-bold">요청 목록</div>
+
+  <!-- 학과별 보기 (레이아웃만) -->
+  <form class="d-flex align-items-center gap-2 m-0"
+        method="get"
+        action="${pageContext.request.contextPath}/admin/lectureRequest?action=selectDepartment">
+    
+    <!-- 기존 검색/필터 조건 유지용(선택) -->
+    <input type="hidden" name="validation" value="${fn:escapeXml(param.validation)}"/>
+    <input type="hidden" name="q" value="${fn:escapeXml(param.q)}"/>
+
+    <label class="text-muted small mb-0" for="deptSelect">학과</label>
+    <select id="deptSelect" name="departmentId" class="form-select form-select-sm" style="width: 200px;">
+      <option value="" ${empty param.departmentId ? 'selected' : ''}>전체 학과</option>
+
+      <%-- 너가 가진 학과 리스트로 채우면 됨 --%>
+      <%-- 예: requestScope.departmentList (departmentId, departmentName) --%>
+      <c:forEach var="d" items="${departmentList}">
+        <option value="${d.departmentId}" ${param.departmentId == d.departmentId ? 'selected' : ''}>
+          ${d.departmentName}
+        </option>
+      </c:forEach>
+    </select>
+
+    <button type="submit" class="btn btn-sm btn-outline-secondary">적용</button>
+  </form>
+</div>
+
 
   <div class="card-body p-0">
     <div class="table-responsive">

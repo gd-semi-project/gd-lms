@@ -48,6 +48,7 @@ public class AdminController extends HttpServlet {
 			request.setAttribute("pendingLectureList",service.getPendingLectureList());
 			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
 			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
+			request.setAttribute("departmentList", service.getDepartmentList());
 			break;
 			
 		case "/noticeList":
@@ -88,8 +89,14 @@ public class AdminController extends HttpServlet {
 		case "/lectureRequest": {
 			
 			if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 				service.LectureValidate(lectureId, action);
+				
+				response.sendRedirect(contextPath + "/admin/lectureRequest");
+				return;
+			} else if ("selectDepartment".equals(action)){
+				
+				Long departmentId = Long.parseLong(request.getParameter("departmentId"));
 				
 				response.sendRedirect(contextPath + "/admin/lectureRequest");
 				return;
