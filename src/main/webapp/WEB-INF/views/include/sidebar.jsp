@@ -18,7 +18,7 @@
       <a class="nav-link text-white" href="${pageContext.request.contextPath}/notice/list">공지사항</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/admin/calendar">학사일정 관리</a>
+      <a class="nav-link text-white" href="${pageContext.request.contextPath}/calendar/view">학사일정</a>
     </li>
     <li class="nav-item">
       <a class="nav-link text-white" href="<%=ctx%>/admin/campus">캠퍼스 관리</a>

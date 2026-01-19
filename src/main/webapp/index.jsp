@@ -5,5 +5,3 @@
   request.getRequestDispatcher("/WEB-INF/test.jsp")
          .forward(request, response);
 %>
-
- 
