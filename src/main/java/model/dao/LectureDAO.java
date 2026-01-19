@@ -64,7 +64,7 @@ public class LectureDAO {
 	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
 
 
-		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
+		String sql = "UPDATE lecture SET validation = ? WHERE lecture_id = ?;";
 
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql);) {
 
