@@ -60,9 +60,7 @@
 
     <!-- 공지사항 -->
     <li class="nav-item">
-      <a class="nav-link text-white" href="<%=ctx%>/notice/list">
-        📢 공지사항
-      </a>
+      <a class="nav-link text-white" href="${pageContext.request.contextPath}/calendar/view">학사일정</a>
     </li>
 
     <!-- 성적 -->

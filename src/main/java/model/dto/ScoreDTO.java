@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ScoreDTO {
-	private int gradeId;
+	private Long gradeId;
 	
 	private long enrollmentId; // enroll FK
 	private long lectureId;	// lecture FK

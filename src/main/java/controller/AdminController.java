@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.AdminService;
+import service.SchoolCalendarService;
 
 import java.io.IOException;
 
@@ -54,7 +55,7 @@ public class AdminController extends HttpServlet {
 			break;
 			
 		case "/calendar":
-			contentPage = "/WEB-INF/views/admin/adminCalendarManagement.jsp";
+			
 			break;
 			
 		case "/campus":
@@ -92,7 +93,10 @@ public class AdminController extends HttpServlet {
 				
 				response.sendRedirect(contextPath + "/admin/lectureRequest");
 				return;
-			} else response.sendRedirect(contextPath + "/admin/lectureRequest");
+			} else {
+				response.sendRedirect(contextPath + "/admin/lectureRequest");
+				return;
+			}
 		}
 		
 		}
