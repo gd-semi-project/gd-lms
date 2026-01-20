@@ -17,7 +17,7 @@
   </form>
 
   <!-- 로그인 실패 메시지 -->
-  <c:if test="${not empty sessionScope.LoginErrorMsg}">
+  <c:if test="${not empty requestScope.LoginErrorMsg}">
     <div class="alert alert-danger mt-3">
       ${requestScope.LoginErrorMsg}
       <c:remove var="LoginErrorMsg" />
