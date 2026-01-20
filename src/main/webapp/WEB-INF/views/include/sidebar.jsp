@@ -10,9 +10,9 @@
 
 <!-- Test용 -->
 <!-- 여기서 권한 주석처리 -->
-<%-- <c:set var="role" value="INSTRUCTOR" scope="session" /> --%>
+<c:set var="role" value="INSTRUCTOR" scope="session" />
 <%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
-<c:set var="role" value="ADMIN" scope="session" />
+<%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
 
 
 

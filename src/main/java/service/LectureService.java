@@ -8,7 +8,7 @@ import model.dao.LectureDAO;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
 
-public class LectureService {
+public class LectureService {	// 이미 개설된 강의에 기준
 
 	private static final LectureService instance = new LectureService();
 
