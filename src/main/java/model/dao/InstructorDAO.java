@@ -3,13 +3,13 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
+import database.DBConnection;
 import model.dto.InstructorDTO;
 
 public class InstructorDAO {
 
-    private static final InstructorDAO instance = new InstructorDAO();
+    private static InstructorDAO instance = new InstructorDAO();
 
     private InstructorDAO() {}
 
@@ -17,9 +17,10 @@ public class InstructorDAO {
         return instance;
     }
 
-    // 강사 정보 조회
-    public InstructorDTO selectInstructorInfo(Connection conn, long userId)
-            throws SQLException {
+    // user_id(FK)을 통해서 강사 테이블 조회
+    public InstructorDTO selectInstructorInfo(long userId) {
+
+        InstructorDTO instructor = new InstructorDTO();
 
         String sql = """
             SELECT
@@ -35,14 +36,14 @@ public class InstructorDAO {
             WHERE user_id = ?
         """;
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection()) {
+
+            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setLong(1, userId);
 
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (!rs.next()) return null;
+            ResultSet rs = pstmt.executeQuery();
 
-                InstructorDTO instructor = new InstructorDTO();
-
+            if (rs.next()) {
                 instructor.setUserId(rs.getLong("user_id"));
                 instructor.setInstructorNo(rs.getString("instructor_no"));
                 instructor.setDepartment(rs.getString("department"));
@@ -59,9 +60,12 @@ public class InstructorDAO {
                 instructor.setUpdatedAt(
                     rs.getTimestamp("updated_at").toLocalDateTime()
                 );
-
-                return instructor;
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        return instructor;
     }
 }
