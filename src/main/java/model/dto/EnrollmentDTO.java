@@ -13,9 +13,9 @@ import model.enumtype.EnrollmentStatus;
 @AllArgsConstructor
 @Data
 public class EnrollmentDTO {
-	private Long enrollmentId;
-	private Long lectureId;
-	private Long studentId;
+	private Long enrollmentId;		//수강신청 테이블의 PK
+	private Long lectureId;		//강의 테이블의 PK
+	private Long studentId;		//학생 테이블의 PK
 	private EnrollmentStatus status;
 }
 

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class SchoolScheduleDTO {
-	private long id;
+	private Long id;
 	private String title;
 	private LocalDate startDate;
 	private LocalDate endDate;

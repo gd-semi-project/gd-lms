@@ -23,7 +23,7 @@ public class UserDAO {
 	}
 	
 	public UserDTO SelectUsersById(String Id) {
-		String sql = "SELECT * FROM users WHERE login_id = ?";
+		String sql = "SELECT * FROM user WHERE login_id = ?";
 		UserDTO userDTO = new UserDTO();
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -31,7 +31,7 @@ public class UserDAO {
 			ResultSet rs = pstmt.executeQuery();
 
 			if(rs.next()) {
-				userDTO.setUserId(rs.getInt("user_id"));
+				userDTO.setUserId(rs.getLong("user_id"));
 				userDTO.setLoginId(rs.getString("login_id"));
 				userDTO.setPassword(rs.getString("password_hash"));
 				userDTO.setName(rs.getString("name"));
@@ -64,7 +64,7 @@ public class UserDAO {
 	}
 	
 	public void InsertUser(UserDTO userDTO) {
-		String sql = "INSERT INTO users (login_id, password_hash, name, birth_date, email, phone, role)"
+		String sql = "INSERT INTO user (login_id, password_hash, name, birth_date, email, phone, role)"
 				+ " VALUES (?,?,?,?,?,?,?)";
 				
 		try (Connection conn = DBConnection.getConnection()){

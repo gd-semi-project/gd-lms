@@ -14,7 +14,7 @@
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
     rel="stylesheet"
   />
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
   
   <script src="${pageContext.request.contextPath}/resources/js/appClock.js"></script>
   <script src="${pageContext.request.contextPath}/resources/js/keronBallLauncher.js"></script>
@@ -38,9 +38,9 @@
     <div class="row">
 
       <!-- 사이드바 include -->
-      <%-- <jsp:include page="/WEB-INF/views/include/sidebar.jsp" /> --%>
+       <jsp:include page="/WEB-INF/views/include/sidebar.jsp" />
       <%-- <jsp:include page="/WEB-INF/views/include/commonSidebar.jsp" /> --%>
-      <jsp:include page="/WEB-INF/views/include/testSidebarForAdmin.jsp"/>
+     <%--  <jsp:include page="/WEB-INF/views/include/testSidebarForAdmin.jsp"/> --%>
 
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
@@ -58,6 +58,6 @@
   <jsp:include page="/WEB-INF/views/include/footer.jsp" />
 
   <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
