@@ -19,7 +19,7 @@
 		<c:choose>
 		 <c:when test="${AccessInfo.role == 'STUDENT'}">
 		<li class="nav-item"><a class="nav-link text-white"
-			href="${ctx}/mypage?view=studentPage"> 학생정보 </a></li>
+			href="${ctx}/mypage/studentPage"> 학생정보 </a></li>
 		</c:when>
 		</c:choose>
 		
