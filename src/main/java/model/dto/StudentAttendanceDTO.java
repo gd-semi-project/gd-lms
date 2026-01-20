@@ -12,7 +12,7 @@ import model.enumtype.AttendanceStatus;
 @NoArgsConstructor
 public class StudentAttendanceDTO {	 // 학생용 출석 기록 보기 전용
 
-    private long sessionId;
+    private Long sessionId;
     private LocalDate sessionDate;
     private LocalTime startTime;
     private LocalTime endTime;

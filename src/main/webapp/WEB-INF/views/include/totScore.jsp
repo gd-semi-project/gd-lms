@@ -4,7 +4,7 @@
 
 <div class="card mt-4">
 	<div class="card-header bg-light fw-bold">
-		▶ 이수교과목별 성적 목록 <span class="text-muted float-end">과목총갯수값</span>
+		성적조회 <span class="text-muted float-end">[과목총갯수값]</span>
 	</div>
 
 	<div class="card-body p-0">

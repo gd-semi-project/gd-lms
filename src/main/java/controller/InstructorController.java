@@ -10,59 +10,52 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.dto.InstructorDTO;
+
 import model.dto.LectureDTO;
-import model.dto.UserDTO;
-import model.enumtype.Role;
 import service.InstructorService;
+import service.LectureService;
 
 @WebServlet("/instructor/*")
 public class InstructorController extends HttpServlet {
 
 	private InstructorService instructorService = InstructorService.getInstance();
+	private LectureService lectureService = LectureService.getInstance();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String uri = request.getRequestURI();
+		HttpSession session = request.getSession(false);
 		String ctx = request.getContextPath();
-		String action = uri.substring(ctx.length() + "/instructor".length());
-		if (action.isEmpty())
-			action = "/";
 
-		/*
-		 * ============================== 🔥 개발용 강사 세션 주입 ==============================
-		 */
-		HttpSession session = request.getSession(true);
+		
+//		if (session == null || session.getAttribute("userId") == null) {
+//			response.sendRedirect(ctx + "/login");
+//			return;
+//		}
 
-		if (session.getAttribute("UserInfo") == null) {
-			UserDTO devInstructor = new UserDTO();
-			devInstructor.setUserId(1L); // lecture.user_id 와 맞추기
-			devInstructor.setLoginId("dev_instructor");
-			devInstructor.setName("개발용 강사");
-			devInstructor.setRole(Role.INSTRUCTOR);
-
-			session.setAttribute("UserInfo", devInstructor);
-
-			System.out.println("🔥 [DEV] 강사 세션 주입 완료");
-		}
-
-		UserDTO loginUser = (UserDTO) session.getAttribute("UserInfo");
-
-		// 권한 체크
-		if (loginUser.getRole() != Role.INSTRUCTOR) {
+		// 2️⃣ 권한 체크
+		String role = (String) session.getAttribute("role");
+		if (!"INSTRUCTOR".equals(role)) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}
 
-		long instructorId = loginUser.getUserId();
-		
+		Long instructorId = (Long) session.getAttribute("userId");
+
+		String uri = request.getRequestURI();
+		String action = uri.substring(ctx.length() + "/instructor".length());
+
+		if (action.isEmpty())
+			action = "/lectures";
+
 		switch (action) {
 
-		// 강사 프로필
+		// ✅ 강사 프로필
 		case "/profile": {
-			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId, loginUser.getLoginId());
+			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId,
+					(String) session.getAttribute("userName") // or loginId
+			);
 
 			request.setAttribute("instructor", profile.get("instructor"));
 			request.setAttribute("user", profile.get("user"));
@@ -70,11 +63,17 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		// 내 강의 목록
+		// ✅ 내 강의 목록
 		case "/lectures": {
-			request.setAttribute("lectures", instructorService.getMyLectures(instructorId));
-			request.setAttribute("contentPage", "/WEB-INF/views/instructor/lectureList.jsp");
-			break;
+		    List<LectureDTO> lectures =
+		        lectureService.getLecturesByInstructor(instructorId);
+
+		    request.setAttribute("lectures", lectures);
+		    request.setAttribute(
+		        "contentPage",
+		        "/WEB-INF/views/lecture/lectureList.jsp"
+		    );
+		    break;
 		}
 
 		default:

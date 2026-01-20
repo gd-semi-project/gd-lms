@@ -47,8 +47,8 @@ public class LectureScheduleDAO {
                 while (rs.next()) {
                     LectureScheduleDTO schedule = new LectureScheduleDTO();
 
-                    schedule.setScheduleId(rs.getInt("schedule_id"));
-                    schedule.setLectureId(rs.getInt("lecture_id")); // DTO가 int라 OK
+                    schedule.setScheduleId(rs.getLong("schedule_id"));
+                    schedule.setLectureId(rs.getLong("lecture_id")); // DTO가 int라 OK
                     schedule.setWeekDay(Week.valueOf(rs.getString("week_day")));
                     schedule.setStartTime(rs.getTime("start_time").toLocalTime());
                     schedule.setEndTime(rs.getTime("end_time").toLocalTime());

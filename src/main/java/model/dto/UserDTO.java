@@ -13,7 +13,7 @@ import model.enumtype.YesOrNo;
 @Data
 @NoArgsConstructor
 public class UserDTO {
-	private long userId;
+	private Long userId;
 	private String loginId;
 	private String password;
 	private String name;

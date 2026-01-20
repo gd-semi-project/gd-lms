@@ -6,52 +6,45 @@
 <div class="mb-4 border-bottom pb-2">
   <ul class="nav nav-tabs">
 
-    <!-- 상세보기 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'detail' ? 'active' : ''}"
-         href="${ctx}/lecture/detail?id=${lecture.lectureId}">
+         href="${ctx}/lecture/detail?lectureId=${lecture.lectureId}">
         📘 상세보기
       </a>
     </li>
 
-    <!-- 출석 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'attendance' ? 'active' : ''}"
-         href="${ctx}/lecture/attendance?id=${lecture.lectureId}">
+         href="${ctx}/lecture/attendance?lectureId=${lecture.lectureId}">
         🕘 출석
       </a>
     </li>
 
-    <!-- 성적 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'grades' ? 'active' : ''}"
-         href="${ctx}/lecture/grades?id=${lecture.lectureId}">
+         href="${ctx}/lecture/grades?lectureId=${lecture.lectureId}">
         📝 성적
       </a>
     </li>
 
-    <!-- 과제 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'assignments' ? 'active' : ''}"
-         href="${ctx}/lecture/assignments?id=${lecture.lectureId}">
+         href="${ctx}/lecture/assignments?lectureId=${lecture.lectureId}">
         📂 과제
       </a>
     </li>
 
-    <!-- QnA -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'qna' ? 'active' : ''}"
-         href="${ctx}/lecture/qna?id=${lecture.lectureId}">
+         href="${ctx}/lecture/qna?lectureId=${lecture.lectureId}">
         💬 QnA
       </a>
     </li>
 
-    <!-- 수강생 정보 (강사/관리자만) -->
-    <c:if test="${sessionScope.UserInfo.role eq 'INSTRUCTOR' 
-              or sessionScope.UserInfo.role eq 'ADMIN'}">
+    <c:if test="${sessionScope.role eq 'INSTRUCTOR' or sessionScope.role eq 'ADMIN'}">
       <li class="nav-item">
         <a class="nav-link ${activeTab eq 'students' ? 'active' : ''}"
-           href="${ctx}/lecture/students?id=${lecture.lectureId}">
+           href="${ctx}/lecture/students?lectureId=${lecture.lectureId}">
           👥 수강생
         </a>
       </li>

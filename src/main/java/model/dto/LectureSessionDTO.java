@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LectureSessionDTO {	// 수업 회차 DTO
 
-    private long sessionId;       
-    private long lectureId;       
+    private Long sessionId;       
+    private Long lectureId;       
 
     private LocalDate sessionDate; // 수업 날짜 (2026-03-18)
     private LocalTime startTime;   // 수업 시작 시간

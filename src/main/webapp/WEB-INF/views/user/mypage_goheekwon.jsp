@@ -74,9 +74,6 @@
 				</c:if>
 
 				<%-- 2. 파라미터로 덮어쓰기 --%>
-				<c:if test="${param.page eq 'semesterScore'}">
-					<c:set var="contentPage" value="semesterScore" />
-				</c:if>
 				
 				<c:if test="${param.page eq 'totScore'}">
 					<c:set var="contentPage" value="totScore" />
@@ -99,10 +96,6 @@
 				<c:choose>
 					<c:when test="${contentPage eq 'student'}">
 						<jsp:include page="/WEB-INF/views/include/studentPage.jsp" />
-					</c:when>
-
-					<c:when test="${contentPage eq 'semesterScore'}">
-						<jsp:include page="/WEB-INF/views/include/semesterScore.jsp" />
 					</c:when>
 					
 					<c:when test="${contentPage eq 'totScore'}">

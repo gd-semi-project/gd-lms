@@ -1,6 +1,8 @@
 package model.dto;
 
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,12 +12,12 @@ import model.enumtype.LectureValidation;
 @AllArgsConstructor
 @Data
 public class LectureRequestDTO {
-	private long lectureId;
+	private Long lectureId;
 	private String instructorName;
 	private String lectureTitle;
 	private String schedule;
 	private int capacity;
 	private LectureValidation validation;
-	private String createdAt;
+	private LocalDateTime createdAt;
 	private String section;
 }
