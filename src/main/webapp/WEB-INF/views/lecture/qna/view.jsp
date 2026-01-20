@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="user" value="${sessionScope.UserInfo}" />
+<c:set var="user" value="${sessionScope.AccessInfo}" />
 
 <!-- 공통 탭 -->
 <jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
