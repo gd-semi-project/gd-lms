@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LoginService;
@@ -64,10 +65,10 @@ public class LoginController extends HttpServlet {
 			// user_passwd = HashUtil.sha256(user_passwd); // 실무 bcrypt 등 타 암호화 로직 사용 필요
 			
 			LoginService ls = LoginService.getInstance();
-			UserDTO userDTO = ls.DoLogin(user_id, user_passwd);
-			if (userDTO != null) {
+			AccessDTO accessDTO = ls.DoLogin(user_id, user_passwd);
+			if (accessDTO != null) {
 				session = request.getSession();
-				session.setAttribute("UserInfo", userDTO);		
+				session.setAttribute("AccessInfo", accessDTO);
 				response.sendRedirect(contextPath + "/main");
 			} else {
 				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");

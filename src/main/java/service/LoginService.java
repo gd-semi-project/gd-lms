@@ -2,6 +2,7 @@ package service;
 
 import lombok.NoArgsConstructor;
 import model.dao.UserDAO;
+import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import utils.HashUtil;
 
@@ -13,19 +14,16 @@ public class LoginService {
 		return instance;
 	}
 	
-	public UserDTO DoLogin(String id, String passwd) {
+	public AccessDTO DoLogin(String id, String passwd) {
 		if (id != null && !id.isEmpty() && passwd != null && !passwd.isEmpty()) {
 			UserDAO userDAO = UserDAO.getInstance();
-			UserDTO userDTO = userDAO.SelectUsersById(id);
+			AccessDTO accessDTO = userDAO.selectAccessById(id);
+			UserDTO userDTO = userDAO.selectUsersById(id);
 			
 			if (userDTO != null) {
-				System.out.println(userDTO.getLoginId());
-
 				if (id.equals(userDTO.getLoginId())) {
-					System.out.println(passwd);
-					System.out.println(userDTO.getPassword());
 					if (passwd.equals(userDTO.getPassword())) {
-						return userDTO;
+						return accessDTO;
 					}
 				}
 			}
@@ -34,7 +32,6 @@ public class LoginService {
 	}
 	
 	public void RegistUser(UserDTO userDTO) {
-		System.out.println("1234");
 		if (userDTO != null) {
 			UserDAO userDAO = UserDAO.getInstance();
 			String password_hash = HashUtil.sha256(userDTO.getPassword());
