@@ -32,7 +32,7 @@ public class InstructorService {
         try (Connection conn = DBConnection.getConnection()) {
             Map<String, Object> map = new HashMap<>();
             map.put("instructor",
-                    instructorDAO.selectInstructorInfo(conn, userId));
+                    instructorDAO.selectInstructorInfo(userId));
             map.put("user",
                     userDAO.SelectUsersById(loginId));
             return map;
