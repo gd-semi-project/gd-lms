@@ -138,3 +138,62 @@ JOIN (
   UNION ALL SELECT 1, '18:00:00', '21:00:00'
 ) t
   ON t.slot = (x.lecture_id % 2);
+  
+  DROP TEMPORARY TABLE IF EXISTS tmp_last30;
+CREATE TEMPORARY TABLE tmp_last30 (lecture_id BIGINT PRIMARY KEY) ENGINE=MEMORY;
+
+-- "방금 추가한 30개"를 lecture_id 기준 최신 30개로 간주
+INSERT INTO tmp_last30 (lecture_id)
+SELECT lecture_id
+FROM lecture
+ORDER BY lecture_id DESC
+LIMIT 30;
+
+-- 홀수 lecture_id => MON/WED
+INSERT INTO lecture_schedule (lecture_id, week_day, start_time, end_time)
+SELECT x.lecture_id,
+       d.week_day,
+       t.start_time,
+       t.end_time
+FROM tmp_last30 x
+JOIN (
+  SELECT 'MON' AS week_day
+  UNION ALL SELECT 'WED'
+) d
+JOIN (
+  SELECT 0 AS slot, '09:00:00' AS start_time, '10:15:00' AS end_time
+  UNION ALL SELECT 1, '10:30:00', '11:45:00'
+  UNION ALL SELECT 2, '12:00:00', '13:15:00'
+  UNION ALL SELECT 3, '13:30:00', '14:45:00'
+  UNION ALL SELECT 4, '15:00:00', '16:15:00'
+  UNION ALL SELECT 5, '16:30:00', '17:45:00'
+  UNION ALL SELECT 6, '18:00:00', '19:15:00'
+  UNION ALL SELECT 7, '19:30:00', '20:45:00'
+) t
+WHERE (x.lecture_id % 2) = 1
+  AND t.slot = (x.lecture_id % 8);
+
+-- 짝수 lecture_id => TUE/THU
+INSERT INTO lecture_schedule (lecture_id, week_day, start_time, end_time)
+SELECT x.lecture_id,
+       d.week_day,
+       t.start_time,
+       t.end_time
+FROM tmp_last30 x
+JOIN (
+  SELECT 'TUE' AS week_day
+  UNION ALL SELECT 'THU'
+) d
+JOIN (
+  SELECT 0 AS slot, '09:00:00' AS start_time, '10:15:00' AS end_time
+  UNION ALL SELECT 1, '10:30:00', '11:45:00'
+  UNION ALL SELECT 2, '12:00:00', '13:15:00'
+  UNION ALL SELECT 3, '13:30:00', '14:45:00'
+  UNION ALL SELECT 4, '15:00:00', '16:15:00'
+  UNION ALL SELECT 5, '16:30:00', '17:45:00'
+  UNION ALL SELECT 6, '18:00:00', '19:15:00'
+  UNION ALL SELECT 7, '19:30:00', '20:45:00'
+) t
+WHERE (x.lecture_id % 2) = 0
+  AND t.slot = (x.lecture_id % 8);
+

@@ -45,9 +45,13 @@ public class AdminController extends HttpServlet {
 			
 		case "/lectureRequest":
 			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
-			request.setAttribute("pendingLectureList",service.getPendingLectureList());
-			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
-			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
+			
+			String dpt = request.getParameter("departmentId");
+			Long departmentId = (dpt != null && !dpt.isEmpty()) ? Long.parseLong(dpt) : null;
+			request.setAttribute("pendingLectureList",service.getPendingLectureList(departmentId));
+			request.setAttribute("canceledLectureList",service.getCanceledLectureList(departmentId));
+			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList(departmentId));
+			request.setAttribute("departmentList", service.getDepartmentList());
 			break;
 			
 		case "/noticeList":
@@ -88,16 +92,26 @@ public class AdminController extends HttpServlet {
 		case "/lectureRequest": {
 			
 			if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 				service.LectureValidate(lectureId, action);
 				
 				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
+				break;
+			} else if ("selectDepartment".equals(action)){
+				if(request.getParameter("departmentId").equals("all")) {
+					response.sendRedirect(contextPath + "/admin/lectureRequest");
+				} else {
+					Long departmentId = Long.parseLong(request.getParameter("departmentId"));
+					response.sendRedirect(contextPath + "/admin/lectureRequest?departmentId=" + departmentId);
+				}
+				break;
 			} else {
 				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
+				break;
 			}
 		}
+		default: break;
+		
 		
 		}
 		
