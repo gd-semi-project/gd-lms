@@ -41,12 +41,4 @@ public class InstructorService {
         }
     }
 
-    // 담당 강의 목록
-    public List<LectureDTO> getMyLectures(long instructorId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return lectureDAO.selectLecturesByInstructor(conn, instructorId);
-        } catch (Exception e) {
-            throw new RuntimeException("강사 강의 목록 조회 실패", e);
-        }
-    }
 }

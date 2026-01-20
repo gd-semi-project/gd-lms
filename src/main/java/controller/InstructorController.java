@@ -13,11 +13,13 @@ import jakarta.servlet.http.HttpSession;
 
 import model.dto.LectureDTO;
 import service.InstructorService;
+import service.LectureService;
 
 @WebServlet("/instructor/*")
 public class InstructorController extends HttpServlet {
 
 	private InstructorService instructorService = InstructorService.getInstance();
+	private LectureService lectureService = LectureService.getInstance();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -26,11 +28,11 @@ public class InstructorController extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		String ctx = request.getContextPath();
 
-		// 1️⃣ 로그인 체크
-		if (session == null || session.getAttribute("userId") == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
+		
+//		if (session == null || session.getAttribute("userId") == null) {
+//			response.sendRedirect(ctx + "/login");
+//			return;
+//		}
 
 		// 2️⃣ 권한 체크
 		String role = (String) session.getAttribute("role");
@@ -63,11 +65,15 @@ public class InstructorController extends HttpServlet {
 
 		// ✅ 내 강의 목록
 		case "/lectures": {
-			List<LectureDTO> lectures = instructorService.getMyLectures(instructorId);
+		    List<LectureDTO> lectures =
+		        lectureService.getLecturesByInstructor(instructorId);
 
-			request.setAttribute("lectures", lectures);
-			request.setAttribute("contentPage", "/WEB-INF/views/instructor/lectureList.jsp");
-			break;
+		    request.setAttribute("lectures", lectures);
+		    request.setAttribute(
+		        "contentPage",
+		        "/WEB-INF/views/lecture/lectureList.jsp"
+		    );
+		    break;
 		}
 
 		default:

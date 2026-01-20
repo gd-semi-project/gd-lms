@@ -32,10 +32,10 @@ public class LectureController extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         // 로그인 체크
-        if (session == null || session.getAttribute("userId") == null) {
-            response.sendRedirect(ctx + "/login");
-            return;
-        }
+//        if (session == null || session.getAttribute("userId") == null) {
+//            response.sendRedirect(ctx + "/login");
+//            return;
+//        }
 
         switch (action) {
 

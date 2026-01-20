@@ -24,7 +24,7 @@ public class LectureDAO {
         return instance;
     }
 
-    // 교슈 기준 강의 목록 : 지윤
+    // 교수 기준 강의 목록 : 지윤
     public List<LectureDTO> selectLecturesByInstructor(
             Connection conn, long instructorId) throws SQLException {
 
@@ -44,8 +44,9 @@ public class LectureDAO {
                 created_at,
                 updated_at
             FROM lecture
-            WHERE user_id = ?
-            ORDER BY start_date DESC
+        	WHERE user_id = ?
+        		AND validation = 'CONFIRMED'
+        	ORDER BY start_date DESC
         """;
 
         List<LectureDTO> list = new ArrayList<>();
