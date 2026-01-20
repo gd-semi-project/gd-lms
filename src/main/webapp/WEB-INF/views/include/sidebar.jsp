@@ -6,7 +6,7 @@
   String ctx = request.getContextPath();
 %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="role" value="${sessionScope.AcessInfo.role}" />
+<c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
@@ -19,7 +19,7 @@
 		<c:choose>
 		 <c:when test="${AccessInfo.role == 'STUDENT'}">
 		<li class="nav-item"><a class="nav-link text-white"
-			href="${ctx}/mypage/studentPage"> 학생정보 </a></li>
+			href="<%=ctx%>/mypage/studentPage"> 학생정보 </a></li>
 		</c:when>
 		</c:choose>
 		
@@ -29,26 +29,22 @@
        <li class="nav-item">
          <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정 관리</a>
        </li>
-<!--        학생개인성적 -->
+<!--        권한별 개인성적 -->
        <c:choose>
        <c:when test="${AccessInfo.role == 'STUDENT'}">
        <li class="nav-item">
-         <a class="nav-link text-white" href="${ctx}/mypage/score"> 📝 성적 	
+         <a class="nav-link text-white" href="<%=ctx%>/mypage/score"> 📝 성적 	
          </a>
        </li>
-       </c:when>
-       </c:choose>
-       <!--        교수전용 성적 페이지 -->
-       <c:choose>
+       </c:when>  
+       
        <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
        <li class="nav-item">
          <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
          </a>
        </li>
        </c:when>
-       </c:choose>
-       <!--        관리자전용 성적 페이지 -->
-       <c:choose>
+      
        <c:when test="${AccessInfo.role == 'ADMIN'}">
        <li class="nav-item">
          <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
@@ -101,15 +97,15 @@
               <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="${ctx}/mypage/mySubjectPage">내 강의 목록</a>
+                     href="<%=ctx%>/mypage/mySubjectPage">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="${ctx}/mypage/enrollmentPage">수강 신청</a>
+                     href="<%=ctx%>/mypage/enrollmentPage">수강 신청</a>
                 </li>
 					<!-- 내 시간표 -->
 				<li class="nav-item"><a class="nav-link text-white small"
-				href="${ctx}/mypage/mySchedule"> 내시간표 </a>
+				href="<%=ctx%>/mypage/mySchedule"> 내시간표 </a>
 				</li>
 				</c:when>
       
@@ -133,7 +129,7 @@
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
            AccessInfo.role = [${sessionScope.AccessInfo.role}]<br/>
-           sessionScope.role = [${sessionScope.role}]
+           sessionScope.role = [${sessionScope.AccessInfo.role}]
          </div>
 
    </ul>
