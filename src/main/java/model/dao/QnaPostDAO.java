@@ -84,13 +84,14 @@ public class QnaPostDAO {
     }
 
     // ====== 단건 조회 ======
-    public QnaPostDTO findById(Connection conn, long qnaId) throws SQLException {
+    public QnaPostDTO findById(Connection conn, long qnaId, long lectureId) throws SQLException {
         String sql =
             "SELECT qna_id, lecture_id, author_id, title, content, is_private, status, is_deleted, created_at, updated_at " +
             "FROM qna_posts " +
-            "WHERE qna_id = ? AND is_deleted = 'N'";
+            "WHERE qna_id = ? AND lecture_id = ? AND is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, qnaId);
+            ps.setLong(2, lectureId);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? map(rs) : null;
             }
@@ -179,4 +180,11 @@ public class QnaPostDAO {
         d.setUpdatedAt(u != null ? u.toLocalDateTime() : null);
         return d;
     }
+    
+
+ 
+    
+    
+    
+    
 }

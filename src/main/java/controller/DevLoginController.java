@@ -16,7 +16,6 @@ public class DevLoginController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     
     	
-    	
         // 기본 ADMIN (ADMIN/INSTRUCTOR/STUDENT)
         String role = req.getParameter("role");
         if (role == null || role.isBlank()) role = "ADMIN";

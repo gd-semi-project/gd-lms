@@ -1,6 +1,5 @@
 package service;
 
-
 import model.dao.LectureAccessDAO;
 import model.dao.QnaAnswerDAO;
 import model.dao.QnaPostDAO;
@@ -65,8 +64,6 @@ public class QnaService {
 
     /* =========================================================
      *  상세
-     *  - 정책(현재): 학생은 본인 글만 상세 가능
-     *  - 강의 불일치/URL 변조 방지 포함
      * ========================================================= */
 
     public QnaPostDTO getPostDetail(long qnaId, long lectureId, long userId, Role role) throws ClassNotFoundException {
@@ -77,29 +74,14 @@ public class QnaService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
 
-            QnaPostDTO post = postDAO.findById(conn, qnaId);
+            QnaPostDTO post = postDAO.findById(conn, qnaId, lectureId);
             if (post == null) return null;
 
-            // URL 변조 방지: 강의ID 일치
-            if (post.getLectureId() == null || !Objects.equals(post.getLectureId(), lectureId)) {
-                throw new AccessDeniedException("잘못된 접근입니다(강의 불일치).");
-            }
-
-         // 학생 정책: 공개글(N)은 전체, 비공개글(Y)은 작성자 본인만
-            if (role == Role.STUDENT) {
-
-                // null 방어: 데이터 이상치면 공개(N)로 간주
-                isPrivate priv = (post.getIsPrivate() == null) ? isPrivate.N : post.getIsPrivate();
-
-                if (priv == isPrivate.Y && !Objects.equals(post.getAuthorId(), userId)) {
-                    throw new AccessDeniedException("비공개 질문은 작성자 본인만 조회할 수 있습니다.");
-                }
-            }
+            // 학생: 비공개글은 본인만
+            assertStudentCanView(post, userId, role);
 
             return post;
 
-        } catch (RuntimeException e) {
-            throw e;
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.getPostDetail error", e);
         }
@@ -113,29 +95,14 @@ public class QnaService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
 
-            // ★ 학생 우회 접근 차단: 답변도 "해당 글 상세 가능"해야 조회 가능
-            QnaPostDTO post = postDAO.findById(conn, qnaId);
+            QnaPostDTO post = postDAO.findById(conn, qnaId, lectureId);
             if (post == null) return List.of();
 
-            if (post.getLectureId() == null || !Objects.equals(post.getLectureId(), lectureId)) {
-                throw new AccessDeniedException("잘못된 접근입니다(강의 불일치).");
-            }
-
-         // 학생 정책: 공개글(N)은 전체, 비공개글(Y)은 작성자 본인만
-            if (role == Role.STUDENT) {
-
-                // null 방어: 데이터 이상치면 공개(N)로 간주
-                isPrivate priv = (post.getIsPrivate() == null) ? isPrivate.N : post.getIsPrivate();
-
-                if (priv == isPrivate.Y && !Objects.equals(post.getAuthorId(), userId)) {
-                    throw new AccessDeniedException("비공개 질문은 작성자 본인만 조회할 수 있습니다.");
-                }
-            }
+            // 학생: 비공개글은 본인만
+            assertStudentCanView(post, userId, role);
 
             return answerDAO.findByQnaId(conn, qnaId);
 
-        } catch (RuntimeException e) {
-            throw e;
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.getAnswers error", e);
         }
@@ -147,7 +114,9 @@ public class QnaService {
 
     public long createPost(QnaPostDTO dto, long userId, Role role) {
         requireLogin(userId, role);
-        if (dto == null || dto.getLectureId() == null) throw new IllegalArgumentException("dto/lectureId is required.");
+        if (dto == null || dto.getLectureId() == null) {
+            throw new IllegalArgumentException("dto/lectureId is required.");
+        }
 
         if (role != Role.STUDENT) {
             throw new AccessDeniedException("Q&A 질문 작성은 학생만 가능합니다.");
@@ -190,12 +159,10 @@ public class QnaService {
 
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
 
-            QnaPostDTO existing = postDAO.findById(conn, dto.getQnaId());
-            if (existing == null) throw new NotFoundException("Q&A가 존재하지 않습니다.");
-
-            // 강의 불일치 방지
-            if (existing.getLectureId() == null || !Objects.equals(existing.getLectureId(), dto.getLectureId())) {
-                throw new AccessDeniedException("잘못된 접근입니다(강의 불일치).");
+            // ★ 수정: lectureId로 조회
+            QnaPostDTO existing = postDAO.findById(conn, dto.getQnaId(), dto.getLectureId());
+            if (existing == null) {
+                throw new NotFoundException("Q&A가 존재하지 않습니다.");
             }
 
             // 학생: 본인 글만 수정 가능
@@ -203,9 +170,10 @@ public class QnaService {
                 throw new AccessDeniedException("수정 권한이 없습니다.");
             }
 
-            // 교수/관리자: 강의 접근권한 통과로 충분
             int updated = postDAO.update(conn, dto);
-            if (updated == 0) throw new RuntimeException("Q&A 수정 실패");
+            if (updated == 0) {
+                throw new RuntimeException("Q&A 수정 실패");
+            }
 
             conn.commit();
 
@@ -232,11 +200,10 @@ public class QnaService {
 
             assertCanAccessLecture(conn, userId, role, lectureId);
 
-            QnaPostDTO existing = postDAO.findById(conn, qnaId);
-            if (existing == null) throw new NotFoundException("Q&A가 존재하지 않습니다.");
-
-            if (existing.getLectureId() == null || !Objects.equals(existing.getLectureId(), lectureId)) {
-                throw new AccessDeniedException("잘못된 접근입니다(강의 불일치).");
+            // ★ 수정: lectureId로 조회
+            QnaPostDTO existing = postDAO.findById(conn, qnaId, lectureId);
+            if (existing == null) {
+                throw new NotFoundException("Q&A가 존재하지 않습니다.");
             }
 
             // 학생: 본인 글만 삭제 가능
@@ -244,9 +211,10 @@ public class QnaService {
                 throw new AccessDeniedException("삭제 권한이 없습니다.");
             }
 
-            // 교수/관리자: 강의 접근권한 통과로 충분
             int deleted = postDAO.softDelete(conn, qnaId);
-            if (deleted == 0) throw new RuntimeException("Q&A 삭제 실패");
+            if (deleted == 0) {
+                throw new RuntimeException("Q&A 삭제 실패");
+            }
 
             conn.commit();
 
@@ -268,7 +236,9 @@ public class QnaService {
     public long addAnswer(QnaAnswerDTO dto, long lectureId, long userId, Role role) {
         requireLogin(userId, role);
         requirePositiveId("lectureId", lectureId);
-        if (dto == null || dto.getQnaId() == null) throw new IllegalArgumentException("dto/qnaId is required.");
+        if (dto == null || dto.getQnaId() == null) {
+            throw new IllegalArgumentException("dto/qnaId is required.");
+        }
 
         if (!(role == Role.INSTRUCTOR || role == Role.ADMIN)) {
             throw new AccessDeniedException("답변 권한이 없습니다.");
@@ -283,16 +253,14 @@ public class QnaService {
 
             assertCanAccessLecture(conn, userId, role, lectureId);
 
-            QnaPostDTO post = postDAO.findById(conn, dto.getQnaId());
-            if (post == null) throw new NotFoundException("질문글이 존재하지 않습니다.");
-
-            if (post.getLectureId() == null || !Objects.equals(post.getLectureId(), lectureId)) {
-                throw new AccessDeniedException("잘못된 접근입니다(강의 불일치).");
+            // ★ 수정: lectureId로 조회
+            QnaPostDTO post = postDAO.findById(conn, dto.getQnaId(), lectureId);
+            if (post == null) {
+                throw new NotFoundException("질문글이 존재하지 않습니다.");
             }
 
             long id = answerDAO.insert(conn, dto);
 
-            // 답변 등록 시 상태 갱신
             postDAO.updateStatus(conn, dto.getQnaId(), QnaStatus.ANSWERED);
 
             conn.commit();
@@ -310,7 +278,7 @@ public class QnaService {
     }
 
     /* =========================================================
-     *  공통: 로그인/권한/유틸
+     *  공통 헬퍼
      * ========================================================= */
 
     private void requireLogin(long userId, Role role) {
@@ -320,7 +288,9 @@ public class QnaService {
     }
 
     private void requirePositiveId(String name, long value) {
-        if (value <= 0) throw new IllegalArgumentException(name + " is required.");
+        if (value <= 0) {
+            throw new IllegalArgumentException(name + " is required.");
+        }
     }
 
     private int sanitizeLimit(int limit) {
@@ -329,10 +299,19 @@ public class QnaService {
     }
 
     /**
-     * ★ 핵심: 같은 Connection으로 강의 접근 권한 체크
-     * - ADMIN: OK
-     * - INSTRUCTOR: lecture.user_id == userId
-     * - STUDENT: enrollment(lecture_id, student_id, status='ENROLLED')
+     * 학생 비공개글 접근 검증 (중복 제거용)
+     */
+    private void assertStudentCanView(QnaPostDTO post, long userId, Role role) {
+        if (role != Role.STUDENT) return;
+
+        isPrivate priv = (post.getIsPrivate() == null) ? isPrivate.N : post.getIsPrivate();
+        if (priv == isPrivate.Y && !Objects.equals(post.getAuthorId(), userId)) {
+            throw new AccessDeniedException("비공개 질문은 작성자 본인만 조회할 수 있습니다.");
+        }
+    }
+
+    /**
+     * 강의 접근 권한 체크
      */
     private void assertCanAccessLecture(Connection conn, long userId, Role role, long lectureId) throws SQLException {
         if (!accessDAO.lectureExists(conn, lectureId)) {
@@ -342,19 +321,16 @@ public class QnaService {
         switch (role) {
             case ADMIN:
                 return;
-
             case INSTRUCTOR:
                 if (!accessDAO.isInstructorOfLecture(conn, userId, lectureId)) {
                     throw new AccessDeniedException("본인 강의의 Q&A만 접근할 수 있습니다.");
                 }
                 return;
-
             case STUDENT:
                 if (!accessDAO.isEnrolledStudent(conn, userId, lectureId)) {
                     throw new AccessDeniedException("수강 중인 강의의 Q&A만 접근할 수 있습니다.");
                 }
                 return;
-
             default:
                 throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
         }
@@ -371,7 +347,7 @@ public class QnaService {
     }
 
     /* =========================================================
-     *  예외 (프로젝트 공통 예외로 분리해도 됨)
+     *  예외
      * ========================================================= */
 
     public static class AccessDeniedException extends RuntimeException {

@@ -10,8 +10,8 @@
 
 <!-- Test용 -->
 <!-- 여기서 권한 주석처리 -->
-<%--  <c:set var="role" value="INSTRUCTOR" scope="session" />  --%>
-<c:set var="role" value="STUDENT" scope="session" />
+<c:set var="role" value="INSTRUCTOR" scope="session" /> 
+<%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
 <%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
 
 
@@ -114,8 +114,10 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
+           UserInfo.role = [${sessionScope.UserInfo.role}]<br/>
            sessionScope.role = [${sessionScope.role}]
          </div>
+
    </ul>
 
    <hr class="border-light opacity-50 my-3">
