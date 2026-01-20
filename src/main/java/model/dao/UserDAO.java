@@ -1,16 +1,17 @@
 package model.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import database.DBConnection;
 import model.dto.UserDTO;
 import model.enumtype.Gender;
 import model.enumtype.Role;
 import model.enumtype.Status;
-import model.enumtype.YesOrNo;
 
 public class UserDAO {
 	private static final UserDAO instance = new UserDAO(); 
@@ -36,10 +37,16 @@ public class UserDAO {
 				userDTO.setPassword(rs.getString("password_hash"));
 				userDTO.setName(rs.getString("name"));
 				
-				String genderStr = rs.getString("gender"); 
-				userDTO.setGender(Gender.valueOf(genderStr));
+				String genderStr = rs.getString("gender");
+				if (genderStr != null) {
+				    userDTO.setGender(Gender.valueOf(genderStr));
+				}
+
+				Date birthDate = rs.getDate("birth_date");
+				if (birthDate != null) {
+				    userDTO.setBirthDate(birthDate.toLocalDate());
+				}
 				
-				userDTO.setBirthDate(rs.getDate("birth_date").toLocalDate());
 				userDTO.setEmail(rs.getString("email"));
 				userDTO.setPhone(rs.getString("phone"));
 				userDTO.setAddress(rs.getString("address"));
@@ -52,8 +59,13 @@ public class UserDAO {
 				
 				userDTO.setMustChangePw(rs.getBoolean("must_change_pw"));
 				
+
 				userDTO.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-				userDTO.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+
+				Timestamp updatedAt = rs.getTimestamp("updated_at");
+				if (updatedAt != null) {
+				    userDTO.setUpdatedAt(updatedAt.toLocalDateTime());
+				}
 			}
 			return userDTO;
 		} catch (SQLException | ClassNotFoundException e) {

@@ -44,7 +44,7 @@
 
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
-      
+
       <c:if test="${not empty requestScope.contentPage}">
 	      <jsp:include page = "${requestScope.contentPage}"/>
       </c:if>
