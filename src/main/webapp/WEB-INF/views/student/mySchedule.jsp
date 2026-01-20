@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<br><br>
+<h3>스케줄</h3>
 <table style="width:100%; border-collapse:collapse; text-align:center;">
   <thead>
     <tr>

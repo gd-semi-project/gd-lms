@@ -29,10 +29,33 @@
        <li class="nav-item">
          <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정 관리</a>
        </li>
+<!--        학생개인성적 -->
+       <c:choose>
+       <c:when test="${AccessInfo.role == 'STUDENT'}">
        <li class="nav-item">
-         <a class="nav-link text-white" href="?page=totScore"> 📝 성적 
+         <a class="nav-link text-white" href="${ctx}/mypage/score"> 📝 성적 	
          </a>
        </li>
+       </c:when>
+       </c:choose>
+       <!--        교수전용 성적 페이지 -->
+       <c:choose>
+       <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
+       <li class="nav-item">
+         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
+         </a>
+       </li>
+       </c:when>
+       </c:choose>
+       <!--        관리자전용 성적 페이지 -->
+       <c:choose>
+       <c:when test="${AccessInfo.role == 'ADMIN'}">
+       <li class="nav-item">
+         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
+         </a>
+       </li>
+       </c:when>
+       </c:choose>
        
        <c:if test="${role == 'ADMIN'}">
           <li class="nav-item">
@@ -78,15 +101,16 @@
               <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="?page=mySubjectPage">내 강의 목록</a>
+                     href="${ctx}/mypage/mySubjectPage">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="?page=enrollmentPage">수강 신청</a>
+                     href="${ctx}/mypage/enrollmentPage">수강 신청</a>
                 </li>
-							<!-- 내 시간표 -->
-							<li class="nav-item"><a class="nav-link text-white small"
-								href="?page=mySchedule"> 내시간표 </a></li>
+					<!-- 내 시간표 -->
+				<li class="nav-item"><a class="nav-link text-white small"
+				href="${ctx}/mypage/mySchedule"> 내시간표 </a>
+				</li>
 				</c:when>
       
               <%-- 관리자 --%>

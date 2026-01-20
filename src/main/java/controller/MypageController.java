@@ -11,6 +11,7 @@ import lombok.Builder.Default;
 import model.dto.AccessDTO;
 import model.dto.MypageDTO;
 import model.dto.UserDTO;
+import model.enumtype.Role;
 import service.MyPageService;
 
 import java.io.IOException;
@@ -51,7 +52,14 @@ public class MypageController extends HttpServlet {
 	        }
 		
 		switch (action) {
-		case "/studentPage": {
+		// 학생관련
+		case "/studentPage": {	// 학생정보
+			// ROLE이 STUDENT인경우(학생)만 접근가능
+			if (access.getRole() != Role.STUDENT) {
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        return;
+		    }
+			
 			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
 	            if (mypage == null) {
 	                response.sendRedirect(request.getContextPath() + "/login");
@@ -63,6 +71,110 @@ public class MypageController extends HttpServlet {
 			request.setAttribute(
 			        "contentPage",
 			        "/WEB-INF/views/student/studentPage.jsp"
+			    );
+
+			    request.getRequestDispatcher(
+			        "/WEB-INF/views/layout/layout.jsp"
+			    ).forward(request, response);
+
+			    return;
+		}
+		case "/score": {	// 내 점수(학생)
+			// ROLE이 STUDENT인경우(학생)만 접근가능
+			if (access.getRole() != Role.STUDENT) {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return;
+			}
+			
+			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
+	            if (mypage == null) {
+	                response.sendRedirect(request.getContextPath() + "/login");
+	                return;
+	            }
+	            
+	            request.setAttribute("mypage", mypage);
+
+			request.setAttribute(
+			        "contentPage",
+			        "/WEB-INF/views/student/totScore.jsp"
+			    );
+
+			    request.getRequestDispatcher(
+			        "/WEB-INF/views/layout/layout.jsp"
+			    ).forward(request, response);
+
+			    return;
+		}
+		case "/mySubjectPage": {	// 내가 수강한과목(학생)
+			// ROLE이 STUDENT인경우(학생)만 접근가능
+			if (access.getRole() != Role.STUDENT) {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return;
+			}
+			
+			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
+	            if (mypage == null) {
+	                response.sendRedirect(request.getContextPath() + "/login");
+	                return;
+	            }
+	            
+	            request.setAttribute("mypage", mypage);
+
+			request.setAttribute(
+			        "contentPage",
+			        "/WEB-INF/views/student/mySubjectPage.jsp"
+			    );
+
+			    request.getRequestDispatcher(
+			        "/WEB-INF/views/layout/layout.jsp"
+			    ).forward(request, response);
+
+			    return;
+		}
+		case "/enrollmentPage": {	// 수강신청(학생)
+			// ROLE이 STUDENT인경우(학생)만 접근가능
+			if (access.getRole() != Role.STUDENT) {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return;
+			}
+			
+			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
+	            if (mypage == null) {
+	                response.sendRedirect(request.getContextPath() + "/login");
+	                return;
+	            }
+	            
+	            request.setAttribute("mypage", mypage);
+
+			request.setAttribute(
+			        "contentPage",
+			        "/WEB-INF/views/student/enrollmentPage.jsp"
+			    );
+
+			    request.getRequestDispatcher(
+			        "/WEB-INF/views/layout/layout.jsp"
+			    ).forward(request, response);
+
+			    return;
+		}
+		case "/mySchedule": {	// 내 스케줄(학생)
+			// ROLE이 STUDENT인경우(학생)만 접근가능
+			if (access.getRole() != Role.STUDENT) {
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return;
+			}
+			
+			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
+	            if (mypage == null) {
+	                response.sendRedirect(request.getContextPath() + "/login");
+	                return;
+	            }
+	            
+	            request.setAttribute("mypage", mypage);
+
+			request.setAttribute(
+			        "contentPage",
+			        "/WEB-INF/views/student/mySchedule.jsp"
 			    );
 
 			    request.getRequestDispatcher(
