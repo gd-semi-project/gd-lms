@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import database.DBConnection;
+import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Gender;
 import model.enumtype.Role;
@@ -23,7 +24,7 @@ public class UserDAO {
 		return instance;
 	}
 	
-	public UserDTO SelectUsersById(String Id) {
+	public UserDTO selectUsersById(String Id) {
 		String sql = "SELECT * FROM user WHERE login_id = ?";
 		UserDTO userDTO = new UserDTO();
 		try (Connection conn = DBConnection.getConnection()){
@@ -68,6 +69,29 @@ public class UserDAO {
 				}
 			}
 			return userDTO;
+		} catch (SQLException | ClassNotFoundException e) {
+			// TODO: 예외처리 구문 작성 필요
+			System.out.println("UserDAO selectuserbyid" + e.getMessage());
+		}
+		return null;
+	}
+	
+	public AccessDTO selectAccessById(String Id) {
+		String sql = "SELECT * FROM user WHERE login_id = ?";
+		AccessDTO accessDTO = new AccessDTO();
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, Id);
+			ResultSet rs = pstmt.executeQuery();
+
+			if(rs.next()) {
+				accessDTO.setUserId(rs.getLong("user_id"));
+				accessDTO.setName(rs.getString("name"));
+				
+				String roleStr = rs.getString("role");
+				accessDTO.setRole(Role.valueOf(roleStr));
+			}
+			return accessDTO;
 		} catch (SQLException | ClassNotFoundException e) {
 			// TODO: 예외처리 구문 작성 필요
 			System.out.println("UserDAO selectuserbyid" + e.getMessage());
