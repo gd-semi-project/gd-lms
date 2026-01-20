@@ -6,7 +6,7 @@ import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.QnaAnswerDTO;
 import model.dto.QnaPostDTO;
@@ -30,19 +30,20 @@ public class QnaController extends HttpServlet {
 
         String ctx = request.getContextPath();
 
-        // 1) 로그인 체크 (현재는 임시 주입 유지)
-        HttpSession session = request.getSession(true);
-        UserDTO user = (UserDTO) session.getAttribute("UserInfo");
-
-        if (user == null) {
-            user = new UserDTO();
-            user.setUserId(3L);
-            user.setRole(Role.INSTRUCTOR); // ADMIN / INSTRUCTOR / STUDENT
-            session.setAttribute("UserInfo", user);
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
         }
 
-        long userId = user.getUserId();
-        Role role = user.getRole();
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        long userId = accessInfo.getUserId();
+        Role role = accessInfo.getRole();
 
         // 2) 공통 파라미터: lectureId는 목록/상세 모두 필요
         long lectureId = parseLong(request.getParameter("lectureId"));
@@ -190,20 +191,22 @@ public class QnaController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String ctx = request.getContextPath();
 
-        // 1) 로그인 체크 (현재는 임시 주입 유지)
-        HttpSession session = request.getSession(true);
-        UserDTO user = (UserDTO) session.getAttribute("UserInfo");
-
-        if (user == null) {
-            user = new UserDTO();
-            user.setUserId(3L);
-            user.setRole(Role.INSTRUCTOR);
-            session.setAttribute("UserInfo", user);
+     // doGet, doPost 공통 로그인 체크 로직
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
         }
 
-        long userId = user.getUserId();
-        Role role = user.getRole();
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
 
+        long userId = accessInfo.getUserId();
+        Role role = accessInfo.getRole();
+        
         // 2) 공통 파라미터
         String action = request.getParameter("action");
         long lectureId = parseLong(request.getParameter("lectureId"));
