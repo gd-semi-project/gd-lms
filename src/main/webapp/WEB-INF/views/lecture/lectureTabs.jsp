@@ -41,7 +41,7 @@
       </a>
     </li>
 
-    <c:if test="${sessionScope.role eq 'INSTRUCTOR' or sessionScope.role eq 'ADMIN'}">
+    <c:if test="${sessionScope.AccessInfo.role eq 'INSTRUCTOR' or sessionScope.AccessInfo.role eq 'ADMIN'}">
       <li class="nav-item">
         <a class="nav-link ${activeTab eq 'students' ? 'active' : ''}"
            href="${ctx}/lecture/students?lectureId=${lecture.lectureId}">

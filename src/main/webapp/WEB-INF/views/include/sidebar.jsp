@@ -6,14 +6,7 @@
   String ctx = request.getContextPath();
 %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="role" value="${sessionScope.UserInfo.role}" />
-
-<!-- Test용 -->
-<!-- 여기서 권한 주석처리 -->
-<c:set var="role" value="INSTRUCTOR" scope="session" /> 
-<%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
-<%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
-
+<c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
    <ul class="nav nav-pills flex-column gap-1">
@@ -114,8 +107,8 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
-           UserInfo.role = [${sessionScope.UserInfo.role}]<br/>
-           sessionScope.role = [${sessionScope.role}]
+           AccessInfo.role = [${sessionScope.AccessInfo.role}]<br/>
+           sessionScope.role = [${sessionScope.AccessInfo.role}]
          </div>
 
    </ul>
@@ -123,7 +116,7 @@
    <hr class="border-light opacity-50 my-3">
 
    <div class="small opacity-75">
-      로그인 사용자: ${sessionScope.UserInfo.name}<br /> 권한:
-      ${sessionScope.UserInfo.role}
+      로그인 사용자: ${sessionScope.AccessInfo.name}<br /> 권한:
+      ${sessionScope.AccessInfo.role}
    </div>
 </aside>
