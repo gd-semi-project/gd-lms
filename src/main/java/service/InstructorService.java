@@ -34,7 +34,7 @@ public class InstructorService {
             map.put("instructor",
                     instructorDAO.selectInstructorInfo(userId));
             map.put("user",
-                    userDAO.SelectUsersById(loginId));
+                    userDAO.selectUsersById(loginId));
             return map;
         } catch (Exception e) {
             throw new RuntimeException("강사 프로필 조회 실패", e);
