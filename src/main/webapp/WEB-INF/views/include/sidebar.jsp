@@ -105,8 +105,10 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
+           UserInfo.role = [${sessionScope.UserInfo.role}]<br/>
            sessionScope.role = [${sessionScope.role}]
          </div>
+
    </ul>
 
    <hr class="border-light opacity-50 my-3">
