@@ -17,9 +17,9 @@
 
 		<!--     마이페이지(학생) -->
 		<c:choose>
-		 <c:when test="${role == 'STUDENT'}">
+		 <c:when test="${AccessInfo.role == 'STUDENT'}">
 		<li class="nav-item"><a class="nav-link text-white"
-			href="?page=studentInfo"> 학생정보 </a></li>
+			href="${ctx}/mypage?view=studentPage"> 학생정보 </a></li>
 		</c:when>
 		</c:choose>
 		
@@ -63,7 +63,7 @@
             <c:choose>
       
               <%-- 교수 --%>
-              <c:when test="${role == 'INSTRUCTOR'}">
+              <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
                      href="<%=ctx%>/instructor/lectures">내 강의 목록</a>
@@ -75,7 +75,7 @@
               </c:when>
       
               <%-- 학생 --%>
-              <c:when test="${role == 'STUDENT'}">
+              <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
                      href="?page=mySubjectPage">내 강의 목록</a>
