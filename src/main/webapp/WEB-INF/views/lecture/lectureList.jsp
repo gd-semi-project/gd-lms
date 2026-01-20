@@ -14,7 +14,6 @@
     <thead class="table-light">
       <tr>
         <th>강의명</th>
-        <th>차수</th>
         <th>분반</th>
         <th>기간</th>
         <th>강의실</th>
@@ -29,7 +28,6 @@
               ${lec.lectureTitle}
             </a>
           </td>
-          <td>${lec.lectureRound}</td>
           <td>${lec.section}</td>
           <td>${lec.startDate} ~ ${lec.endDate}</td>
           <td>${lec.room}</td>
