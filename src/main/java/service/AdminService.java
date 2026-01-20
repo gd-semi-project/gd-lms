@@ -54,29 +54,29 @@ public class AdminService {
 	}
 	
 	
-	public ArrayList<LectureRequestDTO> getPendingLectureList(){
+	public ArrayList<LectureRequestDTO> getPendingLectureList(Long departmentId){
 		
 		String validation = "PENDING";
 		
-		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation);
+		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation, departmentId);
 		
 		return list;
 	}
 	
-	public ArrayList<LectureRequestDTO> getCanceledLectureList(){
+	public ArrayList<LectureRequestDTO> getCanceledLectureList(Long departmentId){
 		
 		String validation = "CANCELED";
 		
-		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation);
+		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation, departmentId);
 		
 		return list;
 	}
 	
-	public ArrayList<LectureRequestDTO> getConfirmedLectureList(){
+	public ArrayList<LectureRequestDTO> getConfirmedLectureList(Long departmentId){
 		
 		String validation = "CONFIRMED";
 		
-		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation);
+		ArrayList<LectureRequestDTO> list = enrollmentDAO.getLectureList(validation, departmentId);
 		
 		return list;
 	}

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -29,50 +30,55 @@ public class EnrollmentDAO {
 	}
 
 	// 강의 리스트 메소드
-		public ArrayList<LectureRequestDTO> getLectureList(String validation){
+		public ArrayList<LectureRequestDTO> getLectureList(String validation, Long departmentId){
 
 			if (validation==null||validation.isEmpty()) validation = "CONFIRMED";
-			Long departmentId = null;
 			String sql ="""
-				SELECT
-				    l.lecture_id    AS lectureId,
-				    l.lecture_title AS lectureTitle,
-				    l.section       AS section,
-				    l.capacity      AS capacity,
-				    l.validation    AS validation,
-				    l.created_at    AS createdAt,
-				    u.name          AS instructorName,
-				    d.department_id AS departmentId
-				    GROUP_CONCAT(
-				        CONCAT(
-				            s.week_day,
-				            ' ',
-				            TIME_FORMAT(s.start_time, '%H:%i'),
-				            '~',
-				            TIME_FORMAT(s.end_time, '%H:%i')
-				        )
-				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
-				        SEPARATOR ' <br> '
-				    ) AS schedule
-				FROM lecture l
-				JOIN lecture_schedule s
-				    ON l.lecture_id = s.lecture_id
-				JOIN user u
-				    ON u.user_id = l.user_id
-				JOIN department d
-				    ON d.department_id = l.department_id
-				WHERE l.validation = ?
-				GROUP BY
-				    l.lecture_id,
-				    l.lecture_title,
-				    l.section,
-				    l.capacity,
-				    l.validation,
-				    l.created_at,
-				    u.name
-				ORDER BY
-				    l.lecture_id,
-				    l.section; """;
+			    SELECT
+			        l.lecture_id    AS lectureId,
+			        l.lecture_title AS lectureTitle,
+			        l.section       AS section,
+			        l.capacity      AS capacity,
+			        l.validation    AS validation,
+			        l.created_at    AS createdAt,
+			        u.name          AS instructorName,
+			        d.department_id AS departmentId,
+			        GROUP_CONCAT(
+			            CONCAT(
+			                s.week_day, ' ',
+			                TIME_FORMAT(s.start_time, '%H:%i'), '~',
+			                TIME_FORMAT(s.end_time, '%H:%i')
+			            )
+			            ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
+			            SEPARATOR ' <br> '
+			        ) AS schedule
+			    FROM lecture l
+			    JOIN lecture_schedule s
+			        ON l.lecture_id = s.lecture_id
+			    JOIN user u
+			        ON u.user_id = l.user_id
+			    JOIN department d
+			        ON d.department_id = l.department_id
+			    WHERE l.validation = ?
+			    """;
+			if (departmentId != null) {
+				sql += " AND d.department_id = ?";
+			}
+			sql +=
+			"""
+			    GROUP BY
+			        l.lecture_id,
+			        l.lecture_title,
+			        l.section,
+			        l.capacity,
+			        l.validation,
+			        l.created_at,
+			        u.name,
+			        d.department_id
+			    ORDER BY
+			        l.lecture_id,
+			        l.section;
+			 """;
 
 			ArrayList<LectureRequestDTO> list = new ArrayList<LectureRequestDTO>();
 
@@ -81,11 +87,11 @@ public class EnrollmentDAO {
 
 			try (	Connection conn = DBConnection.getConnection();
 					PreparedStatement pstmt = conn.prepareStatement(sql);	){
-
-				if (departmentId == null) pstmt.setString(1, validation);
-				else pstmt.setString(1, validation + "AND d.departmentId = "+departmentId);
+				pstmt.setString(1, validation);
+				if (departmentId != null) {
+					pstmt.setLong(2, departmentId);
+				}
 					
-
 				try(	ResultSet rs = pstmt.executeQuery()		){
 					while (rs.next()) {
 						LectureRequestDTO dto = new LectureRequestDTO();
