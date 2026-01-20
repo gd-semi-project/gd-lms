@@ -16,7 +16,6 @@
       <thead class="table-light">
         <tr>
           <th>No</th>
-          <th>학년도</th>
           <th>학기</th>
           <th>과목명</th>
           <th>중간점수</th>
@@ -32,7 +31,6 @@
         <c:forEach var="score" items="${scoreList}" varStatus="st">
           <tr>
             <td>${순번값}</td>
-            <td>${학년값}학년도</td>
             <td>${학기값}학기</td>
             <td>${과목명값}</td>
             <td>${중간점수값}</td>
