@@ -16,18 +16,18 @@ public final class AppTime {
 	
 	private AppTime() {}
 	
-	static LocalDateTime now() {
+	public static LocalDateTime now() {
 		if (mode == Mode.KERONBALL) {
 			return LocalDateTime.now(ZONE).plusSeconds(keronBallSeconds);
 		} else return LocalDateTime.now(ZONE);
 	}
 	
-	static synchronized void setReal() {	
+	public static synchronized void setReal() {	
 		mode = Mode.REAL;
 		keronBallSeconds = 0L;
 	}
 	
-	static synchronized void setKeronBallSeconds(long seconds) {
+	public static synchronized void setKeronBallSeconds(long seconds) {
 		mode = Mode.KERONBALL;
 		keronBallSeconds = seconds;
 	}

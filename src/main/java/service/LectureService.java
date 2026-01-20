@@ -1,6 +1,7 @@
 package service;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
 
 import database.DBConnection;
@@ -51,5 +52,36 @@ public class LectureService {	// 이미 개설된 강의에 기준
 			throw new RuntimeException("강의 수강생 조회 실패", e);
 		}
 	}
+	
+	// 강의 개설 요청 종료 후 PENDING 상태인 요청 일괄 CANCELD 처리
+	
+	public int cancelExpiredLectureRequest() {
+		final String sql = """
+				UPDATE lecture
+				SET validation = 'CANCELED'
+				WHERE validation = 'PENDING'
+				""";
+		
+		try (	Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)
+				){
+			
+			return pstmt.executeUpdate(); // 취소된 건수 반환
+					
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 
 }
