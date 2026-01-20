@@ -9,14 +9,6 @@ import model.dto.SchoolScheduleDTO;
 
 public class SchedulePolicyService {
 	
-	private static final SchedulePolicyService instance = new SchedulePolicyService();
-	private SchedulePolicyService() {}
-	
-	
-	public static SchedulePolicyService getInstance() {
-		return instance;
-	}
-	
 	private SchoolScheduleDAO ssDAO;
 	
 	public SchedulePolicyService(SchoolScheduleDAO scheduleDAO) {
@@ -33,9 +25,9 @@ public class SchedulePolicyService {
 	
 	public boolean isTriggerDayAfterEnd(String scheduleCode, LocalDateTime now) {
 		LocalDate today = now.toLocalDate();
-		SchoolScheduleDTO ssdto = ssDAO.findByCode(scheduleCode); 
-		if (ssdto == null) return false; 
-		return today.equals(ssdto.getEndDate().plusDays(1));
+		LocalDate endDate = today.minusDays(1);
+		SchoolScheduleDTO ssdto = ssDAO.findByCodeAndEndDate(scheduleCode, endDate); 
+		return ssdto != null;
 	}
 	
     public Optional<SchoolScheduleDTO> getSchedule(String scheduleCode) {

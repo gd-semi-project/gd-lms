@@ -1,5 +1,6 @@
 package automation;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,8 +47,9 @@ public class AppScheduleListener implements ServletContextListener{
 		
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 		scheduler.scheduleAtFixedRate(() -> {
+			LocalDateTime now = AppTime.now();
 			System.out.println("[AppScheduleListener] tick: "+AppTime.now());
-			automationService.runDueJobs(AppTime.now());
+			automationService.runDueJobs(now);
 		}, 0, 1, TimeUnit.MINUTES);
 	}
 	

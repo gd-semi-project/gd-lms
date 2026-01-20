@@ -15,7 +15,7 @@ public interface SchoolScheduleDAO {
 	
 	
 	SchoolScheduleDTO findByCode(String scheduleCode);
-	
+	SchoolScheduleDTO findByCodeAndEndDate(String scheduleCode, LocalDate endDate);
 	
 	
 	

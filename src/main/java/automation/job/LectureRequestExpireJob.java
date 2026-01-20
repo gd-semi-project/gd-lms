@@ -13,7 +13,7 @@ public class LectureRequestExpireJob implements AutomationJob{
 	
 	private final AutomationLogDAO logDAO;
 	private final LectureService lectureService;
-	SchedulePolicyService policy = SchedulePolicyService.getInstance();
+	SchedulePolicyService policy;
 	
 	public LectureRequestExpireJob(
 			AutomationLogDAO logDAO,
@@ -31,10 +31,11 @@ public class LectureRequestExpireJob implements AutomationJob{
 	
 	@Override
 	public String code() {
-		return "LECTURE_REQUEST_EXPIRE";
+		return ScheduleCode.LECTURE_OPEN_APPROVAL_ADMIN.name();
 	}
 	@Override
 	public boolean shouldRun(LocalDateTime now) {
+		System.out.println("LectureRequestExpireJob shouldRun():"+policy.isTriggerDayAfterEnd(ScheduleCode.LECTURE_OPEN_APPROVAL_ADMIN.name(), now));
 		return policy.isTriggerDayAfterEnd(ScheduleCode.LECTURE_OPEN_APPROVAL_ADMIN.name(), now);
 	}
 	@Override
