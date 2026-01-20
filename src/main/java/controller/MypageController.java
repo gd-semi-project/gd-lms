@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.Builder.Default;
+import model.dto.AccessDTO;
 import model.dto.MypageDTO;
 import model.dto.UserDTO;
 import service.MyPageService;
@@ -24,30 +25,40 @@ public class MypageController extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		HttpSession session = request.getSession(false);
-		
-//		if (session == null || session.getAttribute("AccessInfo") == null) {
-//		    response.sendRedirect(request.getContextPath() + "/login");
-//		    return;
-//		}
-//		
-//		String loginId = (String) session.getAttribute("loginId");
-//		
-//		String path = request.getPathInfo();
-//		if(path == null || path.equals("/")) {
-//			path = "/studentPage";
-//		}
-		
-		 String ctx = request.getContextPath();
-	        String uri = request.getRequestURI();
-	        String action = uri.substring(ctx.length() + "/mypage".length());
+		 HttpSession session = request.getSession(false);
+	        if (session == null) {
+	            response.sendRedirect(request.getContextPath() + "/login");
+	            return;
+	        }
+
+	        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+	        if (access == null) {
+	            response.sendRedirect(request.getContextPath() + "/login");
+	            return;
+	        }
+	        // loginId 확보
+	        String loginId = (String) session.getAttribute("loginId");
+	        if (loginId == null) {
+	            // 세션 꼬임 방어
+	            session.invalidate();
+	            response.sendRedirect(request.getContextPath() + "/login");
+	            return;
+	        }
 	        
-	        if (action == null || action.isBlank()) action = "/studentPage";
+	        String action = request.getPathInfo();
+	        if (action == null || action.equals("/")) {
+	            action = "/studentPage";
+	        }
 		
 		switch (action) {
 		case "/studentPage": {
-			MypageDTO mypage = myPageService.getMypageDTO("loginId");
-			request.setAttribute("mypage", mypage);
+			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
+	            if (mypage == null) {
+	                response.sendRedirect(request.getContextPath() + "/login");
+	                return;
+	            }
+	            
+	            request.setAttribute("mypage", mypage);
 
 			request.setAttribute(
 			        "contentPage",

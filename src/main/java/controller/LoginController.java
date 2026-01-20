@@ -69,6 +69,8 @@ public class LoginController extends HttpServlet {
 			if (accessDTO != null) {
 				session = request.getSession();
 				session.setAttribute("AccessInfo", accessDTO);
+				// 조회 기준 MyPageService용
+				session.setAttribute("loginId", user_id);
 				response.sendRedirect(contextPath + "/main");
 			} else {
 				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");

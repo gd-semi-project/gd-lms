@@ -24,7 +24,8 @@ public class StudentDAO {
 	
 	// user_id(FK)을 통해서 학생테이블을 가져옴
 	public StudentsDTO findStudentByLoginId(String loginId) {
-		
+		System.out.println("🔥 StudentDAO 진입");
+
 		String sql = """
 		        SELECT s.*
 		        FROM student s
@@ -39,7 +40,9 @@ public class StudentDAO {
 			
 			ResultSet rs = pstmt.executeQuery();
 			
+
 			if (rs.next()) {
+				System.out.println("🔥 student rs.next() = true");
 			    StudentsDTO student = new StudentsDTO();
 
 			    student.setStudentId(rs.getLong("student_id"));
@@ -60,7 +63,8 @@ public class StudentDAO {
 			        student.setEndDate(endTs.toLocalDateTime());
 
 			    student.setTuitionAccount(rs.getString("tuition_account"));
-
+			    System.out.println("🔥 status enum = " + student.getStatus());
+			    System.out.println("🔥 studentStatus enum = " + student.getStudentStatus());
 			    return student;
 			}
 			}	
