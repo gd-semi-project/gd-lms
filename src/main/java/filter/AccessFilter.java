@@ -24,7 +24,8 @@ public class AccessFilter extends HttpFilter {
 		    "/login",
 		    "/login/login.do",
 		    "resources",
-		    "error"
+		    "error",
+		    "appTime.now"
 		);
 
 	private String encoding = "UTF-8"; // 기본 인코딩 설정
@@ -70,37 +71,6 @@ public class AccessFilter extends HttpFilter {
 			System.out.println("세션O웹필터: " + actionPath);
 			chain.doFilter(request, response);
 		}
-					
-		// 세션이 있으면 로그인 성공한 것 이후 role체크 추가
-//		AccessDTO accessDTO =(AccessDTO) session.getAttribute("AccessInfo");
-//		
-//		if (middlePath.equals("admin")) {
-//			if (accessDTO.getRole() == Role.ADMIN) {
-//				System.out.println("관리자 페이지 정상 접속 /권한:" + accessDTO.getRole());
-//				chain.doFilter(request, response);
-//				return;
-//			} else {
-//				System.out.println("관리자 페이지 접속 제한 /권한:" + accessDTO.getRole());
-//				// TODO: 예외 페이지 작성 필요
-//				response.sendRedirect(contextPath + "/");
-//				return;
-//			}
-//		}
-//		
-//		if (middlePath.equals("instuctor")) {
-//			if (accessDTO.getRole() == Role.INSTRUCTOR || accessDTO.getRole() == Role.ADMIN) {
-//				System.out.println("교수 페이지 정상 접속 /권한:" + accessDTO.getRole());
-//				chain.doFilter(request, response);
-//				return;
-//			} else {
-//				System.out.println("교수 페이지 접속 제한 /권한:" + accessDTO.getRole());
-//				// TODO: 예외 페이지 작성 필요
-//				response.sendRedirect(contextPath + "/");
-//				return;
-//			}
-//		}
-//		System.out.println("여기서 넘어가는거임?");
-//		chain.doFilter(request, response);
 		
 	}
 	

@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 @WebServlet(
-		urlPatterns = {"/main", "/", "/login/*", "/index.jsp"}
+		urlPatterns = {"/main", "/login/*", "/index.jsp"}
 		)
 
 public class LoginController extends HttpServlet {
