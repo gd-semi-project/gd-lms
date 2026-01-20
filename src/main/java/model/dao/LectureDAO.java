@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import database.DBConnection;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.EnrollmentStatus;
@@ -182,4 +183,167 @@ public class LectureDAO {
 
         return dto;
     }
+    
+    
+	// ========== 공지사항용 메서드 추가 ==========
+
+	/**
+	 * 모든 강의 목록 조회 (관리자용)
+	 */
+	public List<LectureDTO> findAll() {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE validation = 'CONFIRMED' " +
+			"ORDER BY lecture_title, lecture_round";
+
+		List<LectureDTO> list = new ArrayList<>();
+
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql);
+			 ResultSet rs = pstmt.executeQuery()) {
+
+			while (rs.next()) {
+				list.add(mapResultSetToDTO(rs));
+			}
+
+			return list;
+
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findAll error", e);
+		}
+	}
+
+	/**
+	 * 특정 교수의 강의 목록 조회 (교수용)
+	 */
+	public List<LectureDTO> findByInstructor(Long instructorId) {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE validation = 'CONFIRMED' AND user_id = ? " +
+			"ORDER BY lecture_title, lecture_round";
+
+		List<LectureDTO> list = new ArrayList<>();
+
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			pstmt.setLong(1, instructorId);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToDTO(rs));
+				}
+			}
+
+			return list;
+
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findByInstructor error", e);
+		}
+	}
+
+	/**
+	 * 특정 학생이 수강 중인 강의 목록 조회 (학생용)
+	 */
+	public List<LectureDTO> findByStudent(Long studentId) {
+		String sql = 
+			"SELECT l.lecture_id, l.user_id, l.lecture_title, l.lecture_round, " +
+			"       l.start_date, l.end_date, l.status, l.room, l.capacity, " +
+			"       l.created_at, l.updated_at, l.validation, l.section " +
+			"FROM lecture l " +
+			"INNER JOIN enrollments e ON l.lecture_id = e.lecture_id " +
+			"WHERE l.validation = 'CONFIRMED' AND e.user_id = ? AND e.status = 'ACTIVE' " +
+			"ORDER BY l.lecture_title, l.lecture_round";
+
+		List<LectureDTO> list = new ArrayList<>();
+
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			pstmt.setLong(1, studentId);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToDTO(rs));
+				}
+			}
+
+			return list;
+
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findByStudent error", e);
+		}
+	}
+
+	/**
+	 * 강의 ID로 강의 정보 조회
+	 */
+	public LectureDTO findById(Long lectureId) {
+		String sql = 
+			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
+			"       start_date, end_date, status, room, capacity, " +
+			"       created_at, updated_at, validation, section " +
+			"FROM lecture " +
+			"WHERE lecture_id = ?";
+
+		try (Connection conn = DBConnection.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			pstmt.setLong(1, lectureId);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				if (rs.next()) {
+					return mapResultSetToDTO(rs);
+				}
+			}
+
+			return null;
+
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.findById error", e);
+		}
+	}
+
+	/**
+	 * ResultSet을 LectureDTO로 매핑
+	 */
+	private LectureDTO mapResultSetToDTO(ResultSet rs) throws SQLException {
+		LectureDTO dto = new LectureDTO();
+
+		dto.setLectureId(rs.getLong("lecture_id"));
+		dto.setUserId(rs.getLong("user_id"));
+		dto.setLectureTitle(rs.getString("lecture_title"));
+		dto.setLectureRound(rs.getInt("lecture_round"));
+
+		// Date -> LocalDate 변환
+		Date startDate = rs.getDate("start_date");
+		Date endDate = rs.getDate("end_date");
+		dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
+		dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
+
+		// String -> Enum 변환
+		String statusStr = rs.getString("status");
+		dto.setStatus(statusStr != null ? LectureStatus.valueOf(statusStr) : null);
+
+		String validationStr = rs.getString("validation");
+		dto.setValidation(validationStr != null ? LectureValidation.valueOf(validationStr) : null);
+
+		dto.setRoom(rs.getString("room"));
+		dto.setCapacity(rs.getInt("capacity"));
+		dto.setSection(rs.getString("section"));
+
+		// Timestamp -> LocalDateTime 변환
+		Timestamp createdAt = rs.getTimestamp("created_at");
+		Timestamp updatedAt = rs.getTimestamp("updated_at");
+		dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
+		dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
+
+		return dto;
+	}
 }

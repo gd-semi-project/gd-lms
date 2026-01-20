@@ -13,17 +13,15 @@ import model.enumtype.EnrollmentStatus;
 
 public class EnrollmentDAO {
 
-	private static final EnrollmentDAO instance = new EnrollmentDAO();
+    private static final EnrollmentDAO instance = new EnrollmentDAO();
+    private EnrollmentDAO() {}
 
-	private EnrollmentDAO() {
-	}
+    public static EnrollmentDAO getInstance() {
+        return instance;
+    }
 
-	public static EnrollmentDAO getInstance() {
-		return instance;
-	}
-
-	// 강의별 수강생 목록 ; 지윤
-	public List<LectureStudentDTO> findStudentsByLectureId(long lectureId) {
+  // 수강생 목록 조회 : 지윤
+   public List<LectureStudentDTO> findStudentsByLectureId(long lectureId) {
 
 		String sql = """
 				    SELECT
@@ -68,49 +66,63 @@ public class EnrollmentDAO {
 		return list;
 	}
 
-	public boolean isStudentEnrolled(Connection conn, long userId, long lectureId) throws SQLException {
-		String sql = "SELECT COUNT(*) AS cnt " + "FROM enrollments "
-				+ "WHERE user_id = ? AND lecture_id = ? AND status = 'ACTIVE'";
 
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setLong(1, userId);
-			pstmt.setLong(2, lectureId);
+   // 학생ID로 특정강의ID 이수 확인 메소드
+   public boolean isStudentEnrolled(Connection conn, long userId, long lectureId) throws SQLException {
+        String sql = 
+            "SELECT COUNT(*) AS cnt " +
+            "FROM enrollment " +
+            "WHERE user_id = ? AND lecture_id = ? AND status = 'ACTIVE'";
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				return rs.next() && rs.getInt("cnt") > 0;
-			}
-		}
-	}
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, userId);
+            pstmt.setLong(2, lectureId);
 
-	// 특정 학생이 듣는 모든 강의 리스트 메소드
-	public List<Long> findEnrolledLectureIds(Connection conn, long userId) throws SQLException {
-		String sql = "SELECT lecture_id " + "FROM enrollments " + "WHERE user_id = ? AND status = 'ACTIVE'";
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next() && rs.getInt("cnt") > 0;
+            }
+        }
+    }
 
-		List<Long> lectureIds = new ArrayList<>();
 
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setLong(1, userId);
+   // 특정 학생이 듣는 모든 강의 리스트 메소드
+   public List<Long> findEnrolledLectureIds(Connection conn, long userId) throws SQLException {
+        String sql = 
+            "SELECT lecture_id " +
+            "FROM enrollment " +
+            "WHERE user_id = ? AND status = 'ACTIVE'";
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					lectureIds.add(rs.getLong("lecture_id"));
-				}
-			}
-		}
+        List<Long> lectureIds = new ArrayList<>();
 
-		return lectureIds;
-	}
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, userId);
 
-	// 특정 강의를 수강 중인 학생 수
-	public int countStudentsByLecture(Connection conn, long lectureId) throws SQLException {
-		String sql = "SELECT COUNT(*) AS cnt " + "FROM enrollments " + "WHERE lecture_id = ? AND status = 'ACTIVE'";
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    lectureIds.add(rs.getLong("lecture_id"));
+                }
+            }
+        }
 
-		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setLong(1, lectureId);
+        return lectureIds;
+    }
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				return rs.next() ? rs.getInt("cnt") : 0;
-			}
-		}
-	}
+   // 특정 강의를 수강 중인 학생 수
+   public int countStudentsByLecture(Connection conn, long lectureId) throws SQLException {
+          String sql = 
+              "SELECT COUNT(*) AS cnt " +
+              "FROM enrollment " +
+              "WHERE lecture_id = ? AND status = 'ACTIVE'";
+
+          try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+              pstmt.setLong(1, lectureId);
+
+              try (ResultSet rs = pstmt.executeQuery()) {
+                  return rs.next() ? rs.getInt("cnt") : 0;
+              }
+          }
+      }
+
+
+
 }
