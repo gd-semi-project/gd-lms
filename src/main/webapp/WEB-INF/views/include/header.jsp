@@ -16,7 +16,7 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link active" href="<%=ctx%>/">admin관리자</a></li>
+        <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/mypage">admin관리자</a></li>
         <li class="nav-item"><a class="nav-link" href="<%=ctx%>/about">로그아웃?</a></li>
         <li class="nav-item"><a class="nav-link" href="<%=ctx%>/settings">알림</a></li>
       </ul>

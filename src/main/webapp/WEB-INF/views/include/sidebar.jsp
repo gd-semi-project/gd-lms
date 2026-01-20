@@ -10,11 +10,9 @@
 
 <!-- Test용 -->
 <!-- 여기서 권한 주석처리 -->
- <c:set var="role" value="INSTRUCTOR" scope="session" /> 
+<c:set var="role" value="INSTRUCTOR" scope="session" /> 
 <%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
 <%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
-
-
 
 
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
@@ -23,14 +21,22 @@
       <li class="nav-item"><a class="nav-link text-white"
          href="<%=ctx%>/about"> 🎓 대학소개 </a></li>
 
-       <li class="nav-item">
+		<!--     마이페이지(학생) -->
+		<c:choose>
+		 <c:when test="${role == 'STUDENT'}">
+		<li class="nav-item"><a class="nav-link text-white"
+			href="?page=studentInfo"> 학생정보 </a></li>
+		</c:when>
+		</c:choose>
+		
+		<li class="nav-item">
          <a class="nav-link text-white" href="${ctx}/notice/list">📢 공지사항</a>
        </li>
        <li class="nav-item">
          <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정 관리</a>
        </li>
        <li class="nav-item">
-         <a class="nav-link text-white" href="<%=ctx%>/grade/my"> 📝 성적 
+         <a class="nav-link text-white" href="?page=totScore"> 📝 성적 
          </a>
        </li>
        
@@ -78,13 +84,16 @@
               <c:when test="${role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="<%=ctx%>/student/lectures">내 강의 목록</a>
+                     href="?page=mySubjectPage">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="<%=ctx%>/student/lecture/enroll">수강 신청</a>
+                     href="?page=enrollmentPage">수강 신청</a>
                 </li>
-              </c:when>
+							<!-- 내 시간표 -->
+							<li class="nav-item"><a class="nav-link text-white small"
+								href="?page=mySchedule"> 내시간표 </a></li>
+				</c:when>
       
               <%-- 관리자 --%>
               <c:when test="${role == 'ADMIN'}">
@@ -105,8 +114,10 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
+           UserInfo.role = [${sessionScope.UserInfo.role}]<br/>
            sessionScope.role = [${sessionScope.role}]
          </div>
+
    </ul>
 
    <hr class="border-light opacity-50 my-3">

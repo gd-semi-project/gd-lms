@@ -18,7 +18,7 @@ public class DepartmentDAO {
 		return instance;
 	}
 	
-	public DepartmentDTO finById(Long departmentId) {
+	public DepartmentDTO findById(Long departmentId) {
 		DepartmentDTO depart = new DepartmentDTO();
 		
 		String sql = "SELECT * FROM department WHERE department_id = ?";

@@ -49,7 +49,7 @@ public class MyPageService {
 		StudentsDTO student =
                 studentDAO.findStudentByUserId(user.getUserId());
 
-		DepartmentDTO department = departmentDAO.finById(student.getDepartmentId());
+		DepartmentDTO department = departmentDAO.findById(student.getDepartmentId());
 
 		mypage.setStudent(student);
 		mypage.setDepartment(department);
@@ -59,7 +59,7 @@ public class MyPageService {
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
 		InstructorDTO instructor = instructorDAO.selectInstructorInfo(user.getUserId());
 		
-		DepartmentDTO department = departmentDAO.finById(instructor.getDepartmentId());
+		DepartmentDTO department = departmentDAO.findById(instructor.getDepartmentId());
 		
 		mypage.setProfessor(instructor);
 		mypage.setDepartment(department);
