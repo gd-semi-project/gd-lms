@@ -16,7 +16,7 @@ public final class AppTime {
 	
 	private AppTime() {}
 	
-	static LocalDateTime now() {
+	public static LocalDateTime now() {
 		if (mode == Mode.KERONBALL) {
 			return LocalDateTime.now(ZONE).plusSeconds(keronBallSeconds);
 		} else return LocalDateTime.now(ZONE);

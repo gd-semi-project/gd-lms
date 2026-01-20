@@ -8,14 +8,6 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="role" value="${sessionScope.UserInfo.role}" />
 
-<!-- Test용 -->
-<!-- 여기서 권한 주석처리 -->
- <c:set var="role" value="INSTRUCTOR" scope="session" /> 
-<%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
-<%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
-
-
-
 
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
    <ul class="nav nav-pills flex-column gap-1">
