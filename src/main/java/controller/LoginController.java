@@ -48,7 +48,7 @@ public class LoginController extends HttpServlet {
 			if (session != null) {
 				session.invalidate();
 			}
-			response.sendRedirect(contextPath + "/login");
+			response.sendRedirect(contextPath + "/");
 			return;
 		} else {
 			// 비정상적인 접근 페이지 연결
