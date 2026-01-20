@@ -19,14 +19,14 @@
   <!-- 수정/삭제 버튼 정책 -->
   <div class="mb-3">
     <c:if test="${role == 'ADMIN' || role == 'INSTRUCTOR' || (role == 'STUDENT' && userId == post.authorId)}">
-      <a class="btn btn-outline-primary" href="${ctx}/qna/edit?lectureId=${lectureId}&qnaId=${post.qnaId}">수정</a>
-      <form method="post" action="${ctx}/qna/delete" style="display:inline;">
+      <a class="btn btn-outline-primary" href="${ctx}/lecture/qna?lectureId=${lectureId}&action=edit&qnaId=${post.qnaId}">수정</a>
+      <form method="post" action="${ctx}/lecture/qna?action=delete" style="display:inline;">
         <input type="hidden" name="lectureId" value="${lectureId}" />
         <input type="hidden" name="qnaId" value="${post.qnaId}" />
         <button type="submit" class="btn btn-outline-danger" onclick="return confirm('삭제하시겠습니까?')">삭제</button>
       </form>
     </c:if>
-    <a class="btn btn-secondary" href="${ctx}/qna/list?lectureId=${lectureId}">목록</a>
+    <a class="btn btn-secondary" href="${ctx}/lecture/qna?lectureId=${lectureId}">목록</a>
   </div>
 
   <!-- 답변 목록 -->
@@ -51,7 +51,7 @@
   <c:if test="${role == 'INSTRUCTOR' || role == 'ADMIN'}">
     <div class="card mt-3">
       <div class="card-body">
-        <form method="post" action="${ctx}/qna/answer/create">
+        <form method="post" action="${ctx}/lecture/qna?action=answer">
           <input type="hidden" name="lectureId" value="${lectureId}" />
           <input type="hidden" name="qnaId" value="${post.qnaId}" />
           <div class="mb-2">
