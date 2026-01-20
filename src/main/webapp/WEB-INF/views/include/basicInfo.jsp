@@ -6,7 +6,7 @@
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
 	rel="stylesheet" />
 </style>
-
+<br><br>
 			<!-- 바디 -->
 				<h3 class="mb-4">마이페이지</h3>
 
