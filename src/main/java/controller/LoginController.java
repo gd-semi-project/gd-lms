@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 @WebServlet(
-		urlPatterns = {"/index.jsp", "/", "/login/*"}
+		urlPatterns = {"/main", "/", "/login/*", "/index.jsp"}
 		)
 
 public class LoginController extends HttpServlet {
@@ -27,60 +27,29 @@ public class LoginController extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
-		String command = requestURI.substring(contextPath.length());
-		String action = "";
+		String actionPath = requestURI.substring(contextPath.length());
 		
-		String layout = "/WEB-INF/views/layout/layout.jsp";
-		System.out.println(command);
-		// 접근 경로 구분
-		if (command.contains("/login")) {
-			System.out.println("aa");
-			action = command.substring("/login".length());
-		}
-		if (command.equals("/") || command.contains("/index.jsp")) {
-			action = "/index.jsp";
-			System.out.println("aa");
-		}
-		
-		String contentPage = "";
-		
-
 		HttpSession session = request.getSession(false);
-		// 
-		System.out.println(action);
-		if (action.equals("/index.jsp")) {
-			// 로그인 여부 확인
-			System.out.println("로그인 여부 확인");
-			if (session != null) {
-				if (session.getAttribute("UserInfo") != null) {
-					// 로그인 공지페이지, 공통 레이아웃
-					System.out.println("로그인 중");
-					contentPage = "/notice/list.jsp";
-				} else {
-					// 비로그인 로그인창, 로그인 레이아웃
-					System.out.println("로그아웃 상태");
-					contentPage = "/login/login.jsp";
-					layout = "/WEB-INF/views/layout/loginLayout.jsp";
-				}
+		System.out.println("actionPath: " + actionPath);
+		if (actionPath.equals("/")) {
+			if (session == null) {
+				response.sendRedirect(contextPath + "/login");
+			} else {
+				response.sendRedirect(contextPath + "/main");
 			}
-		}else if (action.equals("/login.do")) {
-			contentPage = "/index.jsp";
-		} else if (action.equals("/logout.do")) {
-	        if (session != null) {
-	            session.invalidate(); // 세션 무효화
-	        }
-	        contentPage = "/index.jsp";
+		} else if (actionPath.equals("/login")) {
+			request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
+			rd.forward(request, response);
+		} else if (actionPath.equals("/main")) {
+			request.setAttribute("contentPage", "/WEB-INF/main.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+			rd.forward(request, response);
+		} else {
+			// 비정상적인 접근 페이지 연결
+			// response.sendRedirect(contextPath + "/login");
 		}
-		// TODO : adminController 로 이전 필요
-		else if (action.equals("/registUser.do")) {
-			contentPage = "/index.jsp";
-		}
-		request.setAttribute("contentPage", contentPage);
-		RequestDispatcher rd = request.getRequestDispatcher(layout);
-		rd.forward(request, response);
 		
-		//2. login.do로 페이지 접근시
-		//   - index.jsp로 리다이렉트
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -89,23 +58,24 @@ public class LoginController extends HttpServlet {
 		String command = requestURI.substring(contextPath.length());
 		String action = command.substring("/login".length());
 		String contentPage = "";
-		
+		HttpSession session = request.getSession(false);
 		
 		if (action.equals("/login.do")) {
 			String user_id = request.getParameter("id");
 			String user_passwd = request.getParameter("pw");
-			user_passwd = HashUtil.sha256(user_passwd); // 실무 bcrypt 등 타 암호화 로직 사용 필요
+			// user_passwd = HashUtil.sha256(user_passwd); // 실무 bcrypt 등 타 암호화 로직 사용 필요
 			
 			LoginService ls = LoginService.getInstance();
 			UserDTO userDTO = ls.DoLogin(user_id, user_passwd);
-			HttpSession session = request.getSession();
 			if (userDTO != null) {
-				session.setAttribute("UserInfo", userDTO);
-				response.sendRedirect("/adminDashboard.jsp");
+				session = request.getSession();
+				session.setAttribute("UserInfo", userDTO);		
+				response.sendRedirect(contextPath + "/main");
 			} else {
-				session.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
-				response.sendRedirect("/gd-lms");
-				return;
+				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
+				request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
+				RequestDispatcher rd = request.getRequestDispatcher("/gd-lms");
+				rd.forward(request, response);
 			}
 		} 
 		// DOTO : AdminController로 이전 필요
@@ -123,18 +93,9 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 			ls.RegistUser(userDTO);
 			
-			// response.sendRedirect("/gd-lms/login.jsp");
-			contentPage = "/index.jsp";
+			contentPage = "/WEB-INF/admin/adminDashboard.jsp";
 		}
 		
-
-
-		request.setAttribute("contentPage", contentPage);
-		
-		if (contentPage.equals("/index.jsp")) {
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/loginLayout.jsp");
-			rd.forward(request, response);
-		}
 	}
 
 }

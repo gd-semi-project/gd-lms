@@ -6,9 +6,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dto.UserDTO;
+import model.enumtype.Role;
 import service.AdminService;
+import service.LoginService;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 /**
  * Servlet implementation class AdminController
@@ -60,6 +64,12 @@ public class AdminController extends HttpServlet {
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
 			break;
+		
+		// 고희권 추가
+		case "/registUser":
+			contentPage = "/WEB-INF/views/admin/registUser.jsp";
+			break;	
+		// registUser
 			
 		default:
 			break;
@@ -84,19 +94,42 @@ public class AdminController extends HttpServlet {
 		
 		switch(actionPath) {
 		
-		case "/lectureRequest": {
-			
-			if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
-				service.LectureValidate(lectureId, action);
+			case "/lectureRequest": {
 				
-				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
-			} else {
-				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
+				if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
+					long lectureId = Long.parseLong(request.getParameter("lectureId"));
+					service.LectureValidate(lectureId, action);
+					
+					response.sendRedirect(contextPath + "/admin/lectureRequest");
+					return;
+				} else {
+					response.sendRedirect(contextPath + "/admin/lectureRequest");
+					return;
+				}
 			}
-		}
+			//고희권
+			case "/registUserRequest": {
+				UserDTO userDTO = new UserDTO();
+				userDTO.setLogin_id(request.getParameter("loginId"));
+				userDTO.setPassword(request.getParameter("password"));
+				userDTO.setName(request.getParameter("name"));
+				userDTO.setEmail(request.getParameter("email"));
+				userDTO.setBirth_date(LocalDate.parse(request.getParameter("birthDate")));
+				
+				Role role = Role.fromLabel(request.getParameter("role"));
+				userDTO.setRole(role);
+				
+				LoginService ls = LoginService.getInstance();
+				ls.RegistUser(userDTO);
+				
+				// response.sendRedirect("/gd-lms/login.jsp");
+				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
+				
+				request.setAttribute("contentPage", contentPage);
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+				rd.forward(request, response);
+			}
+			//registUser
 		
 		}
 		

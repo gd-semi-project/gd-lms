@@ -1,82 +1,86 @@
 package filter;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.dto.UserDTO;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import com.mysql.cj.Session;
 
 // @WebFilter("/AccessFilter")
-public class AccessFilter extends HttpFilter implements Filter {
-	private String encoding = "UTF-8"; // 기본 인코딩 설정
+public class AccessFilter extends HttpFilter {
+	private static final List<String> whiteList = Arrays.asList(
+		    "/",
+		    "/login",
+		    "/login/login.do",
+		    ""
+		);
 
-    public AccessFilter() {
-        super();
-    }
+	private String encoding = "UTF-8"; // 기본 인코딩 설정
 
 	public void destroy() {
 	}
-
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+	
+	@Override
+	public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 		// 요청과 응답에 인코딩 설정
         request.setCharacterEncoding(encoding);
         response.setCharacterEncoding(encoding);
+        
+        // 세션 여부 확인
+		HttpSession session = request.getSession(false);
+		String uri = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String actionPath = uri.substring(contextPath.length()); 
 		
-		HttpServletRequest req = (HttpServletRequest) request;
-		HttpServletResponse res = (HttpServletResponse) response;
-		HttpSession session = req.getSession(false);
-		System.out.println("웹필터 실행");
-		String uri = req.getRequestURI();
-		if (uri.endsWith("index.jsp") || uri.endsWith("login.do") || uri.equals(req.getContextPath() + "/")) {
-			System.out.println("웹필터 통과");
+		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
+		if (session == null) {
+			if (whiteList.contains(actionPath)) {
+				System.out.println("웹필터) 화이트리스트 통과");
+				chain.doFilter(request, response);
+				return;
+			} else {
+				System.out.println("로그인 하지 않고 접근을 시도했습니다. 접근페이지: " + uri);
+				// 에러페이지 연결
+				return;
+			}
+		}
+		
+		chain.doFilter(request, response);
+		
+		// 세션이 있으면 로그인 성공한 것 이후 role체크 추가
+		
+
+		/*
+		if (uri.equals(request.getContextPath() + "/login/login.do")) {
+			System.out.println("웹필터PAGE) login.do 웹필터 통과");
 			chain.doFilter(request, response);
 			return;
 	    }
-		
-		UserDTO session_id;
-		System.out.println("어디서 걸리냐2");
-		if (session != null) {
-			if (session.getId() != null) {
-				session_id = (UserDTO) session.getAttribute("UserInfo");
-				// 2. 로그인 확인
-				if (session_id.getLogin_id() == null) {
-					res.sendRedirect(req.getContextPath() + "/index.jsp");
+
+		if (uri.equals(request.getContextPath() + "/index.jsp") || uri.equals(request.getContextPath() + "/")) {
+			if (session != null) {
+				if (session.getAttribute("UserInfo") == null) {
+					response.sendRedirect(request.getContextPath() + "/login/login.do");
 				} else {
-					System.out.println("어디서 걸리냐3");
 					chain.doFilter(request, response);
 				}
-			}
-		}
-
-//			// 3. role 별도 필터에서 확인? 아니면 필터 1개에서 uri값 확인해서 처리?
-//			if (session_id.getRole() != null) {
-//				Role role = session_id.getRole(); 
-//				
-//				if (uri.contains("/admin/")) {
-//		            if (!Role.ADMIN.equals(role)) {
-//		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-//		                return;
-//		            }
-//		        }
-//
-//		        if (uri.contains("/instructor/")) {
-//		            if (!Role.INSTRUCTOR.equals(role) && !Role.ADMIN.equals(role)) {
-//		                res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-//		                return;
-//		            }
-//		        }
-//			}
-		}
+			} else {
+				chain.doFilter(request, response);
+			}			
+	    }
+		*/
+	}
+	
 
 	public void init(FilterConfig fConfig) throws ServletException {
-		System.out.println("어디서 걸리냐1");
+		System.out.println("웹 필터를 초기화합니다.");
 		String encodingParam = fConfig.getInitParameter("encoding");
         if (encodingParam != null) {
             encoding = encodingParam;
