@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.websocket.Session;
-import model.dao.UserDAO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LoginService;
@@ -17,21 +15,39 @@ import utils.HashUtil;
 import java.io.IOException;
 import java.time.LocalDate;
 
-@WebServlet("/login/*")
+@WebServlet(
+		urlPatterns = {"/main", "/", "/login/*", "/index.jsp"}
+		)
+
 public class LoginController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
-		String command = requestURI.substring(contextPath.length());
-		String action = command.substring("/login".length());
-
-		if (action.equals("/login.do")) {
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
-		} else if (action.equals("/registUser.do")) {
-			response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+		String actionPath = requestURI.substring(contextPath.length());
+		
+		HttpSession session = request.getSession(false);
+		System.out.println("actionPath: " + actionPath);
+		if (actionPath.equals("/")) {
+			if (session == null) {
+				response.sendRedirect(contextPath + "/login");
+			} else {
+				response.sendRedirect(contextPath + "/main");
+			}
+		} else if (actionPath.equals("/login")) {
+			request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
+			rd.forward(request, response);
+		} else if (actionPath.equals("/main")) {
+			request.setAttribute("contentPage", "/WEB-INF/main.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+			rd.forward(request, response);
+		} else {
+			// 비정상적인 접근 페이지 연결
+			// response.sendRedirect(contextPath + "/login");
 		}
+		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,23 +55,29 @@ public class LoginController extends HttpServlet {
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
 		String action = command.substring("/login".length());
+		String contentPage = "";
+		HttpSession session = request.getSession(false);
 		
 		if (action.equals("/login.do")) {
 			String user_id = request.getParameter("id");
 			String user_passwd = request.getParameter("pw");
-			user_passwd = HashUtil.sha256(user_passwd); // 실무 bcrypt 등 타 암호화 로직 사용 필요
+			// user_passwd = HashUtil.sha256(user_passwd); // 실무 bcrypt 등 타 암호화 로직 사용 필요
 			
 			LoginService ls = LoginService.getInstance();
 			UserDTO userDTO = ls.DoLogin(user_id, user_passwd);
-			HttpSession session = request.getSession();
 			if (userDTO != null) {
-				session.setAttribute("UserInfo", userDTO);
-				response.sendRedirect("/gd-lms/test.jsp");
+				session = request.getSession();
+				session.setAttribute("UserInfo", userDTO);		
+				response.sendRedirect(contextPath + "/main");
 			} else {
-				session.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
-				response.sendRedirect("/gd-lms/index_goheekwon.jsp");
+				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
+				request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
+				RequestDispatcher rd = request.getRequestDispatcher("/gd-lms");
+				rd.forward(request, response);
 			}
-		} else if (action.equals("/registUser.do")) {
+		} 
+		// DOTO : AdminController로 이전 필요
+		else if (action.equals("/registUser.do")) {
 			UserDTO userDTO = new UserDTO();
 			userDTO.setLoginId(request.getParameter("loginId"));
 			userDTO.setPassword(request.getParameter("password"));
@@ -69,8 +91,9 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 			ls.RegistUser(userDTO);
 			
-			response.sendRedirect("/WEB-INF/views/user/index_goheekwon.jsp");
+			response.sendRedirect("/WEB-INF/views/user/index.jsp");
 		}
+		
 	}
 
 }
