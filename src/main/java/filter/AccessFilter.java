@@ -62,12 +62,16 @@ public class AccessFilter extends HttpFilter {
 		}
 					
 		// 세션이 있으면 로그인 성공한 것 이후 role체크 추가
-		chain.doFilter(request, response);
 		AccessDTO accessDTO =(AccessDTO) session.getAttribute("AccessInfo");
 		
-		if (accessDTO.getRole() == Role.ADMIN) {
-			
+		if (middlePath.equals("admin")) {
+			if (accessDTO.getRole() == Role.ADMIN) {
+				System.out.println();
+			}
 		}
+
+		chain.doFilter(request, response);
+		
 	}
 	
 
