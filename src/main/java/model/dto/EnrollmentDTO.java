@@ -1,7 +1,6 @@
 package model.dto;
 
 
-import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +17,5 @@ public class EnrollmentDTO {
 	private Long lectureId;		//강의 테이블의 PK
 	private Long studentId;		//학생 테이블의 PK
 	private EnrollmentStatus status;
-	private LocalDateTime applied_at;
 }
 

@@ -1,75 +1,91 @@
 package filter;
 
-import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
-import jakarta.servlet.http.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import model.dto.UserDTO;
-import model.enumtype.Role;
+import java.util.Arrays;
+import java.util.List;
 
-public class AccessFilter extends HttpFilter implements Filter {
-   
-    private String encoding = "UTF-8";
+import com.mysql.cj.Session;
 
-    @Override
-    public void init(FilterConfig fConfig) throws ServletException {
-        String encodingParam = fConfig.getInitParameter("encoding");
-        if (encodingParam != null) encoding = encodingParam;
-    }
+// @WebFilter("/AccessFilter")
+public class AccessFilter extends HttpFilter {
+	private static final List<String> whiteList = Arrays.asList(
+		    "/",
+		    "/login",
+		    "/login/login.do",
+		    ""
+		);
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-    	 chain.doFilter(request, response);
-    	 return;
+	private String encoding = "UTF-8"; // 기본 인코딩 설정
 
-    	 /*
+	public void destroy() {
+	}
+	
+	@Override
+	public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+		// 요청과 응답에 인코딩 설정
         request.setCharacterEncoding(encoding);
         response.setCharacterEncoding(encoding);
+        
+        // 세션 여부 확인
+		HttpSession session = request.getSession(false);
+		String uri = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String actionPath = uri.substring(contextPath.length()); 
+		
+		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
+		if (session == null) {
+			if (whiteList.contains(actionPath)) {
+				System.out.println("웹필터) 화이트리스트 통과");
+				chain.doFilter(request, response);
+				return;
+			} else {
+				System.out.println("로그인 하지 않고 접근을 시도했습니다. 접근페이지: " + uri);
+				// 에러페이지 연결
+				return;
+			}
+		}
+		
+		chain.doFilter(request, response);
+		
+		// 세션이 있으면 로그인 성공한 것 이후 role체크 추가
+		
 
-        HttpServletRequest req = (HttpServletRequest) request;
-        HttpServletResponse res = (HttpServletResponse) response;
-        HttpSession session = req.getSession(false);
+		/*
+		if (uri.equals(request.getContextPath() + "/login/login.do")) {
+			System.out.println("웹필터PAGE) login.do 웹필터 통과");
+			chain.doFilter(request, response);
+			return;
+	    }
 
-        String uri = req.getRequestURI();
+		if (uri.equals(request.getContextPath() + "/index.jsp") || uri.equals(request.getContextPath() + "/")) {
+			if (session != null) {
+				if (session.getAttribute("UserInfo") == null) {
+					response.sendRedirect(request.getContextPath() + "/login/login.do");
+				} else {
+					chain.doFilter(request, response);
+				}
+			} else {
+				chain.doFilter(request, response);
+			}			
+	    }
+		*/
+	}
+	
 
-        // 1. 정적 리소스 및 로그인 페이지는 통과
-        if (uri.contains("/css/") || uri.contains("/js/") || uri.contains("/images/")
-                || uri.endsWith("index_goheekwon.jsp") || uri.endsWith("login.do")) {
-            chain.doFilter(request, response);
-            return;
+	public void init(FilterConfig fConfig) throws ServletException {
+		System.out.println("웹 필터를 초기화합니다.");
+		String encodingParam = fConfig.getInitParameter("encoding");
+        if (encodingParam != null) {
+            encoding = encodingParam;
         }
 
-        // 2. 세션 없으면 로그인 페이지로 이동
-        if (session == null) {
-            res.sendRedirect(req.getContextPath() + "/index_goheekwon.jsp");
-            return;
-        }
+	}
 
-        // 3. 사용자 정보 확인
-        UserDTO user = (UserDTO) session.getAttribute("UserInfo");
-        if (user == null) {
-            res.sendRedirect(req.getContextPath() + "/index_goheekwon.jsp");
-            return;
-        }
-
-        // 4. 권한별 접근 제어
-        Role role = user.getRole();
-        if (uri.contains("/admin/") && !Role.ADMIN.equals(role)) {
-            res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-            return;
-        }
-        if (uri.contains("/instructor/")
-                && !(Role.INSTRUCTOR.equals(role) || Role.ADMIN.equals(role))) {
-            res.sendRedirect(req.getContextPath() + "/accessDenied.jsp");
-            return;
-        }
-
-        // 5. 나머지는 정상 통과
-        chain.doFilter(request, response);
-        */
-    }
-
-    @Override
-    public void destroy() {}
 }

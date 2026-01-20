@@ -6,10 +6,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dto.UserDTO;
+import model.enumtype.Role;
 import service.AdminService;
 import service.SchoolCalendarService;
+import service.LoginService;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 /**
  * Servlet implementation class AdminController
@@ -45,9 +49,13 @@ public class AdminController extends HttpServlet {
 			
 		case "/lectureRequest":
 			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
-			request.setAttribute("pendingLectureList",service.getPendingLectureList());
-			request.setAttribute("canceledLectureList",service.getCanceledLectureList());
-			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList());
+			
+			String dpt = request.getParameter("departmentId");
+			Long departmentId = (dpt != null && !dpt.isEmpty()) ? Long.parseLong(dpt) : null;
+			request.setAttribute("pendingLectureList",service.getPendingLectureList(departmentId));
+			request.setAttribute("canceledLectureList",service.getCanceledLectureList(departmentId));
+			request.setAttribute("confirmedLectureList",service.getConfirmedLectureList(departmentId));
+			request.setAttribute("departmentList", service.getDepartmentList());
 			break;
 			
 		case "/noticeList":
@@ -61,6 +69,12 @@ public class AdminController extends HttpServlet {
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
 			break;
+		
+		// 고희권 추가
+		case "/registUser":
+			contentPage = "/WEB-INF/views/admin/registUser.jsp";
+			break;	
+		// registUser
 			
 		default:
 			break;
@@ -85,20 +99,49 @@ public class AdminController extends HttpServlet {
 		
 		switch(actionPath) {
 		
-		case "/lectureRequest": {
-			
-			if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
-				service.LectureValidate(lectureId, action);
+			case "/lectureRequest": {
 				
-				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
-			} else {
-				response.sendRedirect(contextPath + "/admin/lectureRequest");
-				return;
+				if("CONFIRMED".equals(action)||"CANCELED".equals(action)) {
+					Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+					service.LectureValidate(lectureId, action);
+					
+					response.sendRedirect(contextPath + "/admin/lectureRequest");
+					break;
+				} else if ("selectDepartment".equals(action)){
+					if(request.getParameter("departmentId").equals("all")) {
+						response.sendRedirect(contextPath + "/admin/lectureRequest");
+					} else {
+						Long departmentId = Long.parseLong(request.getParameter("departmentId"));
+						response.sendRedirect(contextPath + "/admin/lectureRequest?departmentId=" + departmentId);
+					}
+					break;
+				} else {
+					response.sendRedirect(contextPath + "/admin/lectureRequest");
+					break;
+				}
 			}
-		}
-		
+			case "/registUserRequest": {
+				UserDTO userDTO = new UserDTO();
+				userDTO.setLoginId(request.getParameter("loginId"));
+				userDTO.setPassword(request.getParameter("password"));
+				userDTO.setName(request.getParameter("name"));
+				userDTO.setEmail(request.getParameter("email"));
+				userDTO.setBirthDate(LocalDate.parse(request.getParameter("birthDate")));
+				
+				Role role = Role.fromLabel(request.getParameter("role"));
+				userDTO.setRole(role);
+				
+				LoginService ls = LoginService.getInstance();
+				ls.RegistUser(userDTO);
+				
+				// response.sendRedirect("/gd-lms/login.jsp");
+				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
+				
+				request.setAttribute("contentPage", contentPage);
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+				rd.forward(request, response);
+			}
+			default: break;
 		}
 		
 		

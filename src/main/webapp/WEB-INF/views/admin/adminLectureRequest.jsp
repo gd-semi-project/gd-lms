@@ -11,13 +11,6 @@
   </div>
 
   <form class="d-flex gap-2" method="post" action="${pageContext.request.contextPath}/admin/lectureValidationProcess">
-    <select class="form-select form-select-sm" name="validation" style="width: 160px;">
-      <option value="lectureId"  ${empty param.status ? 'selected' : ''}>전체</option>
-      <option value="PENDING"  ${param.validation=='PENDING' ? 'selected' : ''}>대기</option>
-      <option value="CONFIRMED" ${param.validation=='CONFIRMED' ? 'selected' : ''}>승인</option>
-      <option value="CANCELED" ${param.validation=='CANCELED' ? 'selected' : ''}>반려</option>
-    </select>
-
     <input class="form-control form-control-sm" name="q" value="${fn:escapeXml(param.q)}"
            placeholder="강의명/교수명 검색" style="width: 220px;"/>
 
@@ -34,9 +27,30 @@
 </div>
 
 <div class="card shadow-sm">
-  <div class="card-header bg-white fw-bold">
-    요청 목록
-  </div>
+<div class="card-header bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
+  <div class="fw-bold">요청 목록</div>
+
+  <!-- 학과별 보기 (레이아웃만) -->
+  <form class="d-flex align-items-center gap-2 m-0"
+        method="post"
+        action="${pageContext.request.contextPath}/admin/lectureRequest?action=selectDepartment">
+    
+    <!-- 기존 검색/필터 조건 유지용(선택) -->
+    <label class="text-muted small mb-0" for="deptSelect">학과</label>
+    <select id="deptSelect" name="departmentId" class="form-select form-select-sm" style="width: 200px;">
+      <option value="all" ${empty param.departmentId ? 'selected' : ''}>전체 학과</option>
+
+      <c:forEach var="d" items="${departmentList}">
+        <option value="${d.departmentId}" ${param.departmentId == d.departmentId ? 'selected' : ''}>
+          ${d.departmentName}
+        </option>
+      </c:forEach>
+    </select>
+
+    <button type="submit" class="btn btn-sm btn-outline-secondary">적용</button>
+  </form>
+</div>
+
 
   <div class="card-body p-0">
     <div class="table-responsive">
