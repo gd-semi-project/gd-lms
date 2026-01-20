@@ -78,7 +78,7 @@ public class EnrollmentDAO {
 	public boolean isStudentEnrolled(Connection conn, long userId, long lectureId) throws SQLException {
         String sql = 
             "SELECT COUNT(*) AS cnt " +
-            "FROM enrollments " +
+            "FROM enrollment " +
             "WHERE user_id = ? AND lecture_id = ? AND status = 'ACTIVE'";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -96,7 +96,7 @@ public class EnrollmentDAO {
 	public List<Long> findEnrolledLectureIds(Connection conn, long userId) throws SQLException {
         String sql = 
             "SELECT lecture_id " +
-            "FROM enrollments " +
+            "FROM enrollment " +
             "WHERE user_id = ? AND status = 'ACTIVE'";
 
         List<Long> lectureIds = new ArrayList<>();
@@ -118,7 +118,7 @@ public class EnrollmentDAO {
 	public int countStudentsByLecture(Connection conn, long lectureId) throws SQLException {
 	       String sql = 
 	           "SELECT COUNT(*) AS cnt " +
-	           "FROM enrollments " +
+	           "FROM enrollment " +
 	           "WHERE lecture_id = ? AND status = 'ACTIVE'";
 
 	       try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
