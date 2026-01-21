@@ -103,7 +103,8 @@
               <c:when test="${role == 'ADMIN'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="${ctx}/admin/lectures">전체 강의 목록</a>
+                     href="${ctx}/admin/lectures">
+                     <span class="material-symbols-outlined">comedy_mask</span>전체 강의 목록</a>
                 </li>
               </c:when>
       
