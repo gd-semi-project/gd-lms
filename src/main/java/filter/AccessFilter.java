@@ -52,10 +52,14 @@ public class AccessFilter extends HttpFilter {
 		
 		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
 		if (session == null) {
-			System.out.println("웹필터: " + actionPath);
-			System.out.println("웹필터: " + middlePath);
+			if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
+				System.out.println("웹필터: " + actionPath);
+				System.out.println("웹필터: " + middlePath);
+			}
 			if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
-				System.out.println("웹필터) 화이트리스트 통과");
+				if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
+					System.out.println("웹필터) 화이트리스트 통과");
+				}
 				chain.doFilter(request, response);
 				return;
 			} else {
@@ -67,8 +71,10 @@ public class AccessFilter extends HttpFilter {
 		}
 		
 		if (session != null) {
-			System.out.println("세션O웹필터: " + middlePath);
-			System.out.println("세션O웹필터: " + actionPath);
+			if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
+				System.out.println("세션O웹필터: " + middlePath);
+				System.out.println("세션O웹필터: " + actionPath);
+			}
 			chain.doFilter(request, response);
 		}
 		
