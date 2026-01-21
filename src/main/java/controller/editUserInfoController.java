@@ -44,33 +44,27 @@ public class editUserInfoController extends HttpServlet {
             return;
         }
         String action = request.getPathInfo();
-        switch (action) {
-        case "/edit": {	// 학생정보
+        if ("/edit".equals(action)) {	
 			// ROLE이 STUDENT인경우(학생)만 접근가능
 			if (access.getRole() != Role.STUDENT) {
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		        return;
-		    }
-			
-			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
-	            if (mypage == null) {
-	                response.sendRedirect(request.getContextPath() + "/login");
-	                return;
-	            }
-	            
-	            request.setAttribute("mypage", mypage);
+				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				return;
+			}
 
-			request.setAttribute(
-			        "contentPage",
-			        "/WEB-INF/views/student/editInfo.jsp"
-			    );
+			MypageDTO mypage = myPageService.getMypageDTO(loginId);
+			if (mypage == null) {
+				response.sendRedirect(request.getContextPath() + "/login");
+				return;
+			}
 
-			    request.getRequestDispatcher(
-			        "/WEB-INF/views/layout/layout.jsp"
-			    ).forward(request, response);
+			request.setAttribute("mypage", mypage);
 
-			    return;
-		}
+			request.setAttribute("contentPage", "/WEB-INF/views/student/editInfo.jsp");
+
+			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+
+			return;
+
         }
 		
 	}
@@ -78,6 +72,8 @@ public class editUserInfoController extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
+		
+		
         if (session == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -96,9 +92,17 @@ public class editUserInfoController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
+        if (access.getRole() != Role.STUDENT) {
+	        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+	        return;
+	    }
         // UserDTO
         UserDTO user = new UserDTO();
+        // 생년월일값이 null일경우 에러 방지
+        String birthDateParam = request.getParameter("birthDate");
+        if (birthDateParam != null && !birthDateParam.isBlank()) {
+            user.setBirthDate(LocalDate.parse(birthDateParam));
+        }
         user.setLoginId(loginId);
         user.setBirthDate(LocalDate.parse(request.getParameter("birthDate")));
         user.setEmail(request.getParameter("email"));
