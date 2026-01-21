@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.mysql.cj.Session;
 
+
 // @WebFilter("/AccessFilter")
 public class AccessFilter extends HttpFilter {
 	private static final List<String> whiteList = Arrays.asList(
