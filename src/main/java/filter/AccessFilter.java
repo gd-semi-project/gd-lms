@@ -60,18 +60,33 @@ public class AccessFilter extends HttpFilter {
 				return;
 			} else {
 				// 세션이 없는 상태에서 화이트리스트 외 페이지 접근시
-				System.out.println("웹필터) 화이트리스트 불통");
+				System.out.println("웹필터) 로그인 후 접속해주세요.");
 				response.sendRedirect(contextPath + "/");
 				return;
 			}
+		}else if (session != null) {
+			AccessDTO accessDTO = (AccessDTO) session.getAttribute("AccessInfo");
+			if (middlePath.equals("admin")) {
+				if (accessDTO.getRole() == Role.ADMIN) {
+					chain.doFilter(request, response);
+					System.out.println("1");
+				} else {
+					System.out.println("웹필터) 비인가 접근입니다.");
+					response.sendRedirect(contextPath + "/main");
+					return;
+				}
+			}else if (middlePath.equals("instructor")) {
+				if (accessDTO.getRole() == Role.INSTRUCTOR) {
+					chain.doFilter(request, response);
+				} else {
+					System.out.println("웹필터) 비인가 접근입니다.");
+					response.sendRedirect(contextPath + "/main");
+					return;
+				}
+			} else {
+				chain.doFilter(request, response);
+			}
 		}
-		
-		if (session != null) {
-			System.out.println("세션O웹필터: " + middlePath);
-			System.out.println("세션O웹필터: " + actionPath);
-			chain.doFilter(request, response);
-		}
-		
 	}
 	
 
