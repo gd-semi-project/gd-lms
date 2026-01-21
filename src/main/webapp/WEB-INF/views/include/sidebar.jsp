@@ -17,9 +17,9 @@
 
 		<!--     마이페이지(학생) -->
 		<c:choose>
-		 <c:when test="${role == 'STUDENT'}">
+		 <c:when test="${AccessInfo.role == 'STUDENT'}">
 		<li class="nav-item"><a class="nav-link text-white"
-			href="?page=studentInfo"> 학생정보 </a></li>
+			href="<%=ctx%>/mypage/studentPage"> 학생정보 </a></li>
 		</c:when>
 		</c:choose>
 		
@@ -29,10 +29,29 @@
        <li class="nav-item">
          <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정 관리</a>
        </li>
+<!--        권한별 개인성적 -->
+       <c:choose>
+       <c:when test="${AccessInfo.role == 'STUDENT'}">
        <li class="nav-item">
-         <a class="nav-link text-white" href="?page=totScore"> 📝 성적 
+         <a class="nav-link text-white" href="<%=ctx%>/mypage/score"> 📝 성적 	
          </a>
        </li>
+       </c:when>  
+       
+       <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
+       <li class="nav-item">
+         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
+         </a>
+       </li>
+       </c:when>
+      
+       <c:when test="${AccessInfo.role == 'ADMIN'}">
+       <li class="nav-item">
+         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
+         </a>
+       </li>
+       </c:when>
+       </c:choose>
        
        <c:if test="${role == 'ADMIN'}">
           <li class="nav-item">
@@ -63,7 +82,7 @@
             <c:choose>
       
               <%-- 교수 --%>
-              <c:when test="${role == 'INSTRUCTOR'}">
+              <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
                      href="<%=ctx%>/instructor/lectures">내 강의 목록</a>
@@ -75,18 +94,19 @@
               </c:when>
       
               <%-- 학생 --%>
-              <c:when test="${role == 'STUDENT'}">
+              <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
                      href="<%=ctx%>/student/lectures">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="?page=enrollmentPage">수강 신청</a>
+                     href="<%=ctx%>/mypage/enrollmentPage">수강 신청</a>
                 </li>
-							<!-- 내 시간표 -->
-							<li class="nav-item"><a class="nav-link text-white small"
-								href="?page=mySchedule"> 내시간표 </a></li>
+					<!-- 내 시간표 -->
+				<li class="nav-item"><a class="nav-link text-white small"
+				href="<%=ctx%>/mypage/mySchedule"> 내시간표 </a>
+				</li>
 				</c:when>
       
               <%-- 관리자 --%>
@@ -108,8 +128,8 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
-           UserInfo.role = [${sessionScope.AccessInfo.role}]<br/>
-           sessionScope.role = [${sessionScope.role}]
+           AccessInfo.role = [${sessionScope.AccessInfo.role}]<br/>
+           sessionScope.role = [${sessionScope.AccessInfo.role}]
          </div>
 
    </ul>
@@ -117,7 +137,7 @@
    <hr class="border-light opacity-50 my-3">
 
    <div class="small opacity-75">
-      로그인 사용자: ${sessionScope.UserInfo.name}<br /> 권한:
-      ${sessionScope.UserInfo.role}
+      로그인 사용자: ${sessionScope.AccessInfo.name}<br /> 권한:
+      ${sessionScope.AccessInfo.role}
    </div>
 </aside>

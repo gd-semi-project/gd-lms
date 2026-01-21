@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import model.enumtype.ScheduleCode;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class SchoolScheduleDTO {
 	private LocalDate startDate;
 	private LocalDate endDate;
 	private String memo;
+	private ScheduleCode scheduleCode;
 }

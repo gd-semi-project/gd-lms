@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 @WebServlet(
-		urlPatterns = {"/main", "/", "/login/*", "/index.jsp"}
+		urlPatterns = {"/main", "/login/*", "/index.jsp"}
 		)
 
 public class LoginController extends HttpServlet {
@@ -36,14 +36,20 @@ public class LoginController extends HttpServlet {
 			} else {
 				response.sendRedirect(contextPath + "/main");
 			}
-		} else if (actionPath.equals("/login")) {
+		} else if (actionPath.equals("/login") || actionPath.equals("/login/login.do")) {
 			request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 			rd.forward(request, response);
-		} else if (actionPath.equals("/main")) {
+		}  else if (actionPath.equals("/main")) {
 			request.setAttribute("contentPage", "/WEB-INF/main.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
 			rd.forward(request, response);
+		} else if (actionPath.equals("/login/logout")) {
+			if (session != null) {
+				session.invalidate();
+			}
+			response.sendRedirect(contextPath + "/");
+			return;
 		} else {
 			// 비정상적인 접근 페이지 연결
 			// response.sendRedirect(contextPath + "/login");
@@ -56,7 +62,6 @@ public class LoginController extends HttpServlet {
 		String contextPath = request.getContextPath();
 		String command = requestURI.substring(contextPath.length());
 		String action = command.substring("/login".length());
-		String contentPage = "";
 		HttpSession session = request.getSession(false);
 		
 		if (action.equals("/login.do")) {
@@ -69,11 +74,13 @@ public class LoginController extends HttpServlet {
 			if (accessDTO != null) {
 				session = request.getSession();
 				session.setAttribute("AccessInfo", accessDTO);
+				// 조회 기준 MyPageService용(로그인동안 loginId값 기억 mypage관련 로직을 사용하기위해서 필요)
+				session.setAttribute("loginId", user_id);
 				response.sendRedirect(contextPath + "/main");
 			} else {
 				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
 				request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
-				RequestDispatcher rd = request.getRequestDispatcher("/gd-lms");
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 				rd.forward(request, response);
 			}
 		} 
