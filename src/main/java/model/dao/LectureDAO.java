@@ -381,4 +381,20 @@ public class LectureDAO {
 
 		return dto;
 	}
+	
+	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
+
+		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
+
+		try (	Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);	){
+
+			pstmt.setString(1, validation);
+			pstmt.setLong(2, lectureId);
+
+			pstmt.executeUpdate();
+		} catch (Exception e) {
+			System.out.println("setLectureValidation() 예외 발생");
+		}
+	}
 }

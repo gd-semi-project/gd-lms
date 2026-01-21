@@ -22,8 +22,11 @@ import com.mysql.cj.Session;
 public class AccessFilter extends HttpFilter {
 	private static final List<String> whiteList = Arrays.asList(
 			"",
-		    "login",
-		    "resources"
+		    "/login",
+		    "/login/login.do",
+		    "resources",
+		    "error",
+		    "appTime.now"
 		);
 
 	private String encoding = "UTF-8"; // 기본 인코딩 설정
@@ -50,25 +53,26 @@ public class AccessFilter extends HttpFilter {
 		
 		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
 		if (session == null) {
-			System.out.println(middlePath);
-			if (whiteList.contains(middlePath)) {
+			System.out.println("웹필터: " + actionPath);
+			System.out.println("웹필터: " + middlePath);
+			if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
 				System.out.println("웹필터) 화이트리스트 통과");
 				chain.doFilter(request, response);
 				return;
 			} else {
 				// 세션이 없는 상태에서 화이트리스트 외 페이지 접근시
+				System.out.println("웹필터) 화이트리스트 불통");
 				response.sendRedirect(contextPath + "/");
 				return;
 			}
 		}
-					
-		// 세션이 있으면 로그인 성공한 것 이후 role체크 추가
-		chain.doFilter(request, response);
-		AccessDTO accessDTO =(AccessDTO) session.getAttribute("AccessInfo");
 		
-		if (accessDTO.getRole() == Role.ADMIN) {
-			
+		if (session != null) {
+			System.out.println("세션O웹필터: " + middlePath);
+			System.out.println("세션O웹필터: " + actionPath);
+			chain.doFilter(request, response);
 		}
+		
 	}
 	
 

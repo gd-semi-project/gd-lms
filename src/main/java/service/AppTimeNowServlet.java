@@ -24,7 +24,15 @@ public class AppTimeNowServlet extends HttpServlet {
 		LocalDateTime now = AppDateTime.now();
 		String nowStr = now.format(FMT);
 		
-		response.getWriter().write("{\"now\":\"" + nowStr + "\"}");
+        Object flag = getServletContext().getAttribute("isKeronTime");
+        boolean isKeronTime = (flag instanceof Boolean) ? (Boolean) flag : false;
+		
+        response.getWriter().write(
+                "{"
+              + "\"now\":\"" + nowStr + "\","
+              + "\"isKeronTime\":" + isKeronTime
+              + "}"
+            );
 		
 	}
 

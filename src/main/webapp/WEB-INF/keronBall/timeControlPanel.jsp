@@ -5,7 +5,7 @@
 <div class="container my-4">
 
 
-  <form method="post" action="${pageContext.request.contextPath}/keron/time/apply">
+  <form method="post" action="${pageContext.request.contextPath}/keronBall/timeApply">
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="fw-semibold mb-2">시간 이동</div>
@@ -77,12 +77,13 @@
 
         <div class="d-flex gap-2 mt-4">
           <button type="submit" class="btn btn-success">적용</button>
-          <button type="button" class="btn btn-outline-secondary" disabled>복원</button>
         </div>
 
       </div>
     </div>
   </form>
-
+	<form method="post" action="${pageContext.request.contextPath}/keronBall/restoreTime">
+     	<button type="submit" class="btn btn-outline-secondary">복원</button>
+	 </form>
 </div>
 

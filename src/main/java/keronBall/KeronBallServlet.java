@@ -6,7 +6,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.AppTime;
+
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @WebServlet("/keronBall/*")
 public class KeronBallServlet extends HttpServlet {
@@ -67,24 +70,93 @@ public class KeronBallServlet extends HttpServlet {
 		
 		switch(actionPath) {
 		
+		case "/timeApply": {
+			String keronYear = request.getParameter("year");
+			String keronMonth = request.getParameter("month");
+			String keronDay = request.getParameter("day");
+			String keronHour = request.getParameter("hour");
+			String keronMinute = request.getParameter("minute");
+			
+			if (
+					keronYear == null ||
+					keronMonth == null ||
+					keronDay == null ||
+					keronHour == null ||
+					keronMinute == null ||
+					keronYear.isBlank() ||
+					keronMonth.isBlank() ||
+					keronDay.isBlank() ||
+					keronHour.isBlank() ||
+					keronMinute.isBlank()
+					) {
+				System.out.println("케론볼 error: 시간을 모두 선택해주세요.");
+				break;
+			}
+			
+			int year, month, day, hour, minute;
+			
+			try {
+		       year   = Integer.parseInt(keronYear);
+		       month  = Integer.parseInt(keronMonth);
+		       day    = Integer.parseInt(keronDay);
+		       hour   = Integer.parseInt(keronHour);
+		       minute = Integer.parseInt(keronMinute);
+			
+			} catch (NumberFormatException e) {
+				System.out.println("케론볼 error: 시간 값 형식이 올바르지 않습니다. 근데 이 에러는 진짜 생길 일 없음");
+				break;
+			}
+			
+			LocalDateTime target;
+			try {
+				target = LocalDateTime.of(year, month, day, hour, minute, 0);
+			} catch (Exception e) {
+				System.out.println("케론볼 error: 존재하지 않는 날짜/시간입니다.");
+				break;
+			}
+			
+			LocalDateTime real = LocalDateTime.now();
+			
+			long offsetSeconds = java.time.Duration.between(real, target).getSeconds();
+			AppTime.setKeronBallSeconds(offsetSeconds);
+			
+			getServletContext().setAttribute("isKeronTime", Boolean.TRUE);
+			
+			response.sendRedirect(contextPath + "/keronBall/time");
+			break;
+			
+		}
+		
+		case "restoreTime":{
+			AppTime.setReal();
+			
+			getServletContext().setAttribute("isKeronTime", Boolean.FALSE);
+
+			response.sendRedirect(contextPath + "/keronBall/time");
+			break;
+		}
+		
+		
+		
 		case "/db": {
 			if("CREATEALL".equals(action)) {
 				
 				KeronBallService.getInstance().createAllDB(request);
 				
 				response.sendRedirect(contextPath + "/keronBall/db");
-				return;
+				break;
 			} if("DELETEALL".equals(action)) {
 				
 				KeronBallService.getInstance().deleteAllDB();
 				
 				response.sendRedirect(contextPath + "/keronBall/db");
-				return;
+				break;
 			} else {
 				response.sendRedirect(contextPath + "/keronBall/db");
-				return;
+				break;
 			}
 		}
+		default: break;
 		}
 	}
 
