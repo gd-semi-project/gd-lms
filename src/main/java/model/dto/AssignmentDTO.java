@@ -1,0 +1,23 @@
+// AssignmentDTO.java
+package model.dto;
+
+import lombok.Data;
+import model.enumtype.isDeleted;
+import java.time.LocalDateTime;
+
+@Data
+public class AssignmentDTO {
+    private Long assignmentId;
+    private Long lectureId;
+    private String title;
+    private String content;
+    private LocalDateTime dueDate;
+    private Integer maxScore;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private isDeleted isDeleted;
+    
+    // 조회용
+    private int submissionCount;
+    private boolean isSubmitted;
+}
