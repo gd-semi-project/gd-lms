@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import model.enumtype.EnrollmentStatus;
+
 public class LectureAccessDAO {
 
     private static final LectureAccessDAO instance = new LectureAccessDAO();
@@ -23,7 +25,6 @@ public class LectureAccessDAO {
     }
 
     // ====== 교수: 본인 강의인지 ======
-    // lecture.user_id = 강사 식별자(DDL 기준)
     public boolean isInstructorOfLecture(Connection conn, long instructorUserId, long lectureId) throws SQLException {
         String sql = "SELECT 1 FROM lecture WHERE lecture_id = ? AND user_id = ? LIMIT 1";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -35,31 +36,24 @@ public class LectureAccessDAO {
         }
     }
 
-    // ====== 학생: 수강중인지 ======
-    // enrollment.student_id, status ENUM('ENROLLED','DROPPED')
+    // ====== 학생: 수강중인지 (스키마: enrollment.user_id, status=ENROLLED/DROPPED) ======
     public boolean isEnrolledStudent(Connection conn, long studentUserId, long lectureId) throws SQLException {
-        String sql =
-            "SELECT 1 " +
-            "FROM enrollment " +
-            "WHERE lecture_id = ? AND student_id = ? AND status = 'ENROLLED' " +
-            "LIMIT 1";
+        String sql = """
+            SELECT 1
+            FROM enrollment
+            WHERE lecture_id = ?
+              AND user_id = ?
+              AND status = ?
+            LIMIT 1
+        """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, lectureId);
             pstmt.setLong(2, studentUserId);
+            pstmt.setString(3, EnrollmentStatus.ENROLLED.name()); // "ENROLLED"
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
             }
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }

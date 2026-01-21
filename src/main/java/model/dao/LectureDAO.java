@@ -24,45 +24,22 @@ public class LectureDAO {
     public static LectureDAO getInstance() {
         return instance;
     }
-    
-    public int getLectureCount() { // 개설된 강의 개수 (이름 중첩x)
-		//TODO LectureDB에서 이름 중첩 안 되게 count(*) 가져와서 리턴해주기
-		return 0;
-	}
 
-	public int getTotalLectureCount() { // 모든 강의 개수 (이름 중첩o)
-		//TODO LectureDB에서 모든 강의 count(*) 가져와서 리턴해주기
-		return 0;
-	}
+    // =========================
+    // TODO 통계성 메서드(그대로 둠)
+    // =========================
+    public int getLectureCount() { return 0; }
+    public int getTotalLectureCount() { return 0; }
+    public int getLectureFillRate() { return 0; }
+    public int getLowFillRateLecture() { return 0; }
+    public int getTotalLectureCapacity() { return 0; }
+    public int getTotalEnrollment() { return 0; }
+    public int getLectureRequestCount() { return 0; }
 
-	public int getLectureFillRate() { // 정원/인원
-		//TODO (LectureDB에 있는 모든 정원수) 나누기 (EnrollmentDB에서 status가 Enrolled상태인 모든 인원) 리턴
-		return 0;
-	}
-
-	public int getLowFillRateLecture() { // 정원/인원이 50% 미만인 모든 강의 수
-		//TODO (LectureDB에 있는 정원 수)나누기(해당 Lecture의 Enrollment 수)<50의 수 모두 가져와서 리턴해주기
-		return 0;
-	}
-
-	public int getTotalLectureCapacity() { // 모든 정원 수
-		//TODO LectureDB에 있는 모든 정원 수 더해서 리턴하기
-		return 0;
-	}
-
-	public int getTotalEnrollment() { // 모든 수강 인원 수
-		//TODO usersDB 에서 role이 student 인 모든 인원 수 중 status가 active인 모든 인원 수 리턴
-		return 0;
-	}
-
-	public int getLectureRequestCount() { // 강의 개설 요청 총 수
-		//TODO 강의 개설 요청상태를 알리는 컬럼부터 고민
-		return 0;
-	}
-
-    // 교수 강의 목록 : 지윤
-    public List<LectureDTO> selectLecturesByInstructor(
-            Connection conn, long instructorId) throws SQLException {
+    // ======================================================
+    // 1) 교수 강의 목록 (validation = CONFIRMED)
+    // ======================================================
+    public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
 
         String sql = """
             SELECT
@@ -80,9 +57,9 @@ public class LectureDAO {
                 created_at,
                 updated_at
             FROM lecture
-        	WHERE user_id = ?
-        		AND validation = 'CONFIRMED'
-        	ORDER BY start_date DESC
+            WHERE user_id = ?
+              AND validation = 'CONFIRMED'
+            ORDER BY start_date DESC
         """;
 
         List<LectureDTO> list = new ArrayList<>();
@@ -92,16 +69,18 @@ public class LectureDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToLecture(rs));
+                    list.add(mapLecture(rs));
                 }
             }
         }
         return list;
     }
-    
-    // 학생 강의 목록
-    public List<LectureDTO> selectLecturesByStudent(
-            Connection conn, Long userId) throws SQLException {
+
+    // ======================================================
+    // 2) 학생 수강 강의 목록
+    //    enrollment.user_id 기준
+    // ======================================================
+    public List<LectureDTO> selectLecturesByStudent(Connection conn, long userId) throws SQLException {
 
         String sql = """
             SELECT
@@ -119,9 +98,8 @@ public class LectureDAO {
                 l.created_at,
                 l.updated_at
             FROM enrollment e
-            JOIN student s ON e.student_id = s.student_id
             JOIN lecture l ON e.lecture_id = l.lecture_id
-            WHERE s.user_id = ?
+            WHERE e.user_id = ?
               AND e.status = 'ENROLLED'
               AND l.validation = 'CONFIRMED'
             ORDER BY l.start_date DESC
@@ -134,34 +112,36 @@ public class LectureDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToLecture(rs));
+                    list.add(mapLecture(rs));
                 }
             }
         }
         return list;
     }
-    
-    
 
-    // 강의별 수강생 목록 조회 : 지윤
-    public List<LectureStudentDTO> selectLectureStudents(
-            Connection conn, Long lectureId) throws SQLException {
+    // ======================================================
+    // 3) 강의별 수강생 목록
+    //    - enrollment.user_id 기반
+    //    - student 테이블은 부가정보(학번/학년/학생PK) 필요할 때만 LEFT JOIN
+    //    - enrollment에 applied_at 없으므로 created_at을 등록일로 사용
+    // ======================================================
+    public List<LectureStudentDTO> selectLectureStudents(Connection conn, long lectureId) throws SQLException {
 
         String sql = """
             SELECT
                 s.student_id,
                 u.user_id,
-                u.name              AS student_name,
+                u.name AS student_name,
                 s.student_number,
                 s.student_grade,
-                e.status            AS enrollment_status,
-                e.applied_at
+                e.status AS enrollment_status,
+                e.created_at AS enrolled_at
             FROM enrollment e
-            JOIN student s ON e.student_id = s.student_id
-            JOIN user u    ON s.user_id = u.user_id
+            JOIN user u ON e.user_id = u.user_id
+            LEFT JOIN student s ON s.user_id = e.user_id
             WHERE e.lecture_id = ?
               AND e.status = 'ENROLLED'
-            ORDER BY s.student_number
+            ORDER BY s.student_number IS NULL, s.student_number, u.user_id
         """;
 
         List<LectureStudentDTO> list = new ArrayList<>();
@@ -173,20 +153,29 @@ public class LectureDAO {
                 while (rs.next()) {
                     LectureStudentDTO dto = new LectureStudentDTO();
 
-                    dto.setStudentId(rs.getLong("student_id"));
+                    // student_id는 LEFT JOIN이라 NULL 가능
+                    long sid = rs.getLong("student_id");
+                    if (rs.wasNull()) sid = 0L;
+                    dto.setStudentId(sid);
+
                     dto.setUserId(rs.getLong("user_id"));
                     dto.setStudentName(rs.getString("student_name"));
-                    dto.setStudentNumber(rs.getInt("student_number"));
-                    dto.setStudenGrade(rs.getInt("student_grade"));
+
+                    int studentNumber = rs.getInt("student_number");
+                    if (rs.wasNull()) studentNumber = 0;
+                    dto.setStudentNumber(studentNumber);
+
+                    int studentGrade = rs.getInt("student_grade");
+                    if (rs.wasNull()) studentGrade = 0;
+                    dto.setStudenGrade(studentGrade);
 
                     dto.setEnrollmentStatus(
                         EnrollmentStatus.valueOf(rs.getString("enrollment_status"))
                     );
 
-                    Timestamp appliedAt = rs.getTimestamp("applied_at");
-                    dto.setAppliedAt(
-                        appliedAt != null ? appliedAt.toLocalDateTime() : null
-                    );
+                    // 기존 DTO에 appliedAt만 있다면 enrolled_at(created_at)으로 채워도 됨
+                    Timestamp enrolledAt = rs.getTimestamp("enrolled_at");
+                    dto.setAppliedAt(enrolledAt != null ? enrolledAt.toLocalDateTime() : null);
 
                     list.add(dto);
                 }
@@ -195,9 +184,10 @@ public class LectureDAO {
         return list;
     }
 
-    // 강의 상세 조회 : 지윤
-    public LectureDTO selectLectureById(
-            Connection conn, long lectureId) throws SQLException {
+    // ======================================================
+    // 4) 강의 상세 조회
+    // ======================================================
+    public LectureDTO selectLectureById(Connection conn, long lectureId) throws SQLException {
 
         String sql = """
             SELECT
@@ -223,16 +213,83 @@ public class LectureDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (!rs.next()) return null;
-                return mapResultSetToLecture(rs);
+                return mapLecture(rs);
             }
         }
     }
 
-    /* ======================================================
-     *  ResultSet → LectureDTO 매핑
-     * ====================================================== */
-    private LectureDTO mapResultSetToLecture(ResultSet rs) throws SQLException {
+    // ======================================================
+    // 공지사항 화면에서 쓰는 “단순 조회” 래퍼들
+    // ======================================================
+    public List<LectureDTO> findAll() {
+        String sql =
+            "SELECT lecture_id, user_id, lecture_title, lecture_round, section, " +
+            "       start_date, end_date, room, capacity, status, validation, created_at, updated_at " +
+            "FROM lecture " +
+            "WHERE validation = 'CONFIRMED' " +
+            "ORDER BY lecture_title, lecture_round";
 
+        List<LectureDTO> list = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) list.add(mapLecture(rs));
+            return list;
+
+        } catch (Exception e) {
+            throw new RuntimeException("LectureDAO.findAll error", e);
+        }
+    }
+
+    public List<LectureDTO> findByInstructor(long instructorId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return selectLecturesByInstructor(conn, instructorId);
+        } catch (Exception e) {
+            throw new RuntimeException("LectureDAO.findByInstructor error", e);
+        }
+    }
+
+    // ★ 중요: studentId가 아니라 “userId”를 받는 걸로 통일하는 게 맞음
+    public List<LectureDTO> findByStudent(long userId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return selectLecturesByStudent(conn, userId);
+        } catch (Exception e) {
+            throw new RuntimeException("LectureDAO.findByStudent error", e);
+        }
+    }
+
+    public LectureDTO findById(long lectureId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return selectLectureById(conn, lectureId);
+        } catch (Exception e) {
+            throw new RuntimeException("LectureDAO.findById error", e);
+        }
+    }
+
+    // ======================================================
+    // validation 업데이트 (오타 수정: valdidation -> validation)
+    // ======================================================
+    public int setLectureValidation(String validation, long lectureId) {
+        String sql = "UPDATE lecture SET validation = ? WHERE lecture_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, validation);
+            pstmt.setLong(2, lectureId);
+            return pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            throw new RuntimeException("LectureDAO.setLectureValidation error", e);
+        }
+    }
+
+    // ======================================================
+    // Mapper
+    // ======================================================
+    private LectureDTO mapLecture(ResultSet rs) throws SQLException {
         LectureDTO dto = new LectureDTO();
 
         dto.setLectureId(rs.getLong("lecture_id"));
@@ -262,183 +319,4 @@ public class LectureDAO {
 
         return dto;
     }
-    
-    
-	// ========== 공지사항용 메서드 추가 ==========
-
-	/**
-	 * 모든 강의 목록 조회 (관리자용)
-	 */
-	public List<LectureDTO> findAll() {
-		String sql = 
-			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
-			"       start_date, end_date, status, room, capacity, " +
-			"       created_at, updated_at, validation, section " +
-			"FROM lecture " +
-			"WHERE validation = 'CONFIRMED' " +
-			"ORDER BY lecture_title, lecture_round";
-
-		List<LectureDTO> list = new ArrayList<>();
-
-		try (Connection conn = DBConnection.getConnection();
-			 PreparedStatement pstmt = conn.prepareStatement(sql);
-			 ResultSet rs = pstmt.executeQuery()) {
-
-			while (rs.next()) {
-				list.add(mapResultSetToDTO(rs));
-			}
-
-			return list;
-
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findAll error", e);
-		}
-	}
-
-	/**
-	 * 특정 교수의 강의 목록 조회 (교수용)
-	 */
-	public List<LectureDTO> findByInstructor(Long instructorId) {
-		String sql = 
-			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
-			"       start_date, end_date, status, room, capacity, " +
-			"       created_at, updated_at, validation, section " +
-			"FROM lecture " +
-			"WHERE validation = 'CONFIRMED' AND user_id = ? " +
-			"ORDER BY lecture_title, lecture_round";
-
-		List<LectureDTO> list = new ArrayList<>();
-
-		try (Connection conn = DBConnection.getConnection();
-			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-			pstmt.setLong(1, instructorId);
-
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					list.add(mapResultSetToDTO(rs));
-				}
-			}
-
-			return list;
-
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findByInstructor error", e);
-		}
-	}
-
-	/**
-	 * 특정 학생이 수강 중인 강의 목록 조회 (학생용)
-	 */
-	public List<LectureDTO> findByStudent(Long studentId) {
-		String sql = 
-			"SELECT l.lecture_id, l.user_id, l.lecture_title, l.lecture_round, " +
-			"       l.start_date, l.end_date, l.status, l.room, l.capacity, " +
-			"       l.created_at, l.updated_at, l.validation, l.section " +
-			"FROM lecture l " +
-			"INNER JOIN enrollments e ON l.lecture_id = e.lecture_id " +
-			"WHERE l.validation = 'CONFIRMED' AND e.user_id = ? AND e.status = 'ACTIVE' " +
-			"ORDER BY l.lecture_title, l.lecture_round";
-
-		List<LectureDTO> list = new ArrayList<>();
-
-		try (Connection conn = DBConnection.getConnection();
-			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-			pstmt.setLong(1, studentId);
-
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					list.add(mapResultSetToDTO(rs));
-				}
-			}
-
-			return list;
-
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findByStudent error", e);
-		}
-	}
-
-	/**
-	 * 강의 ID로 강의 정보 조회
-	 */
-	public LectureDTO findById(Long lectureId) {
-		String sql = 
-			"SELECT lecture_id, user_id, lecture_title, lecture_round, " +
-			"       start_date, end_date, status, room, capacity, " +
-			"       created_at, updated_at, validation, section " +
-			"FROM lecture " +
-			"WHERE lecture_id = ?";
-
-		try (Connection conn = DBConnection.getConnection();
-			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-			pstmt.setLong(1, lectureId);
-
-			try (ResultSet rs = pstmt.executeQuery()) {
-				if (rs.next()) {
-					return mapResultSetToDTO(rs);
-				}
-			}
-
-			return null;
-
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findById error", e);
-		}
-	}
-
-	/**
-	 * ResultSet을 LectureDTO로 매핑
-	 */
-	private LectureDTO mapResultSetToDTO(ResultSet rs) throws SQLException {
-		LectureDTO dto = new LectureDTO();
-
-		dto.setLectureId(rs.getLong("lecture_id"));
-		dto.setUserId(rs.getLong("user_id"));
-		dto.setLectureTitle(rs.getString("lecture_title"));
-		dto.setLectureRound(rs.getInt("lecture_round"));
-
-		// Date -> LocalDate 변환
-		Date startDate = rs.getDate("start_date");
-		Date endDate = rs.getDate("end_date");
-		dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
-		dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
-
-		// String -> Enum 변환
-		String statusStr = rs.getString("status");
-		dto.setStatus(statusStr != null ? LectureStatus.valueOf(statusStr) : null);
-
-		String validationStr = rs.getString("validation");
-		dto.setValidation(validationStr != null ? LectureValidation.valueOf(validationStr) : null);
-
-		dto.setRoom(rs.getString("room"));
-		dto.setCapacity(rs.getInt("capacity"));
-		dto.setSection(rs.getString("section"));
-
-		// Timestamp -> LocalDateTime 변환
-		Timestamp createdAt = rs.getTimestamp("created_at");
-		Timestamp updatedAt = rs.getTimestamp("updated_at");
-		dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
-		dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
-
-		return dto;
-	}
-	
-	public void setLectureValidation(String validation, Long lectureId) { // 강의 개설 상태 업데이트
-
-		String sql = "UPDATE lecture SET valdidation = ? WHERE lecture_id = ?;";
-
-		try (	Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql);	){
-
-			pstmt.setString(1, validation);
-			pstmt.setLong(2, lectureId);
-
-			pstmt.executeUpdate();
-		} catch (Exception e) {
-			System.out.println("setLectureValidation() 예외 발생");
-		}
-	}
 }
