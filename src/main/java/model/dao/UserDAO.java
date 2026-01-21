@@ -119,4 +119,25 @@ public class UserDAO {
 		}
 		
 	}
+	
+	// 유저 기본정보 수정
+	public void updateUserInfo(UserDTO userDTO) {
+		String sql = "UPDATE user SET birth_date = ?, email = ?, phone = ?, address = ? WHERE login_id = ?";
+		
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setObject(1, userDTO.getBirthDate());
+			pstmt.setString(2, userDTO.getEmail());
+			pstmt.setString(3, userDTO.getPhone());
+			pstmt.setObject(4, userDTO.getAddress());
+			pstmt.setString(5, userDTO.getLoginId());
+			pstmt.executeUpdate();
+		} catch (SQLException | ClassNotFoundException e) {
+			// TODO: 예외처리 구문 작성 필요
+			System.out.println(e.getMessage() + "111111");
+		}
+	}
+	
+	
+	
 }

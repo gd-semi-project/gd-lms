@@ -58,6 +58,16 @@ public class MyPageService {
 		mypage.setStudent(student);
 		mypage.setDepartment(department);
 	}
+	
+	// 학생 정보 수정
+	public void updateStudentInfo(String loginId, UserDTO userDTO, StudentsDTO studentsDTO ) {
+		// user 테이블 수정
+		userDAO.updateUserInfo(userDTO);
+		// student 테이블 수정
+		studentDAO.updateStudentInfo(studentsDTO, loginId);
+		
+	}
+	
 
 	// 교수가 볼 수 있는 페이지
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {

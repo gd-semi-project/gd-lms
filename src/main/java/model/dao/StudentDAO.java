@@ -3,6 +3,7 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import com.mysql.cj.xdevapi.Result;
@@ -42,7 +43,6 @@ public class StudentDAO {
 			
 
 			if (rs.next()) {
-				System.out.println("🔥 student rs.next() = true");
 			    StudentsDTO student = new StudentsDTO();
 
 			    student.setStudentId(rs.getLong("student_id"));
@@ -63,8 +63,6 @@ public class StudentDAO {
 			        student.setEndDate(endTs.toLocalDateTime());
 
 			    student.setTuitionAccount(rs.getString("tuition_account"));
-			    System.out.println("🔥 status enum = " + student.getStatus());
-			    System.out.println("🔥 studentStatus enum = " + student.getStudentStatus());
 			    return student;
 			}
 			}	
@@ -73,6 +71,23 @@ public class StudentDAO {
 		}
 		return null;
 		
+	}
+	
+	public void updateStudentInfo(StudentsDTO studentsDTO, String loginId) {
+		String sql = "UPDATE student s "
+				+ "Join user u On s.user_id = u.user_id "
+				+ "Set s.tuition_account = ? "
+				+ "WHERE u.login_id = ?";
+		
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setObject(1, studentsDTO.getTuitionAccount());
+			pstmt.setString(2, loginId);
+			pstmt.executeUpdate();
+		} catch (SQLException | ClassNotFoundException e) {
+			// TODO: 예외처리 구문 작성 필요
+			System.out.println(e.getMessage() + "111111");
+		}
 	}
 
 }
