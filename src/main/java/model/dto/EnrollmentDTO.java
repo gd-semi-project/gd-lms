@@ -15,7 +15,7 @@ import model.enumtype.EnrollmentStatus;
 public class EnrollmentDTO {
 	private Long enrollmentId;		//수강신청 테이블의 PK
 	private Long lectureId;		//강의 테이블의 PK
-	private Long studentId;		//학생 테이블의 PK
+	private Long userId;		//학생 테이블의 PK
 	private EnrollmentStatus status;
 }
 
