@@ -22,7 +22,7 @@ public class MyPageService {
 	public MypageDTO getMypageDTO(String Id) {
 
 		// users 테이블 조회
-		UserDTO user = userDAO.SelectUsersById(Id);
+		UserDTO user = userDAO.selectUsersById(Id);
 
 		// 결과 DTO 생성
 		MypageDTO mypage = new MypageDTO();
