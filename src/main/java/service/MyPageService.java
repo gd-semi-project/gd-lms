@@ -68,6 +68,11 @@ public class MyPageService {
 		
 	}
 	
+	// 학번일치유무 확인(비밀번호변경 페이지)
+	public boolean checkStudentNumber(String loginId, int studentNumber) {
+		return ;
+		
+	}
 
 	// 교수가 볼 수 있는 페이지
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {

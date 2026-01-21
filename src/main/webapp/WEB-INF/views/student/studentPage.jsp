@@ -94,6 +94,6 @@
 <div class="mt-3">
 	<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
 		class="btn btn-primary">정보 수정</a> <a
-		href="${pageContext.request.contextPath}/user/changePassword"
+		href="${pageContext.request.contextPath}/changeUserPw/change"
 		class="btn btn-warning">비밀번호 변경</a>
 </div>

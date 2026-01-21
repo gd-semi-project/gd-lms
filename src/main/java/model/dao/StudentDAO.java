@@ -72,7 +72,7 @@ public class StudentDAO {
 		return null;
 		
 	}
-	
+	// 학생정보 수정
 	public void updateStudentInfo(StudentsDTO studentsDTO, String loginId) {
 		String sql = "UPDATE student s "
 				+ "Join user u On s.user_id = u.user_id "
