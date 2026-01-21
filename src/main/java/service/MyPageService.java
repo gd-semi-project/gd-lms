@@ -48,7 +48,7 @@ public class MyPageService {
 	// 학생일때 볼 수 있는 페이지
 	private void buildStudentPage(MypageDTO mypage, UserDTO user) {
 		StudentDTO student =
-                studentDAO.findStudentByLoginId(user.getLoginId());
+                studentDAO.findStudentByUserId(user.getUserId());
 
 		if(student == null) {
 			return;
