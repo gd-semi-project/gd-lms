@@ -51,7 +51,7 @@
 
                 <!-- 학생 전용 -->
                 <c:if test="${role == 'STUDENT'}">
-                    <th>수강상태</th>
+                    <th>수강상태</th> 
                 </c:if>
             </tr>
         </thead>

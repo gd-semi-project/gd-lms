@@ -79,7 +79,7 @@ public class StudentDAO {
 		
 	}
 	
-	
+	// 해당 학기에 수강중인 목록
 	public List<LectureDTO> selectMyLectures(Connection conn, Long userId)
 	        throws SQLException {
 
