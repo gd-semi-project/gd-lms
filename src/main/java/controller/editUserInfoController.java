@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.MypageDTO;
-import model.dto.StudentsDTO;
+import model.dto.StudentDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.MyPageService;
@@ -109,8 +109,8 @@ public class editUserInfoController extends HttpServlet {
         user.setPhone(request.getParameter("phone"));
         user.setAddress(request.getParameter("address"));
 
-        // StudentsDTO
-        StudentsDTO student = new StudentsDTO();
+        // StudentDTO
+        StudentDTO student = new StudentDTO();
         student.setTuitionAccount(request.getParameter("tuitionAccount"));
         
         myPageService.updateStudentInfo(loginId, user, student);

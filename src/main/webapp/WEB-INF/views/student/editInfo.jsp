@@ -104,7 +104,7 @@
           <th scope="row">학년</th>
           <td><input 
 				class="form-control read-only"
-				value="${mypage.student.studenGrade}"
+				value="${mypage.student.studentGrade}"
 				readonly="readonly">
 			</td>
         </tr>

@@ -7,7 +7,7 @@ import model.dao.UserDAO;
 import model.dto.DepartmentDTO;
 import model.dto.InstructorDTO;
 import model.dto.MypageDTO;
-import model.dto.StudentsDTO;
+import model.dto.StudentDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import utils.HashUtil;
@@ -47,7 +47,7 @@ public class MyPageService {
 
 	// 학생일때 볼 수 있는 페이지
 	private void buildStudentPage(MypageDTO mypage, UserDTO user) {
-		StudentsDTO student =
+		StudentDTO student =
                 studentDAO.findStudentByLoginId(user.getLoginId());
 
 		if(student == null) {
@@ -61,7 +61,7 @@ public class MyPageService {
 	}
 	
 	// 학생 정보 수정
-	public void updateStudentInfo(String loginId, UserDTO userDTO, StudentsDTO studentsDTO ) {
+	public void updateStudentInfo(String loginId, UserDTO userDTO, StudentDTO studentsDTO ) {
 		// user 테이블 수정
 		userDAO.updateUserInfo(userDTO);
 		// student 테이블 수정
