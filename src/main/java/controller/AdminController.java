@@ -89,13 +89,25 @@ public class AdminController extends HttpServlet {
 			}
 			break;
 		}
-		case "/noticeList":
-			contentPage = "/WEB-INF/views/admin/adminNoticeList.jsp";
-			break;
+		
+		case "/departmentManage":
+			contentPage = "/WEB-INF/views/admin/adminDepartmentManage.jsp";
+			request.setAttribute("departmentList", service.getDepartmentList());
 			
-		case "/calendar":
-			
+			String selectedDept = request.getParameter("departmentId");
+			String status = request.getParameter("status");
+			if (selectedDept != null && !selectedDept.isBlank()) {
+				try {
+					long departmentId = Long.parseLong(selectedDept);
+					request.setAttribute("selectedDepartment", service.getDepartmentById(departmentId));
+					request.setAttribute("instructorList", service.getAllInstructorByDepartment(departmentId, status));
+					request.setAttribute("studentList", service.getAllStudentByDepartment(departmentId, status));
+				} catch (NumberFormatException ignore) {
+					System.out.println("이게 에러나면 진짜 신기할듯");
+				}
+			}
 			break;
+		
 			
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";

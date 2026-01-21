@@ -6,16 +6,21 @@ import java.util.Iterator;
 
 import model.dao.DepartmentDAO;
 import model.dao.EnrollmentDAO;
+import model.dao.InstructorDAO;
 import model.dao.LectureDAO;
+import model.dao.StudentDAO;
 import model.dto.DepartmentDTO;
+import model.dto.InstructorDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.LectureScheduleDTO;
+import model.dto.StudentDTO;
 
 public class AdminService {
 	private LectureDAO lectureDAO= LectureDAO.getInstance();
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
+	private InstructorDAO instructorDAO = InstructorDAO.getInstance();
 	
 	private static final AdminService instance = new AdminService();
 	private AdminService() {}
@@ -91,4 +96,18 @@ public class AdminService {
 	public ArrayList<DepartmentDTO> getDepartmentList() {
 		return departmentDAO.getDepartmentList();
 	}
+	
+	public DepartmentDTO getDepartmentById(Long departmentId) {
+		return departmentDAO.getDepartmentById(departmentId);
+	}
+	
+	public ArrayList<InstructorDTO> getAllInstructorByDepartment(Long departmentId, String status){
+		return InstructorDAO.getAllInstructorByDepartment(departmentId, status);
+	};
+	
+	public ArrayList<StudentDTO> getAllStudentByDepartment(Long departmentId, String status){
+		return StudentDAO.getAllStudentByDepartment(departmentId, status);
+	}
+
+	
 }
