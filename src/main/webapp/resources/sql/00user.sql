@@ -44,9 +44,9 @@ INSERT INTO `user`
 (login_id, password_hash, name, birth_date, email, phone, role, status, gender, address, must_change_pw)
 VALUES
 
-('s0001','{bcrypt}$2a$10$dummyhash','김민준','2002-03-14','s0001@student.test','010-4821-1932','ADMIN','ACTIVE','M','서울시 마포구 연남동',FALSE),
-('s0002','{bcrypt}$2a$10$dummyhash','박서연','2001-11-02','s0002@student.test','010-7712-5521','STUDENT','ACTIVE','F','서울시 성북구 길음동',FALSE),
-('s0003','{bcrypt}$2a$10$dummyhash','이지훈','2000-06-21','s0003@student.test','010-6349-8841','STUDENT','ACTIVE','M','경기도 성남시 분당구',TRUE),
+('admin','admin','김민준','2002-03-14','s0001@student.test','010-4821-1932','ADMIN','ACTIVE','M','서울시 마포구 연남동',FALSE),
+('instructor','instructor','박서연','2001-11-02','s0002@student.test','010-7712-5521','STUDENT','ACTIVE','F','서울시 성북구 길음동',FALSE),
+('student','student','이지훈','2000-06-21','s0003@student.test','010-6349-8841','STUDENT','ACTIVE','M','경기도 성남시 분당구',TRUE),
 ('s0004','{bcrypt}$2a$10$dummyhash','최은지','2003-01-09','s0004@student.test','010-2284-9903','STUDENT','ACTIVE','F','경기도 수원시 영통구',FALSE),
 ('s0005','{bcrypt}$2a$10$dummyhash','장현우','2002-09-30','s0005@student.test','010-5091-7712','STUDENT','ACTIVE','M','인천시 남동구 구월동',FALSE),
 ('s0006','{bcrypt}$2a$10$dummyhash','윤수빈','2001-04-18','s0006@student.test','010-8129-3344','STUDENT','ACTIVE','F','대전시 서구 둔산동',TRUE),

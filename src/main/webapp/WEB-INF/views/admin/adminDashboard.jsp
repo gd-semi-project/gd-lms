@@ -1,4 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -7,6 +9,12 @@
   </div>
   <span class="text-muted small">기준일: <%= java.time.LocalDate.now() %></span>
 </div>
+
+
+<c:choose>
+<c:when test="${policy.available}">
+
+
 
 <!-- 상단 요약 KPI (실무형) -->
 <div class="row g-3 mb-4">
@@ -270,3 +278,10 @@
     </div>
   </div>
 </div>
+
+</c:when>
+<c:otherwise>
+	<div class = "alert alert-warning">${policy.message}</div>
+</c:otherwise>
+</c:choose>
+
