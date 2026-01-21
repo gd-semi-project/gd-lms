@@ -179,3 +179,38 @@ VALUES
 ('테스트 자동화(JUnit) 실습',      1, 98, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-03-02', '2026-06-20', 'G-05-419',  50, 'PLANNED', 'CONFIRMED', 'B'),
 ('프로젝트 관리와 협업(Git)',      1, 99, (SELECT department_id FROM department WHERE department_code='FUSION'),'2026-03-02', '2026-06-20', 'G-11-401',  90, 'PLANNED', 'CONFIRMED', 'A'),
 ('기술면접 대비: CS 핵심정리',     1,100, (SELECT department_id FROM department WHERE department_code='FREE'), '2026-03-02', '2026-06-20', 'G-11-402', 120, 'PLANNED', 'CONFIRMED', 'B');
+
+
+
+INSERT INTO lecture
+(lecture_title, lecture_round, user_id, department_id, start_date, end_date, room, capacity, status, validation, section)
+VALUES
+('Spring Framework 기초',        1, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-01-06', '2026-02-28', 'A동 301호', 30, 'ONGOING', 'CONFIRMED', 'A'),
+('React 실전 프로젝트',          2, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-01-13', '2026-03-07', 'B동 201호', 25, 'ONGOING', 'CONFIRMED', 'A'),
+('Python 데이터 분석',           1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-01-06', '2026-02-21', 'C동 401호', 35, 'ONGOING', 'CONFIRMED', 'B'),
+('Java 프로그래밍 입문',         3, 2, (SELECT department_id FROM department WHERE department_code='CSE'),   '2026-01-20', '2026-03-14', 'A동 302호', 28, 'ONGOING', 'CONFIRMED', 'A'),
+
+('SQL 집중 트레이닝',            1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-03-02', '2026-06-20', 'G-05-410', 40, 'PLANNED', 'CONFIRMED', 'A'),
+('백엔드 API 설계',              1, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-03-02', '2026-06-20', 'G-05-414', 35, 'PLANNED', 'CONFIRMED', 'B'),
+('클라우드 인프라 실습',          1, 2, (SELECT department_id FROM department WHERE department_code='CLOUD'), '2026-03-02', '2026-06-20', 'G-07-404', 20, 'PLANNED', 'CONFIRMED', 'A'),
+('정보보안 위협과 대응',          1, 2, (SELECT department_id FROM department WHERE department_code='SEC'),   '2026-03-02', '2026-06-20', 'G-07-405', 25, 'PLANNED', 'CONFIRMED', 'B'),
+('데이터사이언스 입문',           1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-03-02', '2026-06-20', 'G-07-304', 45, 'PLANNED', 'CONFIRMED', 'A'),
+('AI 활용 프롬프트 엔지니어링',    1, 2, (SELECT department_id FROM department WHERE department_code='AI'),    '2026-03-02', '2026-06-20', 'G-05-415', 60, 'PLANNED', 'CONFIRMED', 'A');
+
+  
+  
+INSERT INTO lecture
+(lecture_title, lecture_round, user_id, department_id, start_date, end_date, room, capacity, status, validation, section)
+VALUES
+('Spring Framework 기초',        1, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-01-06', '2026-02-28', 'A동 301호', 30, 'ONGOING', 'CONFIRMED', 'A'),
+('React 실전 프로젝트',          2, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-01-13', '2026-03-07', 'B동 201호', 25, 'ONGOING', 'CONFIRMED', 'A'),
+('Python 데이터 분석',           1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-01-06', '2026-02-21', 'C동 401호', 35, 'ONGOING', 'CONFIRMED', 'B'),
+('Java 프로그래밍 입문',         3, 2, (SELECT department_id FROM department WHERE department_code='CSE'),   '2026-01-20', '2026-03-14', 'A동 302호', 28, 'ONGOING', 'CONFIRMED', 'A'),
+
+('SQL 집중 트레이닝',            1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-03-02', '2026-06-20', 'G-05-410', 40, 'PLANNED', 'CONFIRMED', 'A'),
+('백엔드 API 설계',              1, 2, (SELECT department_id FROM department WHERE department_code='SWE'),   '2026-03-02', '2026-06-20', 'G-05-414', 35, 'PLANNED', 'CONFIRMED', 'B'),
+('클라우드 인프라 실습',          1, 2, (SELECT department_id FROM department WHERE department_code='CLOUD'), '2026-03-02', '2026-06-20', 'G-07-404', 20, 'PLANNED', 'CONFIRMED', 'A'),
+('정보보안 위협과 대응',          1, 2, (SELECT department_id FROM department WHERE department_code='SEC'),   '2026-03-02', '2026-06-20', 'G-07-405', 25, 'PLANNED', 'CONFIRMED', 'B'),
+('데이터사이언스 입문',           1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-03-02', '2026-06-20', 'G-07-304', 45, 'PLANNED', 'CONFIRMED', 'A'),
+('AI 활용 프롬프트 엔지니어링',    1, 2, (SELECT department_id FROM department WHERE department_code='AI'),    '2026-03-02', '2026-06-20', 'G-05-415', 60, 'PLANNED', 'CONFIRMED', 'A');
+  

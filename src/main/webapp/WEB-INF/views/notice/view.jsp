@@ -3,6 +3,15 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="user" value="${sessionScope.AccessInfo}" />
+<c:set var="role" value="${requestScope.role}" />
+
+<%-- 목록 복귀용 파라미터 --%>
+<c:set var="backTabType" value="${param.tabType}" />
+<c:set var="backPage" value="${param.page}" />
+<c:set var="backSize" value="${param.size}" />
+<c:set var="backItems" value="${param.items}" />
+<c:set var="backText" value="${param.text}" />
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -29,19 +38,17 @@
                         </div>
 
                         <div class="text-muted small">
-                            <span>👤 작성자: ${notice.authorId}</span>
-                            <span class="mx-2">|</span>
                             <span>📅 작성일: 
-                                <c:set var="createdStr" value="${notice.createdAt.toString()}" />
-                                ${fn:substring(createdStr, 0, 10)} ${fn:substring(createdStr, 11, 16)}
+                                <c:if test="${not empty notice.createdAt}">
+                                    ${fn:substring(notice.createdAt.toString(), 0, 10)} ${fn:substring(notice.createdAt.toString(), 11, 16)}
+                                </c:if>
                             </span>
                             <span class="mx-2">|</span>
                             <span>👁️ 조회수: ${notice.viewCount}</span>
                             <c:if test="${not empty notice.updatedAt && notice.updatedAt != notice.createdAt}">
                                 <span class="mx-2">|</span>
                                 <span>✏️ 수정일: 
-                                    <c:set var="updatedStr" value="${notice.updatedAt.toString()}" />
-                                    ${fn:substring(updatedStr, 0, 10)} ${fn:substring(updatedStr, 11, 16)}
+                                    ${fn:substring(notice.updatedAt.toString(), 0, 10)} ${fn:substring(notice.updatedAt.toString(), 11, 16)}
                                 </span>
                             </c:if>
                         </div>
@@ -50,29 +57,54 @@
                     <hr>
 
                     <!-- 공지 내용 -->
-                    <div class="notice-content my-4">
-                        <%-- 줄바꿈을 <br>로 변환 --%>
-                        <c:set var="contentWithBr" value="${fn:replace(notice.content, newLineChar, '<br>')}" />
-                        ${contentWithBr}
-                    </div>
+                    <div class="notice-content my-4"><c:out value="${notice.content}" /></div>
 
                     <hr>
 
                     <!-- 버튼 영역 -->
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <a href="${ctx}/notice/list${not empty notice.lectureId ? '?lectureId='.concat(notice.lectureId) : ''}" 
-                               class="btn btn-secondary">📋 목록으로</a>
+                            <%-- 목록 복귀 URL --%>
+                            <c:url var="listUrl" value="/notice/list">
+                                <c:choose>
+                                    <c:when test="${not empty backTabType}">
+                                        <c:param name="tabType" value="${backTabType}" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:param name="tabType" value="${empty notice.lectureId ? 'all' : 'lecture'}" />
+                                    </c:otherwise>
+                                </c:choose>
+                                <c:if test="${not empty notice.lectureId}">
+                                    <c:param name="lectureId" value="${notice.lectureId}" />
+                                </c:if>
+                                <c:if test="${not empty backPage}">
+                                    <c:param name="page" value="${backPage}" />
+                                </c:if>
+                                <c:if test="${not empty backSize}">
+                                    <c:param name="size" value="${backSize}" />
+                                </c:if>
+                                <c:if test="${not empty backItems}">
+                                    <c:param name="items" value="${backItems}" />
+                                </c:if>
+                                <c:if test="${not empty backText}">
+                                    <c:param name="text" value="${backText}" />
+                                </c:if>
+                            </c:url>
+                            <a href="${listUrl}" class="btn btn-secondary">📋 목록으로</a>
                         </div>
                         
                         <!-- 수정/삭제 버튼 (권한 있는 경우만 표시) -->
-                        <c:if test="${role == 'ADMIN' || (role == 'INSTRUCTOR' && notice.authorId == userId)}">
+                        <c:if test="${role == 'ADMIN' || (role == 'INSTRUCTOR' && notice.authorId == user.userId)}">
                             <div>
-                                <a href="${ctx}/notice/edit?noticeId=${notice.noticeId}${not empty notice.lectureId ? '&lectureId='.concat(notice.lectureId) : ''}" 
-                                   class="btn btn-warning">✏️ 수정</a>
+                                <c:url var="editUrl" value="/notice/edit">
+                                    <c:param name="noticeId" value="${notice.noticeId}" />
+                                    <c:if test="${not empty notice.lectureId}">
+                                        <c:param name="lectureId" value="${notice.lectureId}" />
+                                    </c:if>
+                                </c:url>
+                                <a href="${editUrl}" class="btn btn-warning">✏️ 수정</a>
                                 
-                                <form action="${ctx}/notice/delete" method="post" class="d-inline"
-                                      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                                <form action="${ctx}/notice/delete" method="post" class="d-inline">
                                     <input type="hidden" name="noticeId" value="${notice.noticeId}">
                                     <c:if test="${not empty notice.lectureId}">
                                         <input type="hidden" name="lectureId" value="${notice.lectureId}">
@@ -88,9 +120,6 @@
     </div>
 </div>
 
-<c:set var="newLineChar" value="
-" />
-
 <style>
     .notice-content {
         min-height: 200px;
@@ -98,12 +127,8 @@
         background-color: #f8f9fa;
         border-radius: 5px;
         line-height: 1.8;
+        white-space: pre-wrap;
     }
-    .card-header h4 {
-        font-weight: 600;
-    }
-    .badge {
-        font-size: 0.9rem;
-        padding: 0.4rem 0.8rem;
-    }
+    .card-header h4 { font-weight: 600; }
+    .badge { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
 </style>

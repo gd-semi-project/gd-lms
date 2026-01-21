@@ -74,6 +74,8 @@ public class LoginController extends HttpServlet {
 			if (accessDTO != null) {
 				session = request.getSession();
 				session.setAttribute("AccessInfo", accessDTO);
+				// 조회 기준 MyPageService용(로그인동안 loginId값 기억 mypage관련 로직을 사용하기위해서 필요)
+				session.setAttribute("loginId", user_id);
 				response.sendRedirect(contextPath + "/main");
 			} else {
 				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
