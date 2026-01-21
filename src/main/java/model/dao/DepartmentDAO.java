@@ -77,7 +77,7 @@ public class DepartmentDAO {
 					department_code,
 					created_at
 				FROM department
-				WHERE deparment_id = ?
+				WHERE department_id = ?
 				""";
 		
 		try (

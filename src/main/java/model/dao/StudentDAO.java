@@ -67,13 +67,14 @@ public class StudentDAO {
 		            s.student_number,
 		            s.student_grade,
 		            s.status          AS academic_status,
+		            s.student_status,
 		            s.enroll_date,
 		            s.end_date,
 		            s.tuition_account,
 	
 		            u.name,
 		            u.email,
-		            u.phone,
+		            u.phone
 		        FROM student s
 		        JOIN user u ON u.user_id = s.user_id
 		        WHERE s.department_id = ?
@@ -129,7 +130,7 @@ public class StudentDAO {
 			System.out.println("getAllStudentByDepartment(): 실패");
 		}
 		
-		return null;
+		return list;
 	}
 
 }

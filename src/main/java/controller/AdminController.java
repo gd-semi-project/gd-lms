@@ -96,7 +96,7 @@ public class AdminController extends HttpServlet {
 			
 			String selectedDept = request.getParameter("departmentId");
 			String status = request.getParameter("status");
-			if (selectedDept != null && selectedDept.isBlank()) {
+			if (selectedDept != null && !selectedDept.isBlank()) {
 				try {
 					long departmentId = Long.parseLong(selectedDept);
 					request.setAttribute("selectedDepartment", service.getDepartmentById(departmentId));

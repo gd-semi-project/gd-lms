@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class InstructorDTO {
 
     // PK, FK → users.user_id
-    private Long InstructorId;
+    private Long instructorId;
     private Long departmentId;
     private Long userId;
 

@@ -1,6 +1,15 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<style>
+  tr.row-click {
+    cursor: pointer;
+  }
+  tr.row-click:hover > td {
+    background-color: #f1f3f5;
+  }
+</style>
+
 
 <!-- 상단: 선택 학과 정보 -->
 <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
@@ -27,11 +36,7 @@
   </div>
 
   <div class="d-flex gap-2">
-    <a class="btn btn-sm btn-outline-secondary"
-       href="${pageContext.request.contextPath}/admin/departmentManage?status=${empty param.status ? 'ACTIVE' : param.status}">
-      선택 해제
-    </a>
-    <button class="btn btn-sm btn-outline-primary" type="button" disabled>학과 수정</button>
+    <button class="btn btn-sm btn-outline-primary" type="button">학과 수정</button>
   </div>
 </div>
 
@@ -54,10 +59,10 @@
           <table class="table table-sm align-middle mb-0">
             <thead class="table-light position-sticky top-0">
               <tr>
-                <th style="width: 120px;">교번</th>
-                <th>이름</th>
-                <th class="text-muted" style="width: 140px;">휴대폰</th>
-                <th class="text-muted" style="width: 110px;">연구실</th>
+                <th class="text-nowrap" style="width: 120px;">교번</th>
+                <th class="text-nowrap">이름</th>
+                <th class="text-muted text-nowrap" style="width: 140px;">휴대폰</th>
+                <th class="text-muted text-nowrap" style="width: 110px;">연구실</th>
               </tr>
             </thead>
             <tbody>
@@ -68,9 +73,11 @@
 
                 <c:otherwise>
                   <c:forEach var="p" items="${instructorList}">
-                    <tr>
+                    <tr class="row-click"
+                    	data-href = "${pageContext.request.contextPath}/"
+                    >
                       <td class="text-muted">${p.instructorNo}</td>
-                      <td class="fw-semibold">${p.name}</td>
+                      <td class="fw-semibold text-nowrap">${p.name}</td>
                       <td class="text-muted">${p.phone}</td>
                       <td class="text-muted">
                         <c:out value="${p.officeRoom}"/>
@@ -102,11 +109,10 @@
           <table class="table table-sm align-middle mb-0">
             <thead class="table-light position-sticky top-0">
               <tr>
-                <th style="width: 120px;">학번</th>
-                <th>이름</th>
-                <th class="text-muted" style="width: 70px;">학년</th>
-                <th class="text-muted" style="width: 80px;">과정</th>
-                <th class="text-muted" style="width: 80px;">상태</th>
+                <th class="text-nowrap" style="width: 120px;">학번</th>
+                <th class="text-nowrap">이름</th>
+                <th class="text-muted text-nowrap" style="width: 140px;">휴대폰</th>
+                <th class="text-muted text-nowrap" style="width: 70px;">학년</th>
               </tr>
             </thead>
             <tbody>
@@ -117,25 +123,18 @@
 
                 <c:otherwise>
                   <c:forEach var="s" items="${studentList}">
-                    <tr>
-                      <!-- ✅ DTO: studentNumber -->
+                    <tr class="row-click"
+                    	data-href = "${pageContext.request.contextPath}/"
+                    >
                       <td class="text-muted">${s.studentNumber}</td>
-
-                      <td class="fw-semibold">${s.name}</td>
-
-                      <!-- ✅ DTO: studentGrade(Integer) -->
+                      <td class="fw-semibold text-nowrap">${s.name}</td>
+                      <td class="text-muted">${s.phone}</td>
                       <td class="text-muted">
                         <c:choose>
                           <c:when test="${empty s.studentGrade}">-</c:when>
                           <c:otherwise>${s.studentGrade}</c:otherwise>
                         </c:choose>
                       </td>
-
-                      <!-- ✅ DTO: status (StudentType enum) -->
-                      <td class="text-muted">${s.status}</td>
-
-                      <!-- ✅ DTO: studentStatus (StudentStatus enum) -->
-                      <td class="text-muted">${s.studentStatus}</td>
                     </tr>
                   </c:forEach>
                 </c:otherwise>
@@ -143,9 +142,19 @@
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
   </div>
-
 </div>
+
+<script>
+  document.addEventListener('click', function (e) {
+    const row = e.target.closest('tr.row-click');
+    if (!row) return;
+
+    const href = row.dataset.href;
+    if (href) {
+      window.location.href = href;
+    }
+  });
+</script>
