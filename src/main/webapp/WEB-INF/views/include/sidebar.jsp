@@ -102,7 +102,7 @@
               <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="<%=ctx%>/student/lectures">내 강의 목록</a>
+                     href="<%=ctx%>/mypage/mySubjectPage">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
