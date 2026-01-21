@@ -21,6 +21,10 @@
 					<td>${mypage.user.name}</td>
 				</tr>
 				<tr>
+					<th scope="row">성별</th>
+					<td>${mypage.user.gender}</td>
+				</tr>
+				<tr>
 					<th scope="row">생년월일</th>
 					<td>${mypage.user.birthDate}</td>
 				</tr>
@@ -35,6 +39,10 @@
 				<tr>
 					<th scope="row">신분</th>
 					<td>${mypage.user.role}</td>
+				</tr>
+				<tr>
+					<th scope="row">주소</th>
+					<td>${mypage.user.address}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -84,8 +92,8 @@
   </div>
 </div>
 <div class="mt-3">
-	<a href="${pageContext.request.contextPath}/user/edit"
+	<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
 		class="btn btn-primary">정보 수정</a> <a
-		href="${pageContext.request.contextPath}/user/changePassword"
+		href="${pageContext.request.contextPath}/changeUserPw/change"
 		class="btn btn-warning">비밀번호 변경</a>
 </div>
