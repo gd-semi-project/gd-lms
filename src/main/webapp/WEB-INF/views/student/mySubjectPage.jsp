@@ -36,40 +36,30 @@
 <table style="width:100%; border-collapse:collapse; text-align:center;">
   <thead>
     <tr style="background:#f5f5f5;">
-    <a>
       <th style="border:1px solid #ccc;">과목명</th>
       <th style="border:1px solid #ccc;">담당교수</th>
+      <th style="border:1px solid #ccc;">강의실</th>
       <th style="border:1px solid #ccc;">강의시간</th>
-    </a></tr>
+    </tr>
   </thead>
 
   <tbody>
     <%-- 내가 수강 중인 강의 목록 --%>
     <c:forEach var="course" items="${myCourseList}">
-      <tr>
+      <tr class="clickable-row"
+      data-href="${pageContext.request.contextPath}/강의상세내역주소">
         <td style="border:1px solid #ccc;">
-          ${course.category}
+          ${course.lectureTitle}
         </td>
         <td style="border:1px solid #ccc; text-align:left; padding-left:10px;">
-          ${course.courseName}
+          ${course.professorName}
         </td>
         <td style="border:1px solid #ccc;">
-          ${course.round}
+          ${course.room}
         </td>
         <td style="border:1px solid #ccc;">
-          ${course.startDate}
-        </td>
-        <td style="border:1px solid #ccc;">
-          ${course.endDate}
-        </td>
-        <td style="border:1px solid #ccc;">
-          ${course.days}일 / ${course.totalHours}시간
-        </td>
-        <td style="border:1px solid #ccc;">
-          <a href="${pageContext.request.contextPath}/course/detail?id=${course.id}">
-            상세정보
-          </a>
-        </td>
+          ${course.scheduleText}
+		</td>
       </tr>
     </c:forEach>
 
