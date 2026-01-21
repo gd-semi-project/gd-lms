@@ -138,6 +138,23 @@ public class UserDAO {
 		}
 	}
 	
+	// 비밀번호 변경
+	public void updatePassword(String loginId, String passwordHash) {
+	    String sql = "UPDATE user SET password_hash = ? WHERE login_id = ?";
+	    
+	    try (Connection conn = DBConnection.getConnection();
+	            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	           pstmt.setString(1, passwordHash);
+	           pstmt.setString(2, loginId);
+
+	           pstmt.executeUpdate();
+
+	       }catch (SQLException | ClassNotFoundException e) {
+				// TODO: 예외처리 구문 작성 필요
+				System.out.println(e.getMessage() + "111111");
+			}
+	}
 	
 	
 }

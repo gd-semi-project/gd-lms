@@ -89,5 +89,28 @@ public class StudentDAO {
 			System.out.println(e.getMessage() + "111111");
 		}
 	}
+	
+	// 비밀번호 변경 관련(학번일치여부 확인)
+	public boolean checkStudentNumberBychangeAccount(String loginId, int studentNumber) {
+		String sql = "SELECT 1 FROM student s "
+				+ "JOIN user u ON s.user_id = "
+				+ "u.user_id WHERE u.login_id = "
+				+ "? AND s.student_number = ?";
+		
+		 try (Connection conn = DBConnection.getConnection()) {
+			 PreparedStatement pstmt = conn.prepareStatement(sql);
+
+		        pstmt.setString(1, loginId);
+		        pstmt.setInt(2, studentNumber);
+
+		        ResultSet rs = pstmt.executeQuery();
+		        return rs.next();
+
+		    } catch (SQLException | ClassNotFoundException e) {
+				// TODO: 예외처리 구문 작성 필요
+				System.out.println(e.getMessage() + "111111");
+				return false;
+			}
+	}
 
 }

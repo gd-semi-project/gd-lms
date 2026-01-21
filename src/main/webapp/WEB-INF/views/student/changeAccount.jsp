@@ -31,11 +31,22 @@
           </tr>
 
           <!-- 비밀번호 변경 -->
+           <tr>
+            <th scope="row">현재 비밀번호</th>
+            <td>
+              <input type="password"
+                     name="Pw"
+                     class="form-control"
+                     placeholder="현재 비밀번호"
+                     required>
+            </td>
+          </tr>
+          
           <tr>
             <th scope="row">새 비밀번호</th>
             <td>
               <input type="password"
-                     name="newPassword"
+                     name="newPw"
                      class="form-control"
                      placeholder="새 비밀번호"
                      required>
@@ -46,7 +57,7 @@
             <th scope="row">새 비밀번호 확인</th>
             <td>
               <input type="password"
-                     name="confirmPassword"
+                     name="confirmPw"
                      class="form-control"
                      placeholder="새 비밀번호 확인"
                      required>
@@ -58,14 +69,22 @@
         </tbody>
       </table>
 
-      <!-- 에러 메시지 -->
-      <c:if test="${not empty error}">
-        <div class="alert alert-danger mt-3">
-           alert("${e}");
-        </div>
-      </c:if>
+			<!-- 에러 메시지 -->
+			<c:if test="${not empty error}">
+				<script>
+				alert("${error}");
+				</script>
+			</c:if>
 
-      <div class="mt-3">
+			<!--       성공 메시지 -->
+			<c:if test="${not empty alertMsg}">
+				<script>
+					alert("${alertMsg}");
+					location.href = "${pageContext.request.contextPath}/login/logout";
+				</script>
+			</c:if>
+
+			<div class="mt-3">
         <button type="submit" class="btn btn-warning">변경</button>
         <a href="${pageContext.request.contextPath}/mypage/studentPage"
            class="btn btn-secondary">취소</a>

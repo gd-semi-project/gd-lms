@@ -98,36 +98,59 @@ public class changeUserPwController extends HttpServlet {
 	    }
         
         String studentNum = request.getParameter("studentNumber");
+        String currentPw = request.getParameter("Pw");
         String newPw = request.getParameter("newPw");
         String confirmPw = request.getParameter("confirmPw");
         
         // 아무것도 입력안했을때
-        if(studentNum == null || newPw == null || confirmPw == null) {
-        	request.setAttribute("e", "모든 항목을 입력하시오");
+        if(studentNum == null || newPw == null || confirmPw == null || currentPw == null) {
+        	request.setAttribute("error", "모든 항목을 입력하시오");
         	doGet(request, response);
         	return;
         }
         
 		// 비밀번호가 일치하지 않을때
 		if (!newPw.equals(confirmPw)) {
-			request.setAttribute("e", "비밀번호가 일치하지 않습니다");
+			request.setAttribute("error", "비밀번호가 일치하지 않습니다");
 			doGet(request, response);
 			return;
 		}
 		
-		UserDTO user = new UserDTO();
-	    user.setLoginId(loginId);
-
-	    StudentsDTO student = new StudentsDTO();
-	    student.setStudentNumber("studentNumber");
 		// 학번 검증
+	    int studentNumber = Integer.parseInt(studentNum);
 		boolean validStudent =
-				myPageService.checkLoginIdAndStudentNumber(loginId, studentNumber);
+				myPageService.checkStudentNumber(loginId, studentNumber);
 		
 		if (!validStudent) {
-			request.setAttribute("e", "학번이 일치하지 않습니다.");
+			request.setAttribute("error", "학번이 일치하지 않습니다.");
 			doGet(request, response);
 			return;
+		}
+		
+		// 비밀번호 검증
+		boolean validPw = myPageService.checkCurrentPassword(loginId, currentPw);
+		if (!validPw) {
+		    request.setAttribute("error", "현재 비밀번호가 일치하지 않습니다.");
+		    doGet(request, response);
+		    return;
+		}
+		try {
+			// 비밀번호 변경
+			myPageService.changePassword(loginId, confirmPw);
+			// 성공시 메시지
+			session.setAttribute("alertMsg", "비밀번호 변경 성공! 다시 로그인해주세요.");
+			
+			doGet(request, response);
+			return;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			// 실패 메시지
+			session.setAttribute("error", "비밀번호 변경에 실패하였습니다.");
+			
+			doGet(request, response);
 		}
 	}
 
