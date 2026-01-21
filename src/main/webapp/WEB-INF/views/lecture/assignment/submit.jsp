@@ -36,23 +36,31 @@
     </div>
     <div class="card-body">
       <form method="post" action="${ctx}/lecture/assignments">
-        <input type="hidden" name="action" value="submit" />
-        <input type="hidden" name="lectureId" value="${lectureId}" />
-        <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
-
-        <div class="mb-3">
-          <label class="form-label">제출 내용 <span class="text-danger">*</span></label>
-          <textarea name="content" class="form-control" rows="10" required><c:if test="${not empty mySubmission}"><c:out value="${mySubmission.content}"/></c:if></textarea>
-        </div>
-
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-success">제출</button>
-          <a class="btn btn-outline-secondary" 
-             href="${ctx}/lecture/assignments?lectureId=${lectureId}&action=view&assignmentId=${assignment.assignmentId}">
-            취소
-          </a>
-        </div>
-      </form>
+		  <input type="hidden" name="action" value="submit" />
+		  <input type="hidden" name="lectureId" value="${lectureId}" />
+		  <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
+		
+		  <div class="mb-3">
+		    <label class="form-label">제출 내용 <span class="text-danger">*</span></label>
+		    <textarea name="content" class="form-control" rows="10" required><c:if test="${not empty mySubmission}"><c:out value="${mySubmission.content}"/></c:if></textarea>
+		  </div>
+		
+		  <!-- ✅ 여기 추가 -->
+		  <div class="mb-3">
+		    <label class="form-label">첨부파일</label>
+		    <input type="file" name="files" class="form-control" multiple />
+		    <div class="form-text text-muted">파일 업로드 기능은 추후 연동 예정입니다.</div>
+		  </div>
+		  
+		
+		  <div class="d-flex gap-2">
+		    <button type="submit" class="btn btn-success">제출</button>
+		    <a class="btn btn-outline-secondary"
+		       href="${ctx}/lecture/assignments?lectureId=${lectureId}&action=view&assignmentId=${assignment.assignmentId}">
+		      취소
+		    </a>
+		  </div>
+	  </form>
     </div>
   </div>
 </div>
