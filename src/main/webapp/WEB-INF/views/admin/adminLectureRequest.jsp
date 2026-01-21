@@ -18,6 +18,13 @@
   </form>
 </div>
 
+
+
+<c:choose>
+<c:when test="${policy.available}">
+
+
+
 <!-- 요약 배지 (선택: 서블릿에서 count 내려주면 좋음) -->
 <div class="d-flex flex-wrap gap-2 mb-3">
   <span class="badge bg-secondary">전체: ${empty totalCount ? 0 : totalCount}</span>
@@ -287,7 +294,8 @@
 </div>
 
 
-<!-- 안내 -->
-<div class="mt-3 text-muted small">
-  * 승인 시 강의/분반이 실제로 개설되며, 반려 시 교수에게 반려 사유가 전달됩니다(구현 여부에 따라).
-</div>
+</c:when>
+<c:otherwise>
+	<div class = "alert alert-warning">${policy.message}</div>
+</c:otherwise>
+</c:choose>
