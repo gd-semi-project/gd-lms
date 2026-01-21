@@ -8,9 +8,9 @@ import model.dto.DepartmentDTO;
 import model.dto.InstructorDTO;
 import model.dto.MypageDTO;
 import model.dto.StudentDTO;
-import model.dto.StudentsDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
+import utils.HashUtil;
 
 //	 로그인한 사용자의 role에 따라 필요한 데이터만 조회해서 MypageDTO조립
 public class MyPageService {
@@ -23,7 +23,7 @@ public class MyPageService {
 	public MypageDTO getMypageDTO(String Id) {
 
 		// users 테이블 조회
-		UserDTO user = userDAO.SelectUsersById(Id);
+		UserDTO user = userDAO.selectUsersById(Id);
 
 		// 결과 DTO 생성
 		MypageDTO mypage = new MypageDTO();
@@ -50,17 +50,47 @@ public class MyPageService {
 		StudentDTO student =
                 studentDAO.findStudentByUserId(user.getUserId());
 
-		DepartmentDTO department = departmentDAO.finById(student.getDepartmentId());
+		if(student == null) {
+			return;
+		}
+		
+		DepartmentDTO department = departmentDAO.findById(student.getDepartmentId());
 
 		mypage.setStudent(student);
 		mypage.setDepartment(department);
+	}
+	
+	// 학생 정보 수정
+	public void updateStudentInfo(String loginId, UserDTO userDTO, StudentDTO studentsDTO ) {
+		// user 테이블 수정
+		userDAO.updateUserInfo(userDTO);
+		// student 테이블 수정
+		studentDAO.updateStudentInfo(studentsDTO, loginId);
+		
+	}
+	
+	// 학번일치유무 확인(비밀번호변경 페이지)
+	public boolean checkStudentNumber(String loginId, int studentNumber) {
+		return studentDAO.checkStudentNumberBychangeAccount(loginId, studentNumber);
+		
+	}
+	
+	// 비밀번호 일치유무 확인
+	public boolean checkCurrentPassword(String loginId, String rawPassword) {
+		UserDTO user = userDAO.selectUsersById(loginId);
+	    return rawPassword.equals(user.getPassword());
+	}
+	
+	// 비밀번호 변경
+	public void changePassword(String loginId, String newPassword) {
+		userDAO.updatePassword(loginId, newPassword);
 	}
 
 	// 교수가 볼 수 있는 페이지
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
 		InstructorDTO instructor = instructorDAO.selectInstructorInfo(user.getUserId());
 		
-		DepartmentDTO department = departmentDAO.finById(instructor.getDepartmentId());
+		DepartmentDTO department = departmentDAO.findById(instructor.getDepartmentId());
 		
 		mypage.setProfessor(instructor);
 		mypage.setDepartment(department);

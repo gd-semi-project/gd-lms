@@ -2,10 +2,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 <div class="mb-4 border-bottom pb-2">
   <ul class="nav nav-tabs">
 
+    <!-- 상세보기 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'detail' ? 'active' : ''}"
          href="${ctx}/lecture/detail?lectureId=${lecture.lectureId}">
@@ -13,6 +15,7 @@
       </a>
     </li>
 
+    <!-- 출석 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'attendance' ? 'active' : ''}"
          href="${ctx}/lecture/attendance?lectureId=${lecture.lectureId}">
@@ -20,6 +23,7 @@
       </a>
     </li>
 
+    <!-- 성적 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'grades' ? 'active' : ''}"
          href="${ctx}/lecture/grades?lectureId=${lecture.lectureId}">
@@ -27,6 +31,7 @@
       </a>
     </li>
 
+    <!-- 과제 -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'assignments' ? 'active' : ''}"
          href="${ctx}/lecture/assignments?lectureId=${lecture.lectureId}">
@@ -34,6 +39,7 @@
       </a>
     </li>
 
+    <!-- QnA -->
     <li class="nav-item">
       <a class="nav-link ${activeTab eq 'qna' ? 'active' : ''}"
          href="${ctx}/lecture/qna?lectureId=${lecture.lectureId}">
@@ -41,7 +47,8 @@
       </a>
     </li>
 
-    <c:if test="${sessionScope.role eq 'INSTRUCTOR' or sessionScope.role eq 'ADMIN'}">
+    <!-- 수강생 (교수 / 관리자만) -->
+    <c:if test="${role eq 'INSTRUCTOR' or role eq 'ADMIN'}">
       <li class="nav-item">
         <a class="nav-link ${activeTab eq 'students' ? 'active' : ''}"
            href="${ctx}/lecture/students?lectureId=${lecture.lectureId}">

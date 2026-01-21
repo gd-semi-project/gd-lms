@@ -1,6 +1,7 @@
 package model.dto;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -20,4 +21,10 @@ public class LectureRequestDTO {
 	private LectureValidation validation;
 	private LocalDateTime createdAt;
 	private String section;
+	
+	// 추가 : 지윤
+	private int lectureRound;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String room; 
 }

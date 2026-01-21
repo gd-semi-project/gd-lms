@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS notice (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (lecture_id) REFERENCES lecture(lecture_id),
-    FOREIGN KEY (author_id) REFERENCES user(user_id)
+    FOREIGN KEY (author_id) REFERENCES `user`(user_id)
 );

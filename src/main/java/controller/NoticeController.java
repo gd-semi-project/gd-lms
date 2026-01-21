@@ -12,8 +12,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
+import model.enumtype.Role;
 import service.NoticeService;
 
 @WebServlet("/notice/*")
@@ -33,10 +35,9 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-        injectDevLogin(req);
 
         String action = resolveAction(req);
-        
+
         try {
             switch (action) {
                 case "/list":
@@ -65,10 +66,9 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-        injectDevLogin(req);
 
         String action = resolveAction(req);
-        
+
         try {
             switch (action) {
                 case "/create":
@@ -96,12 +96,11 @@ public class NoticeController extends HttpServlet {
 
         String items = trimToNull(req.getParameter("items"));
         String text  = trimToNull(req.getParameter("text"));
-        
-        // 탭 구분: "all" (전체 공지만), "lecture" (강의 공지만)
-        String tabType = trimToNull(req.getParameter("tabType"));
-        if (tabType == null) tabType = "all"; // 기본값: 전체 공지 탭
 
-        if (items != null && !items.equals("title") && 
+        String tabType = trimToNull(req.getParameter("tabType"));
+        if (tabType == null) tabType = "all";
+
+        if (items != null && !items.equals("title") &&
             !items.equals("content") && !items.equals("all")) {
             items = null;
         }
@@ -114,31 +113,34 @@ public class NoticeController extends HttpServlet {
         int limit = size;
         int offset = (page - 1) * size;
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+
+        // 로그인/권한 정보 없으면 403 처리
+        requireLogin(userId, role);
 
         int totalCount;
         List<NoticeDTO> list;
 
         if ("all".equals(tabType)) {
-            // 1️⃣ 전체 공지 (lecture_id IS NULL)
             totalCount = noticeService.countAllNotices(items, text, userId, role);
             list = noticeService.findPageAllNotices(limit, offset, items, text, userId, role);
 
         } else if ("lecture".equals(tabType) && lectureId == null) {
-            // 2️⃣ 모든 강의 공지 (lecture_id IS NOT NULL)
             totalCount = noticeService.countAllLectureNotices(items, text, userId, role);
             list = noticeService.findPageAllLectureNotices(limit, offset, items, text, userId, role);
 
         } else {
-            // 3️⃣ 특정 강의 공지
-            totalCount = noticeService.countByLecture(lectureId, items, text, userId, role);
-            list = noticeService.findPageByLecture(lectureId, limit, offset, items, text, userId, role);
+            if (lectureId == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId is required.");
+                return;
+            }
+            totalCount = noticeService.countByLecture(lectureId.longValue(), items, text, userId, role);
+            list = noticeService.findPageByLecture(lectureId.longValue(), limit, offset, items, text, userId, role);
         }
-
         int totalPages = (int) Math.ceil(totalCount / (double) size);
 
-        // 사용자의 강의 목록 조회 (탭 표시용)
         List<LectureDTO> userLectures = noticeService.getUserLectures(userId, role);
 
         req.setAttribute("noticeList", list);
@@ -150,7 +152,9 @@ public class NoticeController extends HttpServlet {
         req.setAttribute("items", items);
         req.setAttribute("text", text);
         req.setAttribute("tabType", tabType);
-        req.setAttribute("userLectures", userLectures); // 강의 목록
+        req.setAttribute("userLectures", userLectures);
+        req.setAttribute("hasUserLectures", userLectures != null && !userLectures.isEmpty());
+        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
 
         forwardLayout(req, resp, NOTICE_LIST);
     }
@@ -166,8 +170,10 @@ public class NoticeController extends HttpServlet {
             return;
         }
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
 
         NoticeDTO notice = noticeService.getNoticeDetail(noticeId, lectureId, userId, role);
         if (notice == null) {
@@ -176,26 +182,42 @@ public class NoticeController extends HttpServlet {
         }
 
         req.setAttribute("notice", notice);
+        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
         forwardLayout(req, resp, NOTICE_VIEW);
     }
 
     private void showCreateForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
 
-        // 작성 가능한 강의 목록 조회
+        // 학생 차단
+        if (role == Role.STUDENT) {
+            throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
+        }
+
         List<LectureDTO> lectureList = noticeService.getAvailableLectures(userId, role);
-        
+
         req.setAttribute("lectureList", lectureList);
-        req.setAttribute("role", role);
+        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
 
         forwardLayout(req, resp, NOTICE_NEW);
     }
 
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
+
+        if (role == Role.STUDENT) {
+            throw new NoticeService.AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
+        }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
         Long lectureId = parseLongNullable(req.getParameter("lectureId"));
@@ -204,9 +226,6 @@ public class NoticeController extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "noticeId is required.");
             return;
         }
-
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
 
         NoticeDTO notice = noticeService.getNoticeForEdit(noticeId, lectureId, userId, role);
         if (notice == null) {
@@ -223,8 +242,14 @@ public class NoticeController extends HttpServlet {
     private void handleCreate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
+
+        if (role == Role.STUDENT) {
+            throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
+        }
 
         String noticeType = trimToNull(req.getParameter("noticeType"));
         Long lectureId = null;
@@ -253,8 +278,14 @@ public class NoticeController extends HttpServlet {
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
+
+        if (role == Role.STUDENT) {
+            throw new NoticeService.AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
+        }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
         Long lectureId = parseLongNullable(req.getParameter("lectureId"));
@@ -286,8 +317,14 @@ public class NoticeController extends HttpServlet {
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        Long userId = getLoginUserId(req.getSession(false));
-        String role = getLoginRole(req.getSession(false));
+        HttpSession session = req.getSession(false);
+        Long userId = getLoginUserId(session);
+        Role role = getLoginRole(session);
+        requireLogin(userId, role);
+
+        if (role == Role.STUDENT) {
+            throw new NoticeService.AccessDeniedException("학생은 공지사항을 삭제할 수 없습니다.");
+        }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
         Long lectureId = parseLongNullable(req.getParameter("lectureId"));
@@ -309,15 +346,6 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
         req.setAttribute("contentPage", contentPage);
         req.getRequestDispatcher(LAYOUT_PAGE).forward(req, resp);
-    }
-
-    private void injectDevLogin(HttpServletRequest req) {
-        HttpSession s = req.getSession(true);
-        if (s.getAttribute("userId") == null) {
-            s.setAttribute("userId", 1L);
-            s.setAttribute("role", "ADMIN");
-            s.setAttribute("userName", "DEV-ADMIN");
-        }
     }
 
     private String resolveAction(HttpServletRequest req) {
@@ -353,18 +381,22 @@ public class NoticeController extends HttpServlet {
 
     private Long getLoginUserId(HttpSession session) {
         if (session == null) return null;
-        Object v = session.getAttribute("userId");
-        if (v instanceof Long) return (Long) v;
-        if (v instanceof String) {
-            try { return Long.parseLong((String) v); } catch (Exception ignored) {}
-        }
-        return null;
+        Object v = session.getAttribute("AccessInfo");
+        if (!(v instanceof AccessDTO)) return null;
+        return ((AccessDTO) v).getUserId();
     }
 
-    private String getLoginRole(HttpSession session) {
+    private Role getLoginRole(HttpSession session) {
         if (session == null) return null;
-        Object v = session.getAttribute("role");
-        return (v instanceof String) ? (String) v : null;
+        Object v = session.getAttribute("AccessInfo");
+        if (!(v instanceof AccessDTO)) return null;
+        return ((AccessDTO) v).getRole();
+    }
+
+    private void requireLogin(Long userId, Role role) {
+        if (userId == null || role == null) {
+            throw new NoticeService.AccessDeniedException("로그인이 필요합니다.");
+        }
     }
 
     private String buildRedirectUrl(HttpServletRequest req, String path, String... kv) {
