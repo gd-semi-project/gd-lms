@@ -82,16 +82,3 @@
     </c:otherwise>
   </c:choose>
 </div>
-```
-
----
-
-## 파일 구조 최종
-```
-webapp/WEB-INF/views/lecture/assignment/
-├── list.jsp      ← 과제 목록 (공통)
-├── view.jsp      ← 과제 상세 (교수: 제출목록, 학생: 본인제출)
-├── write.jsp     ← 과제 작성 (교수)
-├── edit.jsp      ← 과제 수정 (교수)
-├── submit.jsp    ← 과제 제출 (학생)
-└── grade.jsp     ← 채점 (교수)
