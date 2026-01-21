@@ -119,4 +119,31 @@ public class UserDAO {
 		}
 		
 	}
+	
+	// 강사 프로필 정보 : 지윤
+	public UserDTO selectUserByUserId(Long userId) {
+	    String sql = "SELECT * FROM user WHERE user_id = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setLong(1, userId);
+	        ResultSet rs = pstmt.executeQuery();
+
+	        if (rs.next()) {
+	            UserDTO userDTO = new UserDTO();
+	            userDTO.setUserId(rs.getLong("user_id"));
+	            userDTO.setLoginId(rs.getString("login_id"));
+	            userDTO.setName(rs.getString("name"));
+	            userDTO.setEmail(rs.getString("email"));
+	            userDTO.setRole(Role.valueOf(rs.getString("role")));
+	            // 필요한 필드만
+	            return userDTO;
+	        }
+	        return null;
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+	}
+	
+	
 }

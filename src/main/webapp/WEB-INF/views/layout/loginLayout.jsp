@@ -36,7 +36,7 @@
   <jsp:include page="/WEB-INF/views/include/header.jsp" />
   <div class="container-fluid">
     <div class="row">
-    
+
       <!-- 바디 -->
       <main class="col-12 col-md-9 col-lg-10 p-4">
       
