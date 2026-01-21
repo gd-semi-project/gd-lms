@@ -6,8 +6,10 @@ import java.util.List;
 
 import database.DBConnection;
 import model.dao.LectureDAO;
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
+import model.enumtype.Role;
 
 public class LectureService {	// 이미 개설된 강의에 기준
 
@@ -22,14 +24,35 @@ public class LectureService {	// 이미 개설된 강의에 기준
 
 	private final LectureDAO lectureDAO = LectureDAO.getInstance();
 
-	// 강의 목록
-	public List<LectureDTO> getLecturesByInstructor(Long instructorId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return lectureDAO.selectLecturesByInstructor(conn, instructorId);
-        } catch (Exception e) {
-            throw new RuntimeException("강의 목록 조회 실패", e);
-        }
-    }
+	
+	// 학생/교수 강의 리스트 
+	public List<LectureDTO> getMyLectures(AccessDTO access) {	
+	    if (access == null) {
+	        throw new IllegalArgumentException("AccessInfo is null");
+	    }
+
+	    try (Connection conn = DBConnection.getConnection()) {
+
+	        if (access.getRole() == Role.INSTRUCTOR) {
+	            return lectureDAO.selectLecturesByInstructor(
+	                conn,
+	                access.getUserId()
+	            );
+	        }
+
+	        if (access.getRole() == Role.STUDENT) {
+	            return lectureDAO.selectLecturesByStudent(
+	                conn,
+	                access.getUserId()
+	            );
+	        }
+
+	        return List.of(); // ADMIN 등
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("내 강의 목록 조회 실패", e);
+	    }
+	}
 
 	// 강의 상세
 	public LectureDTO getLectureDetail(Long lectureId) {

@@ -12,8 +12,9 @@
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
    <ul class="nav nav-pills flex-column gap-1">
 
+	<c:if test="${role!='ADMIN' }">
       <li class="nav-item"><a class="nav-link text-white"
-         href="<%=ctx%>/about"> 🎓 대학소개 </a></li>
+         href="<%=ctx%>/about"> 🎓 대학소개 </a></li></c:if>
 
 		<!--     마이페이지(학생) -->
 		<c:choose>
@@ -27,8 +28,9 @@
          <a class="nav-link text-white" href="${ctx}/notice/list">📢 공지사항</a>
        </li>
        <li class="nav-item">
-         <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정 관리</a>
+         <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정</a>
        </li>
+       
 <!--        권한별 개인성적 -->
        <c:choose>
        <c:when test="${AccessInfo.role == 'STUDENT'}">
@@ -55,13 +57,16 @@
        
        <c:if test="${role == 'ADMIN'}">
           <li class="nav-item">
-            <a class="nav-link text-white" href="<%=ctx%>/admin/dashboard">대시보드</a>
+            <a class="nav-link text-white" href="<%=ctx%>/admin/dashboard">
+            <span class="material-symbols-outlined">comedy_mask</span>수강 대시보드</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="<%=ctx%>/admin/lectureRequest">강의 개설 관리</a>
+            <a class="nav-link text-white" href="<%=ctx%>/admin/lectureRequest">
+            <span class="material-symbols-outlined">comedy_mask</span>강의 개설 관리</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="<%=ctx%>/admin/campus">캠퍼스 관리</a>
+            <a class="nav-link text-white" href="<%=ctx%>/admin/campus">
+            <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
           </li>
        </c:if>
        <li class="nav-item">
@@ -97,7 +102,7 @@
               <c:when test="${AccessInfo.role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="<%=ctx%>/mypage/mySubjectPage">내 강의 목록</a>
+                     href="<%=ctx%>/student/lectures">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
@@ -113,7 +118,7 @@
               <c:when test="${role == 'ADMIN'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="<%=ctx%>/admin/lectures">전체 강의 목록</a>
+                     href="${ctx}/admin/lectures">전체 강의 목록</a>
                 </li>
               </c:when>
       

@@ -120,6 +120,7 @@ public class UserDAO {
 		
 	}
 	
+
 	// 유저 기본정보 수정
 	public void updateUserInfo(UserDTO userDTO) {
 		String sql = "UPDATE user SET birth_date = ?, email = ?, phone = ?, address = ? WHERE login_id = ?";
@@ -154,6 +155,33 @@ public class UserDAO {
 				// TODO: 예외처리 구문 작성 필요
 				System.out.println(e.getMessage() + "111111");
 			}
+	}
+
+
+	// 강사 프로필 정보 : 지윤
+	public UserDTO selectUserByUserId(Long userId) {
+	    String sql = "SELECT * FROM user WHERE user_id = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setLong(1, userId);
+	        ResultSet rs = pstmt.executeQuery();
+
+	        if (rs.next()) {
+	            UserDTO userDTO = new UserDTO();
+	            userDTO.setUserId(rs.getLong("user_id"));
+	            userDTO.setLoginId(rs.getString("login_id"));
+	            userDTO.setName(rs.getString("name"));
+	            userDTO.setEmail(rs.getString("email"));
+	            userDTO.setRole(Role.valueOf(rs.getString("role")));
+	            // 필요한 필드만
+	            return userDTO;
+	        }
+	        return null;
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+
 	}
 	
 	

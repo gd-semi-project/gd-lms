@@ -4,11 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.sql.Timestamp;
 
 import com.mysql.cj.xdevapi.Result;
 
 import database.DBConnection;
+import model.dto.LectureDTO;
 import model.dto.StudentsDTO;
 import model.enumtype.StudentStatus;
 import model.enumtype.StudentType;
@@ -112,5 +115,50 @@ public class StudentDAO {
 				return false;
 			}
 	}
+	
+	// 해당 학기에 수강중인 목록
+	public List<LectureDTO> selectMyLectures(Connection conn, Long userId) throws SQLException {
 
+		String sql = """
+				    SELECT
+				        l.lecture_id,
+				        l.lecture_title,
+				        l.lecture_round,
+				        l.section,
+				        l.start_date,
+				        l.end_date,
+				        l.room
+				    FROM enrollment e
+				    JOIN lecture l ON e.lecture_id = l.lecture_id
+				    JOIN student s ON e.student_id = s.student_id
+				    WHERE s.user_id = ?
+				      AND e.status = 'ENROLLED'
+				    ORDER BY l.start_date
+				""";
+
+		List<LectureDTO> list = new ArrayList<>();
+
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setLong(1, userId);
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					LectureDTO dto = new LectureDTO();
+					dto.setLectureId(rs.getLong("lecture_id"));
+					dto.setLectureTitle(rs.getString("lecture_title"));
+					dto.setLectureRound(rs.getInt("lecture_round"));
+					dto.setSection(rs.getString("section"));
+					dto.setStartDate(rs.getDate("start_date").toLocalDate());
+					dto.setEndDate(rs.getDate("end_date").toLocalDate());
+					dto.setRoom(rs.getString("room"));
+					list.add(dto);
+				}
+			}
+		}
+		return list;
+	}
+
+	
 }
+
+
