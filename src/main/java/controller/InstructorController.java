@@ -10,9 +10,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
+import model.enumtype.Role;
 import service.InstructorService;
 import service.LectureRequestService;
 import service.LectureService;
@@ -31,19 +32,20 @@ public class InstructorController extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		String ctx = request.getContextPath();
 
-//		if (session == null || session.getAttribute("userId") == null) {
-//			response.sendRedirect(ctx + "/login");
-//			return;
-//		}
+		// 로그인 체크
+		if (session == null) {
+			response.sendRedirect(ctx + "/login");
+			return;
+		}
 
-		// 2️⃣ 권한 체크
-		String role = (String) session.getAttribute("role");
-		if (!"INSTRUCTOR".equals(role)) {
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+
+		if (access == null || access.getRole() != Role.INSTRUCTOR) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}
 
-		Long instructorId = (Long) session.getAttribute("userId");
+		Long instructorId = access.getUserId();
 
 		String uri = request.getRequestURI();
 		String action = uri.substring(ctx.length() + "/instructor".length());
@@ -55,9 +57,7 @@ public class InstructorController extends HttpServlet {
 
 		// 강사 프로필
 		case "/profile": {
-			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId,
-					(String) session.getAttribute("userName") // or loginId
-			);
+			Map<String, Object> profile = instructorService.getInstructorProfile(access.getUserId());
 
 			request.setAttribute("instructor", profile.get("instructor"));
 			request.setAttribute("user", profile.get("user"));
@@ -65,44 +65,37 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		// 내 강의 목록
+		// 내 강의 목록 (CONFIRMED)
 		case "/lectures": {
-			List<LectureDTO> lectures = lectureService.getLecturesByInstructor(instructorId);
+
+			List<LectureDTO> lectures = lectureService.getMyLectures(access);
 
 			request.setAttribute("lectures", lectures);
+			request.setAttribute("activeMenu", "lectures");
 			request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
 			break;
 		}
 
+		// 강의 개설 신청 목록
 		case "/lecture/request": {
-			List<LectureRequestDTO> requests = lectureRequestService.getMyLectureRequests(instructorId);
-
-			request.setAttribute("requests", requests);
+			request.setAttribute("requests", lectureRequestService.getMyLectureRequests(instructorId));
 			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
 			break;
 		}
-		
+
+		// 신규 신청 폼
 		case "/lecture/request/new": {
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/lecture/requestForm.jsp"
-		    );
-		    break;
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestForm.jsp");
+			break;
 		}
-		
+
+		// 수정 폼
 		case "/lecture/request/edit": {
+			Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-		    Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-
-		    LectureRequestDTO dto =
-		        lectureRequestService.getLectureRequestDetail(lectureId);
-
-		    request.setAttribute("request", dto);
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/lecture/requestEditForm.jsp"
-		    );
-		    break;
+			request.setAttribute("request", lectureRequestService.getLectureRequestDetail(lectureId));
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestEditForm.jsp");
+			break;
 		}
 
 		default:
@@ -112,41 +105,44 @@ public class InstructorController extends HttpServlet {
 
 		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 	}
-	
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	        throws ServletException, IOException {
+			throws ServletException, IOException {
 
-	    String ctx = request.getContextPath();
-	    String uri = request.getRequestURI();
+		String ctx = request.getContextPath();
+		String uri = request.getRequestURI();
 
-	    HttpSession session = request.getSession();
-	    Long instructorId = (Long) session.getAttribute("userId");
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-	    // 신규 신청
-	    if (uri.endsWith("/lecture/request")) {
-	        lectureRequestService.createLectureRequest(instructorId, request);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	        return;
-	    }
+		if (access == null || access.getRole() != Role.INSTRUCTOR) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
 
-	    // 수정
-	    if (uri.endsWith("/lecture/request/edit")) {
-	        Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-	        lectureRequestService.updateLectureRequest(lectureId, request);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	        return;
-	    }
+		Long instructorId = access.getUserId();
 
-	    // 삭제
-	    if (uri.endsWith("/lecture/request/delete")) {
-	        Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-	        lectureRequestService.deleteLectureRequest(lectureId);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	    }
+		// 신규 신청
+		if (uri.endsWith("/lecture/request")) {
+			lectureRequestService.createLectureRequest(instructorId, request);
+			response.sendRedirect(ctx + "/instructor/lecture/request");
+			return;
+		}
+
+		// 수정
+		if (uri.endsWith("/lecture/request/edit")) {
+			Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+			lectureRequestService.updateLectureRequest(lectureId, request);
+			response.sendRedirect(ctx + "/instructor/lecture/request");
+			return;
+		}
+
+		// 삭제
+		if (uri.endsWith("/lecture/request/delete")) {
+			Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+			lectureRequestService.deleteLectureRequest(lectureId);
+			response.sendRedirect(ctx + "/instructor/lecture/request");
+		}
 	}
-	
-	    
-	
-	
 }

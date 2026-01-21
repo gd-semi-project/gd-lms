@@ -60,7 +60,7 @@ public class LectureDAO {
 		return 0;
 	}
 
-    // 교수 기준 강의 목록 : 지윤
+    // 교수 강의 목록 : 지윤
     public List<LectureDTO> selectLecturesByInstructor(
             Connection conn, long instructorId) throws SQLException {
 
@@ -98,6 +98,50 @@ public class LectureDAO {
         }
         return list;
     }
+    
+    // 학생 강의 목록
+    public List<LectureDTO> selectLecturesByStudent(
+            Connection conn, Long userId) throws SQLException {
+
+        String sql = """
+            SELECT
+                l.lecture_id,
+                l.user_id,
+                l.lecture_title,
+                l.lecture_round,
+                l.section,
+                l.start_date,
+                l.end_date,
+                l.room,
+                l.capacity,
+                l.status,
+                l.validation,
+                l.created_at,
+                l.updated_at
+            FROM enrollment e
+            JOIN student s ON e.student_id = s.student_id
+            JOIN lecture l ON e.lecture_id = l.lecture_id
+            WHERE s.user_id = ?
+              AND e.status = 'ENROLLED'
+              AND l.validation = 'CONFIRMED'
+            ORDER BY l.start_date DESC
+        """;
+
+        List<LectureDTO> list = new ArrayList<>();
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, userId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToLecture(rs));
+                }
+            }
+        }
+        return list;
+    }
+    
+    
 
     // 강의별 수강생 목록 조회 : 지윤
     public List<LectureStudentDTO> selectLectureStudents(

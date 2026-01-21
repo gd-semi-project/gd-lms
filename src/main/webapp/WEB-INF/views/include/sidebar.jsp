@@ -6,13 +6,7 @@
   String ctx = request.getContextPath();
 %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="role" value="${sessionScope.UserInfo.role}" />
-
-<!-- Test용 -->
-<!-- 여기서 권한 주석처리 -->
-<c:set var="role" value="INSTRUCTOR" scope="session" /> 
-<%-- <c:set var="role" value="STUDENT" scope="session" /> --%>
-<%-- <c:set var="role" value="ADMIN" scope="session" /> --%>
+<c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
@@ -84,7 +78,7 @@
               <c:when test="${role == 'STUDENT'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="?page=mySubjectPage">내 강의 목록</a>
+                     href="<%=ctx%>/student/lectures">내 강의 목록</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link text-white small"
@@ -114,7 +108,7 @@
          <!--  스코프 확인용 TEST -->
          <div class="text-warning small">
            pageScope.role = [${pageScope.role}]<br/>
-           UserInfo.role = [${sessionScope.UserInfo.role}]<br/>
+           UserInfo.role = [${sessionScope.AccessInfo.role}]<br/>
            sessionScope.role = [${sessionScope.role}]
          </div>
 

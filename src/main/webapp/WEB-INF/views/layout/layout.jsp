@@ -52,52 +52,8 @@
 					<jsp:include page="${requestScope.contentPage}" />
 				</c:if>
 
-				<jsp:include page="/WEB-INF/views/include/basicInfo.jsp" />
+				
 
-				<%-- 기본 페이지 --%>
-				<c:set var="contentPage" value="studentInfo" />
-				<%-- 2. 파라미터로 덮어쓰기 --%>
-
-
-				<c:if test="${param.page eq 'totScore'}">
-					<c:set var="contentPage" value="totScore" />
-				</c:if>
-
-				<c:if test="${param.page eq 'mySchedule'}">
-					<c:set var="contentPage" value="mySchedule" />
-				</c:if>
-
-				<c:if test="${param.page eq 'enrollmentPage'}">
-					<c:set var="contentPage" value="enrollmentPage" />
-				</c:if>
-
-				<c:if test="${param.page eq 'mySubjectPage'}">
-					<c:set var="contentPage" value="mySubjectPage" />
-				</c:if>
-
-
-				<%-- 3. 실제 화면 출력 --%>
-				<c:choose>
-					<c:when test="${contentPage eq 'studentInfo'}">
-						<jsp:include page="/WEB-INF/views/include/studentPage.jsp" />
-					</c:when>
-
-					<c:when test="${contentPage eq 'totScore'}">
-						<jsp:include page="/WEB-INF/views/include/totScore.jsp" />
-					</c:when>
-
-					<c:when test="${contentPage eq 'mySchedule'}">
-						<jsp:include page="/WEB-INF/views/include/mySchedule.jsp" />
-					</c:when>
-
-					<c:when test="${contentPage eq 'enrollmentPage'}">
-						<jsp:include page="/WEB-INF/views/include/enrollmentPage.jsp" />
-					</c:when>
-
-					<c:when test="${contentPage eq 'mySubjectPage'}">
-						<jsp:include page="/WEB-INF/views/include/mySubjectPage.jsp" />
-					</c:when>
-				</c:choose>
 
 			</main>
 

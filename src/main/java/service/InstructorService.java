@@ -27,14 +27,14 @@ public class InstructorService {
     private LectureDAO lectureDAO = LectureDAO.getInstance();
     private UserDAO userDAO = UserDAO.getInstance();
 
-    // 강사 프로필
-    public Map<String, Object> getInstructorProfile(long userId, String loginId) {
+    // 강사 프로필 -> login id 필요없
+    public Map<String, Object> getInstructorProfile(long userId) {
         try (Connection conn = DBConnection.getConnection()) {
             Map<String, Object> map = new HashMap<>();
             map.put("instructor",
                     instructorDAO.selectInstructorInfo(userId));
             map.put("user",
-                    userDAO.SelectUsersById(loginId));
+                    userDAO.selectUserByUserId(userId));
             return map;
         } catch (Exception e) {
             throw new RuntimeException("강사 프로필 조회 실패", e);
