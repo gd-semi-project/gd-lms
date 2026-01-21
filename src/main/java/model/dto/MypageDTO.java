@@ -17,7 +17,7 @@ public class MypageDTO {
 	private DepartmentDTO department;
 	
 //	학생 
-	private StudentsDTO student;
+	private StudentDTO student;
 	
 //	교수 
 	private InstructorDTO professor;

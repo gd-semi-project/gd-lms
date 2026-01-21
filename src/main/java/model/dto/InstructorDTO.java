@@ -15,7 +15,10 @@ public class InstructorDTO {
     private Long departmentId;
     private Long userId;
 
-
+    private String name;
+    private String email;
+    private String phone;
+    
     private String instructorNo;    // 교번
     private String department;    // 소속 학과
     private String officeRoom;    // 연구실
