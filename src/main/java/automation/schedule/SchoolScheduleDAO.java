@@ -13,10 +13,9 @@ public interface SchoolScheduleDAO {
 		return end != null && today.equals(end.plusDays(1));
 	}
 	
-	
 	SchoolScheduleDTO findByCode(String scheduleCode);
 	SchoolScheduleDTO findByCodeAndEndDate(String scheduleCode, LocalDate endDate);
-	
+	SchoolScheduleDTO findActiveByCodeOnDate(String scheduleCode, LocalDate day);
 	
 	
 	

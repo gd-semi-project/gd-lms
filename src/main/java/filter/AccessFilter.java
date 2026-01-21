@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.mysql.cj.Session;
 
+
 // @WebFilter("/AccessFilter")
 public class AccessFilter extends HttpFilter {
 	private static final List<String> whiteList = Arrays.asList(
@@ -52,10 +53,14 @@ public class AccessFilter extends HttpFilter {
 		
 		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
 		if (session == null) {
-			System.out.println("웹필터: " + actionPath);
-			System.out.println("웹필터: " + middlePath);
+			if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
+				System.out.println("웹필터: " + actionPath);
+				System.out.println("웹필터: " + middlePath);
+			}
 			if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
-				System.out.println("웹필터) 화이트리스트 통과");
+				if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
+					System.out.println("웹필터) 화이트리스트 통과");
+				}
 				chain.doFilter(request, response);
 				return;
 			} else {
