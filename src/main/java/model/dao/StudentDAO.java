@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import com.mysql.cj.xdevapi.Result;
 
 import database.DBConnection;
-import model.dto.StudentsDTO;
+import model.dto.StudentDTO;
 import model.enumtype.StudentStatus;
 import model.enumtype.StudentType;
 
@@ -22,8 +22,8 @@ public class StudentDAO {
 	}
 	
 	// user_id(FK)을 통해서 학생테이블을 가져옴
-	public StudentsDTO findStudentByUserId(long userId) {
-		StudentsDTO student = new StudentsDTO();
+	public StudentDTO findStudentByUserId(long userId) {
+		StudentDTO student = new StudentDTO();
 		
 		String sql = "SELECT * FROM student WHERE user_id = ?";
 		

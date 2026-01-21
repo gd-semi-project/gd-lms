@@ -9,7 +9,7 @@ import model.enumtype.StudentType;
 
 @Data
 @NoArgsConstructor
-public class StudentsDTO {
+public class StudentDTO {
 	private Long studentId;
 	private Long departmentId;
 	private Long userId;

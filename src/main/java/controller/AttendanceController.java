@@ -56,7 +56,7 @@ public class AttendanceController extends HttpServlet {
         /* ================= 학생 ================= */
         if (loginUser.getRole() == Role.STUDENT) {
 
-            long studentId = loginUser.getUser_id();
+            long studentId = loginUser.getUserId();
 
             LectureSessionDTO todaySession =
                     lectureSessionService.getTodaySession(
@@ -118,7 +118,7 @@ public class AttendanceController extends HttpServlet {
             UserDTO user = (UserDTO) request.getSession().getAttribute("UserInfo");
 
             try {
-                attendanceService.checkAttendance(sessionId, user.getUser_id());
+                attendanceService.checkAttendance(sessionId, user.getUserId());
             } catch (IllegalStateException e) {
                 request.getSession().setAttribute("alertMsg", e.getMessage());
             }
