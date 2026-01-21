@@ -52,7 +52,10 @@
 					<jsp:include page="${requestScope.contentPage}" />
 				</c:if>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
 			</main>
 
 		</div>

@@ -11,8 +11,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
+import model.enumtype.Role;
 import service.InstructorService;
 import service.LectureRequestService;
 import service.LectureService;
@@ -20,133 +22,143 @@ import service.LectureService;
 @WebServlet("/instructor/*")
 public class InstructorController extends HttpServlet {
 
-	private InstructorService instructorService = InstructorService.getInstance();
-	private LectureService lectureService = LectureService.getInstance();
-	private LectureRequestService lectureRequestService = LectureRequestService.getInstance();
+    private InstructorService instructorService = InstructorService.getInstance();
+    private LectureService lectureService = LectureService.getInstance();
+    private LectureRequestService lectureRequestService = LectureRequestService.getInstance();
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-		HttpSession session = request.getSession(false);
-		String ctx = request.getContextPath();
+        String ctx = request.getContextPath();
 
-//		if (session == null || session.getAttribute("userId") == null) {
-//			response.sendRedirect(ctx + "/login");
-//			return;
-//		}
+        // 로그인 체크
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
 
-		// 2️⃣ 권한 체크
-		String role = (String) session.getAttribute("role");
-		if (!"INSTRUCTOR".equals(role)) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
-		}
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
 
-		Long instructorId = (Long) session.getAttribute("userId");
+        // 권한 체크
+        if (accessInfo.getRole() != Role.INSTRUCTOR) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
 
-		String uri = request.getRequestURI();
-		String action = uri.substring(ctx.length() + "/instructor".length());
+        long instructorId = accessInfo.getUserId();
 
-		if (action.isEmpty())
-			action = "/lectures";
+        String uri = request.getRequestURI();
+        String action = uri.substring(ctx.length() + "/instructor".length());
 
-		switch (action) {
+        if (action.isEmpty()) action = "/lectures";
 
-		// 강사 프로필
-		case "/profile": {
-			Map<String, Object> profile = instructorService.getInstructorProfile(instructorId,
-					(String) session.getAttribute("userName") // or loginId
-			);
+        switch (action) {
 
-			request.setAttribute("instructor", profile.get("instructor"));
-			request.setAttribute("user", profile.get("user"));
-			request.setAttribute("contentPage", "/WEB-INF/views/instructor/profile.jsp");
-			break;
-		}
+        // 강사 프로필
+        case "/profile": {
+            Map<String, Object> profile = instructorService.getInstructorProfile(instructorId);
 
-		// 내 강의 목록
-		case "/lectures": {
-			List<LectureDTO> lectures = lectureService.getLecturesByInstructor(instructorId);
+            request.setAttribute("instructor", profile.get("instructor"));
+            request.setAttribute("user", profile.get("user"));
+            request.setAttribute("contentPage", "/WEB-INF/views/instructor/profile.jsp");
+            break;
+        }
 
-			request.setAttribute("lectures", lectures);
-			request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
-			break;
-		}
+        // 내 강의 목록
+        case "/lectures": {
+            List<LectureDTO> lectures = lectureService.getLecturesByInstructor(instructorId);
 
-		case "/lecture/request": {
-			List<LectureRequestDTO> requests = lectureRequestService.getMyLectureRequests(instructorId);
+            request.setAttribute("lectures", lectures);
+            request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
+            break;
+        }
 
-			request.setAttribute("requests", requests);
-			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
-			break;
-		}
-		
-		case "/lecture/request/new": {
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/lecture/requestForm.jsp"
-		    );
-		    break;
-		}
-		
-		case "/lecture/request/edit": {
+        case "/lecture/request": {
+            List<LectureRequestDTO> requests = lectureRequestService.getMyLectureRequests(instructorId);
 
-		    Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+            request.setAttribute("requests", requests);
+            request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
+            break;
+        }
 
-		    LectureRequestDTO dto =
-		        lectureRequestService.getLectureRequestDetail(lectureId);
+        case "/lecture/request/new": {
+            request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/lecture/requestForm.jsp"
+            );
+            break;
+        }
 
-		    request.setAttribute("request", dto);
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/lecture/requestEditForm.jsp"
-		    );
-		    break;
-		}
+        case "/lecture/request/edit": {
+            Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-		default:
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-			return;
-		}
+            LectureRequestDTO dto =
+                lectureRequestService.getLectureRequestDetail(lectureId);
 
-		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
-	}
-	
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	        throws ServletException, IOException {
+            request.setAttribute("request", dto);
+            request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/lecture/requestEditForm.jsp"
+            );
+            break;
+        }
 
-	    String ctx = request.getContextPath();
-	    String uri = request.getRequestURI();
+        default:
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
 
-	    HttpSession session = request.getSession();
-	    Long instructorId = (Long) session.getAttribute("userId");
+        request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+    }
 
-	    // 신규 신청
-	    if (uri.endsWith("/lecture/request")) {
-	        lectureRequestService.createLectureRequest(instructorId, request);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	        return;
-	    }
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-	    // 수정
-	    if (uri.endsWith("/lecture/request/edit")) {
-	        Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-	        lectureRequestService.updateLectureRequest(lectureId, request);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	        return;
-	    }
+        String ctx = request.getContextPath();
+        String uri = request.getRequestURI();
 
-	    // 삭제
-	    if (uri.endsWith("/lecture/request/delete")) {
-	        Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-	        lectureRequestService.deleteLectureRequest(lectureId);
-	        response.sendRedirect(ctx + "/instructor/lecture/request");
-	    }
-	}
-	
-	    
-	
-	
+        // 로그인 체크
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        long instructorId = accessInfo.getUserId();
+
+        // 신규 신청
+        if (uri.endsWith("/lecture/request")) {
+            lectureRequestService.createLectureRequest(instructorId, request);
+            response.sendRedirect(ctx + "/instructor/lecture/request");
+            return;
+        }
+
+        // 수정
+        if (uri.endsWith("/lecture/request/edit")) {
+            Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+            lectureRequestService.updateLectureRequest(lectureId, request);
+            response.sendRedirect(ctx + "/instructor/lecture/request");
+            return;
+        }
+
+        // 삭제
+        if (uri.endsWith("/lecture/request/delete")) {
+            Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+            lectureRequestService.deleteLectureRequest(lectureId);
+            response.sendRedirect(ctx + "/instructor/lecture/request");
+        }
+    }
 }

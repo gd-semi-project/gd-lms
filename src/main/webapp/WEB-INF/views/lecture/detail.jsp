@@ -37,7 +37,7 @@
   </table>
 
   <!-- 교수 전용 -->
-  <c:if test="${sessionScope.role eq 'INSTRUCTOR'}">
+  <c:if test="${sessionScope.AccessInfo.role eq 'INSTRUCTOR'}">
     <div class="mt-4 d-flex gap-2">
       <a class="btn btn-primary"
          href="${pageContext.request.contextPath}/lecture/attendance?lectureId=${lecture.lectureId}">
