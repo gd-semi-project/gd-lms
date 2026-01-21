@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import automation.schedule.SchoolScheduleDAO;
+import model.dto.ScheduleUiPolicyDTO;
 import model.dto.SchoolScheduleDTO;
 
 public class SchedulePolicyService {
@@ -48,5 +49,35 @@ public class SchedulePolicyService {
         }
         return "현재 기간입니다. (" + s.getStartDate() + " ~ " + s.getEndDate() + ")";
     }
+    
+    
+    
+    
+    
+    public ScheduleUiPolicyDTO buildUiPolicyAnyOf(
+    		String closedMsg,
+    		LocalDateTime now, 
+    		String... scheduleCodes
+    		) {
+    	
+    	LocalDate today = now.toLocalDate();
+    	
+    	for (String code : scheduleCodes) {
+    		SchoolScheduleDTO active = ssDAO.findActiveByCodeOnDate(code, today);
+    		if(active!= null) {
+    			return new ScheduleUiPolicyDTO(true, null,null,null);
+    		}
+    	}
+    	
+    	return new ScheduleUiPolicyDTO(false, closedMsg, null, null);
+    	
+    }
+    
+    
+    
+    
+    
+    
+    
     
 }

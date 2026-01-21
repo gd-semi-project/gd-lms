@@ -22,7 +22,7 @@ public class MyPageService {
 	public MypageDTO getMypageDTO(String Id) {
 
 		// users 테이블 조회
-		UserDTO user = userDAO.SelectUsersById(Id);
+		UserDTO user = userDAO.selectUsersById(Id);
 
 		// 결과 DTO 생성
 		MypageDTO mypage = new MypageDTO();
@@ -47,9 +47,13 @@ public class MyPageService {
 	// 학생일때 볼 수 있는 페이지
 	private void buildStudentPage(MypageDTO mypage, UserDTO user) {
 		StudentsDTO student =
-                studentDAO.findStudentByUserId(user.getUserId());
+                studentDAO.findStudentByLoginId(user.getLoginId());
 
-		DepartmentDTO department = departmentDAO.finById(student.getDepartmentId());
+		if(student == null) {
+			return;
+		}
+		
+		DepartmentDTO department = departmentDAO.findById(student.getDepartmentId());
 
 		mypage.setStudent(student);
 		mypage.setDepartment(department);
@@ -59,7 +63,7 @@ public class MyPageService {
 	private void buildProfessorPage(MypageDTO mypage, UserDTO user) {
 		InstructorDTO instructor = instructorDAO.selectInstructorInfo(user.getUserId());
 		
-		DepartmentDTO department = departmentDAO.finById(instructor.getDepartmentId());
+		DepartmentDTO department = departmentDAO.findById(instructor.getDepartmentId());
 		
 		mypage.setProfessor(instructor);
 		mypage.setDepartment(department);

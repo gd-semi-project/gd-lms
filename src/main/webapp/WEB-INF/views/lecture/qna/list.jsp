@@ -3,12 +3,15 @@
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
+<!-- 공통 탭 -->
+<jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Q&amp;A</h3>
 
-  <c:if test="${sessionScope.UserInfo.role == 'STUDENT'}">
+  <c:if test="${sessionScope.AccessInfo.role == 'STUDENT'}">
     <a class="btn btn-primary"
-       href="${ctx}/lecture/qna/new?lectureId=${lectureId}">
+       href="${ctx}/lecture/qna?lectureId=${lectureId}&action=writeForm">
       질문 작성
     </a>
   </c:if>
@@ -44,8 +47,7 @@
                   <c:if test="${row.isPrivate != null && row.isPrivate.toString() == 'Y'}">
                     <span class="badge text-bg-secondary me-2">비공개</span>
                   </c:if>
-
-                  <a href="${ctx}/lecture/qna/view?qnaId=${row.qnaId}&lectureId=${lectureId}">
+                  <a href="${ctx}/lecture/qna?lectureId=${lectureId}&action=view&qnaId=${row.qnaId}">
                     <c:out value="${row.title}" />
                   </a>
                 </td>

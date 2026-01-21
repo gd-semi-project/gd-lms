@@ -6,8 +6,9 @@ import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
+import model.dto.AccessDTO;
 import model.dto.LectureDTO;
+import model.dto.QnaAnswerDTO;
 import model.dto.QnaPostDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
@@ -29,61 +30,131 @@ public class QnaController extends HttpServlet {
 
         String ctx = request.getContextPath();
 
-//        // 1) 로그인 체크
-//        HttpSession session = request.getSession(false);
-//        UserDTO user = (session == null) ? null : (UserDTO) session.getAttribute("UserInfo");
-//        if (user == null) {
-//            response.sendRedirect(ctx + "/login");
-//            return;
-//        }
-     // 1) 로그인 체크 임시용
-        HttpSession session = request.getSession(true); // false -> true 로
-        UserDTO user = (UserDTO) session.getAttribute("UserInfo");
-
-        if (user == null) {
-            // ===== 개발/테스트용 임시 로그인 주입 =====
-            user = new UserDTO();
-            user.setUserId(1L);              // DB에 존재하는 user_id로
-            user.setRole(Role.ADMIN);        // ADMIN / INSTRUCTOR / STUDENT 중 선택
-            session.setAttribute("UserInfo", user);
-            // ======================================
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
         }
 
-        // 2) 파라미터
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        long userId = accessInfo.getUserId();
+        Role role = accessInfo.getRole();
+
+        // 2) 공통 파라미터: lectureId는 목록/상세 모두 필요
         long lectureId = parseLong(request.getParameter("lectureId"));
         if (lectureId <= 0) {
             response.sendRedirect(ctx + "/lecture/list?error=invalidLectureId");
             return;
         }
 
-        int page = parseInt(request.getParameter("page"), 1);
-        int size = parseInt(request.getParameter("size"), DEFAULT_SIZE);
-        if (size > MAX_SIZE) size = MAX_SIZE;
-        if (size <= 0) size = DEFAULT_SIZE;
-        if (page <= 0) page = 1;
-
-        int offset = (page - 1) * size;
-
-        long userId = user.getUserId();
-        Role role = user.getRole();
+        // 3) action 분기
+        String action = request.getParameter("action");
+        if (action == null || action.isBlank()) action = "list";
 
         try {
-            // 3) lecture 객체 세팅 (탭에서 lecture.lectureId 사용하므로 필수)
+            // 4) lecture 객체 세팅 (탭/화면 공통)
             LectureDTO lecture = lectureService.getLectureDetail(lectureId);
             if (lecture == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
 
-            // 4) 목록 조회(서비스 내부 권한 체크)
+            request.setAttribute("lecture", lecture);
+            request.setAttribute("lectureId", lectureId);
+            request.setAttribute("activeTab", "qna");
+
+            // =========================
+            // 상세
+            // =========================
+            if ("view".equalsIgnoreCase(action)) {
+
+                long qnaId = parseLong(request.getParameter("qnaId"));
+                if (qnaId <= 0) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
+                    return;
+                }
+
+                QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
+                if (post == null) {
+                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                }
+
+                List<QnaAnswerDTO> answers = qnaService.getAnswers(qnaId, lectureId, userId, role);
+
+                request.setAttribute("post", post);
+                request.setAttribute("answers", answers);
+
+                request.setAttribute("contentPage", "/WEB-INF/views/lecture/qna/view.jsp");
+                request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
+                       .forward(request, response);
+                return;
+            }
+
+            // =========================
+            // 수정 폼
+            // =========================
+            if ("edit".equalsIgnoreCase(action)) {
+
+                long qnaId = parseLong(request.getParameter("qnaId"));
+                if (qnaId <= 0) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
+                    return;
+                }
+
+                QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
+                if (post == null) {
+                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                }
+
+                // 권한 체크: 학생은 본인 글만 수정 가능
+                if (role == Role.STUDENT && post.getAuthorId() != userId) {
+                    throw new QnaService.AccessDeniedException("수정 권한이 없습니다.");
+                }
+
+                request.setAttribute("post", post);
+
+                request.setAttribute("contentPage", "/WEB-INF/views/lecture/qna/edit.jsp");
+                request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
+                       .forward(request, response);
+                return;
+            }
+
+            // =========================
+            // 작성 폼
+            // =========================
+            if ("writeForm".equalsIgnoreCase(action)) {
+
+                // 학생만 질문 작성 가능
+                if (role != Role.STUDENT) {
+                    throw new QnaService.AccessDeniedException("질문 작성은 학생만 가능합니다.");
+                }
+
+                request.setAttribute("contentPage", "/WEB-INF/views/lecture/qna/write.jsp");
+                request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
+                       .forward(request, response);
+                return;
+            }
+
+            // =========================
+            // 목록 (기본)
+            // =========================
+
+            int page = parseInt(request.getParameter("page"), 1);
+            int size = parseInt(request.getParameter("size"), DEFAULT_SIZE);
+            if (size > MAX_SIZE) size = MAX_SIZE;
+            if (size <= 0) size = DEFAULT_SIZE;
+            if (page <= 0) page = 1;
+
+            int offset = (page - 1) * size;
+
             int totalCount = qnaService.countByLecture(lectureId, userId, role);
             List<QnaPostDTO> list = qnaService.listByLecture(lectureId, size, offset, userId, role);
             int totalPages = (int) Math.ceil(totalCount / (double) size);
-
-            // 5) request 바인딩
-            request.setAttribute("lecture", lecture);     // ★ 탭용
-            request.setAttribute("lectureId", lectureId); // ★ 화면용
-            request.setAttribute("activeTab", "qna");
 
             request.setAttribute("qnaList", list);
             request.setAttribute("page", page);
@@ -91,7 +162,6 @@ public class QnaController extends HttpServlet {
             request.setAttribute("totalCount", totalCount);
             request.setAttribute("totalPages", totalPages);
 
-            // 6) layout 패턴으로 이동
             request.setAttribute("contentPage", "/WEB-INF/views/lecture/qna/list.jsp");
             request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
                    .forward(request, response);
@@ -107,10 +177,158 @@ public class QnaController extends HttpServlet {
                    .forward(request, response);
 
         } catch (Exception e) {
-            request.setAttribute("errorMessage", "Q&A 목록 조회 중 오류가 발생했습니다.");
+            request.setAttribute("errorMessage", "Q&A 처리 중 오류가 발생했습니다.");
             request.setAttribute("exception", e);
             request.getRequestDispatcher("/WEB-INF/views/error/error.jsp")
                    .forward(request, response);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        String ctx = request.getContextPath();
+
+     // doGet, doPost 공통 로그인 체크 로직
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
+        if (accessInfo == null) {
+            response.sendRedirect(ctx + "/login");
+            return;
+        }
+
+        long userId = accessInfo.getUserId();
+        Role role = accessInfo.getRole();
+        
+        // 2) 공통 파라미터
+        String action = request.getParameter("action");
+        long lectureId = parseLong(request.getParameter("lectureId"));
+        long qnaId = parseLong(request.getParameter("qnaId"));
+
+        if (lectureId <= 0) {
+            response.sendRedirect(ctx + "/lecture/list?error=invalidLectureId");
+            return;
+        }
+
+        try {
+            // =========================
+            // 답변 등록 (INSTRUCTOR, ADMIN)
+            // =========================
+            if ("answer".equalsIgnoreCase(action)) {
+                String content = request.getParameter("content");
+
+                if (content == null || content.trim().isEmpty()) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                            + "&action=view&qnaId=" + qnaId + "&error=emptyContent");
+                    return;
+                }
+
+                QnaAnswerDTO dto = new QnaAnswerDTO();
+                dto.setQnaId(qnaId);
+                dto.setContent(content.trim());
+
+                qnaService.addAnswer(dto, lectureId, userId, role);
+
+                response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                        + "&action=view&qnaId=" + qnaId + "&success=answerCreated");
+                return;
+            }
+
+            // =========================
+            // 질문 등록 (STUDENT)
+            // =========================
+            if ("create".equalsIgnoreCase(action)) {
+                String title = request.getParameter("title");
+                String content = request.getParameter("content");
+                String isPrivate = request.getParameter("isPrivate"); // "Y" or "N"
+
+                if (title == null || title.trim().isEmpty() 
+                        || content == null || content.trim().isEmpty()) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                            + "&action=writeForm&error=emptyField");
+                    return;
+                }
+
+                QnaPostDTO dto = new QnaPostDTO();
+                dto.setLectureId(lectureId);
+                dto.setTitle(title.trim());
+                dto.setContent(content.trim());
+                dto.setIsPrivate("Y".equals(isPrivate) 
+                        ? model.enumtype.isPrivate.Y : model.enumtype.isPrivate.N);
+
+                long newQnaId = qnaService.createPost(dto, userId, role);
+
+                response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                        + "&action=view&qnaId=" + newQnaId + "&success=created");
+                return;
+            }
+
+            // =========================
+            // 질문 수정 (작성자 본인, ADMIN, INSTRUCTOR)
+            // =========================
+            if ("update".equalsIgnoreCase(action)) {
+                String title = request.getParameter("title");
+                String content = request.getParameter("content");
+                String isPrivate = request.getParameter("isPrivate");
+
+                if (qnaId <= 0 || title == null || title.trim().isEmpty() 
+                        || content == null || content.trim().isEmpty()) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                            + "&action=view&qnaId=" + qnaId + "&error=invalidInput");
+                    return;
+                }
+
+                QnaPostDTO dto = new QnaPostDTO();
+                dto.setQnaId(qnaId);
+                dto.setLectureId(lectureId);
+                dto.setTitle(title.trim());
+                dto.setContent(content.trim());
+                dto.setIsPrivate("Y".equals(isPrivate) 
+                        ? model.enumtype.isPrivate.Y : model.enumtype.isPrivate.N);
+
+                qnaService.updatePost(dto, userId, role);
+
+                response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                        + "&action=view&qnaId=" + qnaId + "&success=updated");
+                return;
+            }
+
+            // =========================
+            // 질문 삭제 (작성자 본인, ADMIN, INSTRUCTOR)
+            // =========================
+            if ("delete".equalsIgnoreCase(action)) {
+                if (qnaId <= 0) {
+                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
+                    return;
+                }
+
+                qnaService.deletePost(qnaId, lectureId, userId, role);
+
+                response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&success=deleted");
+                return;
+            }
+
+            // 알 수 없는 action
+            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId);
+
+        } catch (QnaService.AccessDeniedException e) {
+            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                    + "&error=accessDenied&message=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+
+        } catch (QnaService.NotFoundException e) {
+            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
+                    + "&error=notFound&message=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=serverError");
         }
     }
 
