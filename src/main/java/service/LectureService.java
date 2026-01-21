@@ -24,7 +24,9 @@ public class LectureService {	// 이미 개설된 강의에 기준
 
 	private final LectureDAO lectureDAO = LectureDAO.getInstance();
 
-	public List<LectureDTO> getMyLectures(AccessDTO access) {	// 학생/교수 강의 리스트 
+	
+	// 학생/교수 강의 리스트 
+	public List<LectureDTO> getMyLectures(AccessDTO access) {	
 	    if (access == null) {
 	        throw new IllegalArgumentException("AccessInfo is null");
 	    }
