@@ -12,7 +12,7 @@ import com.mysql.cj.xdevapi.Result;
 
 import database.DBConnection;
 import model.dto.LectureDTO;
-import model.dto.StudentsDTO;
+import model.dto.StudentDTO;
 import model.enumtype.StudentStatus;
 import model.enumtype.StudentType;
 
@@ -27,7 +27,7 @@ public class StudentDAO {
 	}
 	
 	// user_id(FK)을 통해서 학생테이블을 가져옴
-	public StudentsDTO findStudentByLoginId(String loginId) {
+	public StudentDTO findStudentByLoginId(String loginId) {
 		System.out.println("🔥 StudentDAO 진입");
 
 		String sql = """
@@ -46,14 +46,14 @@ public class StudentDAO {
 			
 
 			if (rs.next()) {
-			    StudentsDTO student = new StudentsDTO();
+			    StudentDTO student = new StudentDTO();
 
 			    student.setStudentId(rs.getLong("student_id"));
 			    student.setUserId(rs.getLong("user_id"));
 			    student.setDepartmentId(rs.getLong("department_id"));
 
 			    student.setStudentNumber(rs.getInt("student_number"));
-			    student.setStudenGrade(rs.getInt("student_grade"));
+			    student.setStudentGrade(rs.getInt("student_grade"));
 			    student.setStatus(StudentType.fromLabel(rs.getString("status")));
 			    student.setStudentStatus( StudentStatus.fromLabel(rs.getString("student_status")));
 
@@ -76,7 +76,7 @@ public class StudentDAO {
 		
 	}
 	// 학생정보 수정
-	public void updateStudentInfo(StudentsDTO studentsDTO, String loginId) {
+	public void updateStudentInfo(StudentDTO studentsDTO, String loginId) {
 		String sql = "UPDATE student s "
 				+ "Join user u On s.user_id = u.user_id "
 				+ "Set s.tuition_account = ? "

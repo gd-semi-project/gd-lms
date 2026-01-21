@@ -65,7 +65,7 @@
         </tr>
         <tr>
           <th scope="row">학년</th>
-          <td>${mypage.student.studenGrade}</td>
+          <td>${mypage.student.studentGrade}</td>
         </tr>
         <tr>
           <th scope="row">학부 상태 (학부/대학원)</th>

@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.MypageDTO;
-import model.dto.StudentsDTO;
+import model.dto.StudentDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.MyPageService;
