@@ -1,7 +1,6 @@
 package service;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 import database.DBConnection;
@@ -10,6 +9,7 @@ import model.dao.LectureDAO;
 import model.dao.NoticeDAO;
 import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
+import model.enumtype.NoticeType;
 import model.enumtype.Role;
 
 public class NoticeService {
@@ -73,6 +73,7 @@ public class NoticeService {
         } else if (role == Role.INSTRUCTOR) {
             requireInstructorOwnsLecture(userId, lectureId);
         }
+        // ADMIN은 제한 없음
 
         return noticeDAO.countByLecture(lectureId, items, text);
     }
@@ -86,6 +87,7 @@ public class NoticeService {
         } else if (role == Role.INSTRUCTOR) {
             requireInstructorOwnsLecture(userId, lectureId);
         }
+        // ADMIN은 제한 없음
 
         return noticeDAO.findPageByLecture(lectureId, limit, offset, items, text);
     }
@@ -128,6 +130,8 @@ public class NoticeService {
                 }
             }
 
+            // ADMIN: 제한 없음
+
             conn.commit();
             return notice;
 
@@ -157,7 +161,7 @@ public class NoticeService {
 
             return notice;
 
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (Exception e) {
             throw new RuntimeException("NoticeService.getNoticeForEdit error", e);
         }
     }
@@ -166,9 +170,12 @@ public class NoticeService {
 
     public long createNotice(NoticeDTO dto, Long userId, Role role) {
         requireLogin(userId, role);
-        requireCreatable(role, dto);
+        requireCreatable(role);
 
-        // INSTRUCTOR: 본인 강의인지 확인
+        // ✅ enum 도입 이후 정합성 체크
+        normalizeAndValidateType(dto);
+
+        // INSTRUCTOR: 본인 강의인지 확인 (LECTURE 공지일 때만 의미 있음)
         if (role == Role.INSTRUCTOR && dto.getLectureId() != null) {
             LectureDTO lecture = lectureDAO.findById(dto.getLectureId());
             if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
@@ -193,6 +200,9 @@ public class NoticeService {
         requireUpdatable(role);
 
         long noticeId = requirePositive(dto.getNoticeId(), "noticeId");
+
+        // ✅ enum 도입 이후 정합성 체크
+        normalizeAndValidateType(dto);
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -287,7 +297,7 @@ public class NoticeService {
         return List.of();
     }
 
-    // ========== 권한/검증 로직 (enum 기반) ==========
+    // ========== 권한/검증 로직 ==========
 
     private void requireLogin(Long userId, Role role) {
         if (userId == null || role == null) {
@@ -301,40 +311,22 @@ public class NoticeService {
         }
     }
 
-    private void requireCreatable(Role role, NoticeDTO dto) {
-        if (role == null) {
-            throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
-        }
-
-        if (role == Role.ADMIN) return;
-
-        if (role == Role.INSTRUCTOR) {
-            if (dto.getLectureId() == null) {
-                throw new AccessDeniedException("강사는 전체 공지를 작성할 수 없습니다. 강의를 선택해주세요.");
-            }
-            return;
-        }
-
-        // STUDENT 포함
-        throw new AccessDeniedException("공지 작성 권한이 없습니다.");
+    private void requireCreatable(Role role) {
+        if (role == null) throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
+        if (role == Role.STUDENT) throw new AccessDeniedException("공지 작성 권한이 없습니다.");
+        // ADMIN/INSTRUCTOR 가능
     }
 
     private void requireUpdatable(Role role) {
-        if (role == null) {
-            throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
-        }
-        if (role == Role.STUDENT) {
-            throw new AccessDeniedException("공지 수정 권한이 없습니다.");
-        }
+        if (role == null) throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
+        if (role == Role.STUDENT) throw new AccessDeniedException("공지 수정 권한이 없습니다.");
+        // ADMIN/INSTRUCTOR 가능(단, canWrite에서 최종 판단)
     }
 
     private void requireDeletable(Role role) {
-        if (role == null) {
-            throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
-        }
-        if (role == Role.STUDENT) {
-            throw new AccessDeniedException("공지 삭제 권한이 없습니다.");
-        }
+        if (role == null) throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
+        if (role == Role.STUDENT) throw new AccessDeniedException("공지 삭제 권한이 없습니다.");
+        // ADMIN/INSTRUCTOR 가능(단, canWrite에서 최종 판단)
     }
 
     private void requireStudentEnrolled(Long userId, Long lectureId) {
@@ -361,7 +353,9 @@ public class NoticeService {
         if (role == Role.ADMIN) return true;
 
         if (role == Role.INSTRUCTOR) {
+            // 강사는 전체공지(lecture_id null)는 수정/삭제 불가
             if (existing.getLectureId() == null) return false;
+            // 강사는 본인이 작성한 것만 수정/삭제
             return existing.getAuthorId() != null && existing.getAuthorId().equals(userId);
         }
 
@@ -375,17 +369,34 @@ public class NoticeService {
         return v;
     }
 
-    // ========== 예외 타입 ==========
+    /**
+     * ✅ NoticeType(enum) 기준으로 lectureId 정합성 강제
+     * - ANNOUNCEMENT(전체공지): lectureId는 반드시 null
+     * - LECTURE(강의공지): lectureId는 반드시 존재
+     */
+    private void normalizeAndValidateType(NoticeDTO dto) {
+        if (dto == null) throw new IllegalArgumentException("dto is required.");
+        if (dto.getNoticeType() == null) throw new IllegalArgumentException("noticeType is required.");
 
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String message) {
-            super(message);
+        if (dto.getNoticeType() == NoticeType.ANNOUNCEMENT) {
+            // 전체공지면 lectureId를 null로 강제(실수 방지)
+            dto.setLectureId(null);
+        } else if (dto.getNoticeType() == NoticeType.LECTURE) {
+            if (dto.getLectureId() == null || dto.getLectureId() <= 0) {
+                throw new IllegalArgumentException("LECTURE 공지는 lectureId가 필수입니다.");
+            }
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 noticeType 입니다.");
         }
     }
 
+    // ========== 예외 타입 ==========
+
+    public static class AccessDeniedException extends RuntimeException {
+        public AccessDeniedException(String message) { super(message); }
+    }
+
     public static class NotFoundException extends RuntimeException {
-        public NotFoundException(String message) {
-            super(message);
-        }
+        public NotFoundException(String message) { super(message); }
     }
 }

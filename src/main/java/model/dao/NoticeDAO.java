@@ -7,6 +7,7 @@ import java.util.Set;
 
 import database.DBConnection;
 import model.dto.NoticeDTO;
+import model.enumtype.NoticeType;
 
 public class NoticeDAO {
 
@@ -119,7 +120,6 @@ public class NoticeDAO {
 
     // ========== 모든 강의 공지사항 (lecture_id IS NOT NULL) ==========
 
-    // ADMIN용: 모든 강의 공지
     public int countAllLectureNotices(String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
@@ -194,7 +194,7 @@ public class NoticeDAO {
         }
     }
 
-    // STUDENT용: 본인이 수강(ENROLLED)하는 강의 공지만
+    // STUDENT용
     public int countAllLectureNoticesForStudent(Long userId, String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
@@ -281,7 +281,7 @@ public class NoticeDAO {
         }
     }
 
-    // INSTRUCTOR용: 본인이 담당(user_id) + CONFIRMED 강의 공지만
+    // INSTRUCTOR용
     public int countAllLectureNoticesForInstructor(Long userId, String items, String text) {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
@@ -498,7 +498,14 @@ public class NoticeDAO {
             else pstmt.setLong(1, notice.getLectureId());
 
             pstmt.setLong(2, notice.getAuthorId());
-            pstmt.setString(3, notice.getNoticeType());
+
+            // ✅ enum -> DB 문자열
+            if (notice.getNoticeType() == null) {
+                pstmt.setNull(3, Types.VARCHAR);
+            } else {
+                pstmt.setString(3, notice.getNoticeType().name());
+            }
+
             pstmt.setString(4, notice.getTitle());
             pstmt.setString(5, notice.getContent());
 
@@ -517,7 +524,14 @@ public class NoticeDAO {
             "WHERE is_deleted = 'N' AND notice_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, dto.getNoticeType());
+
+            // ✅ enum -> DB 문자열
+            if (dto.getNoticeType() == null) {
+                pstmt.setNull(1, Types.VARCHAR);
+            } else {
+                pstmt.setString(1, dto.getNoticeType().name());
+            }
+
             pstmt.setString(2, dto.getTitle());
             pstmt.setString(3, dto.getContent());
             pstmt.setLong(4, dto.getNoticeId());
@@ -546,7 +560,20 @@ public class NoticeDAO {
         n.setNoticeId(rs.getLong("notice_id"));
         n.setLectureId(rs.getObject("lecture_id", Long.class));
         n.setAuthorId(rs.getLong("author_id"));
-        n.setNoticeType(rs.getString("notice_type"));
+
+        // ✅ DB 문자열 -> enum
+        String nt = rs.getString("notice_type");
+        if (nt == null) {
+            n.setNoticeType(null);
+        } else {
+            try {
+                n.setNoticeType(NoticeType.valueOf(nt));
+            } catch (IllegalArgumentException e) {
+                // DB에 enum 범위를 벗어난 값이 들어가 있으면 여기서 터짐 (원인 추적용 메시지 강화)
+                throw new SQLException("Invalid notice_type value in DB: " + nt, e);
+            }
+        }
+
         n.setTitle(rs.getString("title"));
         n.setContent(rs.getString("content"));
         n.setViewCount(rs.getInt("view_count"));

@@ -2,7 +2,7 @@
 package model.dto;
 
 import lombok.Data;
-import model.enumtype.isDeleted;
+import model.enumtype.IsDeleted;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,7 +15,7 @@ public class AssignmentDTO {
     private Integer maxScore;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private isDeleted isDeleted;
+    private IsDeleted isDeleted;
     
     // 조회용
     private int submissionCount;
