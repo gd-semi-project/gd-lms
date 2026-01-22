@@ -15,6 +15,7 @@ public class QnaPostDTO {
     private Long qnaId;
     private Long lectureId;
     private Long authorId;
+    private String authorName;
     private String title;
     private String content;
     private IsPrivate isPrivate; // 'Y'/'N'

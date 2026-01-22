@@ -15,6 +15,7 @@ public class QnaAnswerDTO {
     private Long answerId;
     private Long qnaId;
     private Long instructorId;
+    private String instructorName;
     private String content;
     private IsDeleted isDeleted; // 'Y'/'N'
     private LocalDateTime createdAt;

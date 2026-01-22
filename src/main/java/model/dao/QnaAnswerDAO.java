@@ -13,11 +13,13 @@ public class QnaAnswerDAO {
     public static QnaAnswerDAO getInstance() { return instance; }
 
     public List<QnaAnswerDTO> findByQnaId(Connection conn, long qnaId) throws SQLException {
-        String sql =
-            "SELECT answer_id, qna_id, instructor_id, content, is_deleted, created_at, updated_at " +
-            "FROM qna_answers " +
-            "WHERE qna_id = ? AND is_deleted = 'N' " +
-            "ORDER BY created_at ASC";
+    	String sql =
+    			  "SELECT a.answer_id, a.qna_id, a.instructor_id, u.name AS instructor_name, " +
+    			  "       a.content, a.is_deleted, a.created_at, a.updated_at " +
+    			  "FROM qna_answers a " +
+    			  "JOIN user u ON u.user_id = a.instructor_id " +
+    			  "WHERE a.qna_id = ? AND a.is_deleted = 'N' " +
+    			  "ORDER BY a.created_at ASC";
 
         List<QnaAnswerDTO> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -109,6 +111,7 @@ public class QnaAnswerDAO {
 
         // ★ String -> enum
         d.setIsDeleted(IsDeleted.fromDb(rs.getString("is_deleted")));
+        d.setInstructorName(rs.getString("instructor_name"));
 
         Timestamp c = rs.getTimestamp("created_at");
         Timestamp u = rs.getTimestamp("updated_at");
@@ -118,10 +121,12 @@ public class QnaAnswerDAO {
     }
     
     public QnaAnswerDTO findById(Connection conn, long answerId) throws SQLException {
-        String sql =
-            "SELECT answer_id, qna_id, instructor_id, content, is_deleted, created_at, updated_at " +
-            "FROM qna_answers " +
-            "WHERE answer_id = ? AND is_deleted = 'N'";
+    	String sql =
+    			  "SELECT a.answer_id, a.qna_id, a.instructor_id, u.name AS instructor_name, " +
+    			  "       a.content, a.is_deleted, a.created_at, a.updated_at " +
+    			  "FROM qna_answers a " +
+    			  "JOIN user u ON u.user_id = a.instructor_id " +
+    			  "WHERE a.answer_id = ? AND a.is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, answerId);
             try (ResultSet rs = ps.executeQuery()) {
