@@ -74,16 +74,20 @@
           </li>
        </c:if>
        <li class="nav-item">
-        <button
-          type="button"
-          class="nav-link text-white d-flex justify-content-between align-items-center w-100 bg-transparent border-0"
-          data-bs-toggle="collapse"
-          data-bs-target="#lectureMenu"
-          aria-expanded="false"
-          aria-controls="lectureMenu">
-          📚 강의
-          <span class="ms-auto">+</span>
-        </button>
+		<button
+		  id="lectureToggle"
+		  type="button"
+		  class="nav-link text-white d-flex justify-content-between align-items-center w-100 bg-transparent border-0"
+		  data-bs-toggle="collapse"
+		  data-bs-target="#lectureMenu"
+		  aria-expanded="false"
+		  aria-controls="lectureMenu">
+		  📚 강의
+		  <span class="ms-auto">
+		    <i class="bi bi-chevron-right" id="lectureChevron"></i>
+		  </span>
+		</button>
+
    
         <div class="collapse" id="lectureMenu">
           <ul class="nav flex-column ms-3 mt-2 gap-1">
@@ -151,3 +155,9 @@
       ${sessionScope.AccessInfo.role}
    </div>
 </aside>
+
+<style>
+#lectureChevron {
+  transition: all .15s ease;
+}
+</style>
