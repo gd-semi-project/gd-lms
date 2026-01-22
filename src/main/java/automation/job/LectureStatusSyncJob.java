@@ -9,20 +9,17 @@ import model.enumtype.ScheduleCode;
 import service.LectureService;
 import service.SchedulePolicyService;
 
-public class LectureRequestExpireJob implements AutomationJob{
+public class LectureStatusSyncJob implements AutomationJob{
 	
 	private final AutomationLogDAO logDAO;
 	private final LectureService lectureService;
-	SchedulePolicyService policy;
 	
-	public LectureRequestExpireJob(
+	public LectureStatusSyncJob(
 			AutomationLogDAO logDAO,
-			LectureService lectureService,
-			SchedulePolicyService policy
+			LectureService lectureService
 			) {
 		this.logDAO = logDAO;
 		this.lectureService = lectureService;
-		this.policy = policy;
 		
 	}
 	
@@ -31,14 +28,16 @@ public class LectureRequestExpireJob implements AutomationJob{
 	
 	@Override
 	public String code() {
-		return ScheduleCode.LECTURE_OPEN_APPROVAL_ADMIN.name();
+		return "LECTURE_STATUS_SYNC";
 	}
 	@Override
 	public boolean shouldRun(LocalDateTime now) {
-		return policy.isTriggerDayAfterEnd(ScheduleCode.LECTURE_OPEN_APPROVAL_ADMIN.name(), now);
+		//매일 00:00 에 실행함
+		return now.getHour() == 0 && now.getMinute() == 0;
 	}
 	@Override
 	public void run(LocalDateTime now) {
+		System.out.println("[LectureStatusSyncJob] run START: "+now);
 		LocalDate today = now.toLocalDate();
 		
 		if(!logDAO.tryStart(code(), today)) {
@@ -47,11 +46,18 @@ public class LectureRequestExpireJob implements AutomationJob{
 		}
 		
 		try {
-			int canceledCount = lectureService.cancelExpiredLectureRequest();
-			System.out.println("[LectureRequestExpireJob] run START: "+ now);
-			logDAO.markSuccess(code(), today, "canceled = " + canceledCount);;
+            int[] result = lectureService.syncLectureStatusByDate(today);
+            int ongoingCount = result[0];
+            int endedCount = result[1];
+
+            String msg = "ongoing=" + ongoingCount + ", ended=" + endedCount;
+            logDAO.markSuccess(code(), today, msg);
+
+            System.out.println("[LectureStatusSyncJob] SUCCESS " + msg);
+
 		} catch (Exception e) {
 			logDAO.markFail(code(), today, e.getMessage());
+			e.printStackTrace();
 			throw e;
 		}
 	}

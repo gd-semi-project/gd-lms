@@ -62,7 +62,7 @@ public class StudentController extends HttpServlet {
         case "/lectures": {
 
             List<LectureDTO> lectures =
-                lectureService.getMyLectures(access);
+                lectureService.getMyLectures(access, null);
 
             request.setAttribute("lectures", lectures);
             request.setAttribute("activeMenu", "lectures");

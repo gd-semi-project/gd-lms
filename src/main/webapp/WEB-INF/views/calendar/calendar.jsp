@@ -36,6 +36,9 @@
     .calendar-table td { height: clamp(52px, 8.5vh, 78px); }
     .calendar-event { font-size: .72rem; }
   }
+  td.row-click:hover {
+    background-color: #f1f3f5;
+  }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -101,7 +104,10 @@
             <c:forEach var="week" items="${weeks}">
               <tr>
                 <c:forEach var="cell" items="${week}">
-                  <td class="${cell.inCurrentMonth ? '' : 'table-light'}" style="vertical-align: top;">
+                  <td 
+                  class="${cell.inCurrentMonth ? '' : 'table-light'} calendar-cell row-click" 
+                  data-date="${cell.date}"
+                  style="vertical-align: top; cursor:pointer;">
 					  <div class="d-flex justify-content-between">
 					    <span class="fw-semibold">${cell.dayNumber}</span>
 					    <c:if test="${cell.today}">
@@ -160,6 +166,19 @@
           </c:choose>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-4" id="dayPanel">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <span id="dayPanelTitle">상세 일정</span>
+    <span class="text-muted small">년 월 일</span>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="list-group list-group-flush" id="dayPanelList">
+      <div class="p-4 text-center text-muted">날짜를 선택하면 일정이 표시됩니다.</div>
     </div>
   </div>
 </div>

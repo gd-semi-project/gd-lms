@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class LectureDAO {
     // ======================================================
     // 1) 교수 강의 목록 (validation = CONFIRMED)
     // ======================================================
-    public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
+    public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId, String status) throws SQLException {
 
     	String sql = """
     	        SELECT
@@ -58,7 +59,6 @@ public class LectureDAO {
     	            updated_at
     	        FROM lecture
     	        WHERE user_id = ?
-    	          AND validation = 'CONFIRMED'
     	          AND status = 'ONGOING'
     	        ORDER BY start_date DESC
     	    """;
@@ -67,6 +67,7 @@ public class LectureDAO {
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, instructorId);
+            pstmt.setString(2, status);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -247,7 +248,8 @@ public class LectureDAO {
 
     public List<LectureDTO> findByInstructor(long instructorId) {
         try (Connection conn = DBConnection.getConnection()) {
-            return selectLecturesByInstructor(conn, instructorId);
+        	String status = "ONGOING";
+            return selectLecturesByInstructor(conn, instructorId, status);
         } catch (Exception e) {
             throw new RuntimeException("LectureDAO.findByInstructor error", e);
         }
@@ -342,5 +344,88 @@ public class LectureDAO {
     	        return pstmt.executeUpdate();
     	    }
     	}
+  
 
+    public int cancelExpiredLectureRequest() {
+      final String sql = """
+          UPDATE lecture
+          SET validation = 'CANCELED'
+          WHERE validation = 'PENDING'
+          """;
+
+      try (	Connection conn = DBConnection.getConnection();
+          PreparedStatement pstmt = conn.prepareStatement(sql)
+          ){
+
+        return pstmt.executeUpdate(); // 취소된 건수 반환
+
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        return 0;
+      }
+    }
+
+
+
+    public int markOnGoing(LocalDate today) {
+      final String sql ="""
+        UPDATE lecture
+              SET status = 'ONGOING'
+              WHERE validation = 'CONFIRMED'
+                AND status = 'PLANNED'
+                AND start_date <= ?
+          """;
+
+      try (
+          Connection conn = DBConnection.getConnection();
+          PreparedStatement pstmt = conn.prepareStatement(sql);
+
+          ) {
+
+        pstmt.setDate(1, java.sql.Date.valueOf(today));
+
+        return pstmt.executeUpdate();
+
+      } catch (Exception e) {
+        System.out.println("markOnGoing(): 실패");
+        e.printStackTrace(); 
+
+        return 0;
+      }
+
+    };
+
+    public int markEnded(LocalDate today) {
+          final String sql = """
+                  UPDATE lecture
+                  SET status = 'ENDED'
+                  WHERE validation = 'CONFIRMED'
+                    AND status <> 'ENDED'
+                    AND end_date < ?
+              """;
+
+
+          try (Connection conn = DBConnection.getConnection();
+               PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+              pstmt.setDate(1, java.sql.Date.valueOf(today));
+
+              return pstmt.executeUpdate();
+
+      } catch (Exception e) {
+        System.out.println("markOnGoing(): 실패");
+        e.printStackTrace(); 
+
+        return 0;
+      }
+    };
+
+
+
+
+    
+    
+    
+    
 }
