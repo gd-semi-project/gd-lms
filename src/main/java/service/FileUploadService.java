@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -34,10 +35,31 @@ public class FileUploadService {
 	        if (part.getSize() == 0 || part.getSubmittedFileName() == null) {
 	            continue;
 	        }
+	        
+	        List<String> allowFileExtenderList = Arrays.asList(
+	    			".hwp",
+	    			".jpg",
+	    			".png",
+	    			".jpeg",
+	    			".docx",
+	    			".xlsx",
+	    			".pdf"
+	    		);
 
 	        // 1. 파일 메타데이터 생성
 	        UUID uuid = UUID.randomUUID();
 	        String originalFilename = part.getSubmittedFileName();
+	        int lastOfIndexDot = originalFilename.lastIndexOf(".");
+	        String extender = originalFilename.substring(lastOfIndexDot);
+	        
+
+        	System.out.println("파일명: " + originalFilename);
+	        if (!allowFileExtenderList.contains(extender)) {
+	        	// 포함되어있을 경우 제외하고 업로드 하는 방식
+	        	// 개선방향: 예외 던져서 포함되어있을 경우 모든 파일 업로드 금지
+	        	System.out.println("허용되지 않은 확장자 파일입니다.");
+	            continue;
+	        }
 
 	        FileDTO fileDTO = new FileDTO();
 	        fileDTO.setBoardType(boardType);

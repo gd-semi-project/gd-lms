@@ -92,6 +92,7 @@ public class AssignmentController extends HttpServlet {
                 request.setAttribute("assignment", assignment);
                 
                 FileUploadService fus = FileUploadService.getInstance();
+                String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
                 if (role == Role.INSTRUCTOR || role == Role.ADMIN) {
                     // 교수: 모든 제출물 가져오기
                     List<AssignmentSubmissionDTO> submissions = assignmentService.getSubmissions(assignmentId, lectureId, userId, role);
@@ -103,7 +104,7 @@ public class AssignmentController extends HttpServlet {
 
                     // 제출물별 파일 조회 (교수 채점용)
                     for (AssignmentSubmissionDTO sub : submissions) {
-                        List<FileDTO> submissionFiles = fus.getFileList("ASSIGNMENT_SUBMISSION", sub.getSubmissionId());
+                        List<FileDTO> submissionFiles = fus.getFileList(boardType, sub.getSubmissionId());
                         sub.setFileList(submissionFiles); // DTO 안에 담아서 JSP에서 반복 출력
                     }
 
@@ -113,7 +114,7 @@ public class AssignmentController extends HttpServlet {
                     request.setAttribute("mySubmission", mySubmission);
 
                     if (mySubmission != null) {
-                        List<FileDTO> myFileList = fus.getFileList("ASSIGNMENT_SUBMISSION/" + assignmentId,mySubmission.getSubmissionId());
+                        List<FileDTO> myFileList = fus.getFileList(boardType, mySubmission.getSubmissionId());
                         mySubmission.setFileList(myFileList);
                     }
                 }

@@ -21,8 +21,7 @@ public class FileDAO {
 	}
 	
 	public List<FileDTO> selectFileListById(String boardType, Long refId) {
-		String sql = "SELECT * FROM file_upload WHERE board_type = ? AND ref_id = ?";
-		FileDTO fileDTO = new FileDTO();
+		String sql = "SELECT * FROM file_upload WHERE board_type = ? AND ref_id = ? AND is_deleted = 'N'";
 		List<FileDTO> fileList = new ArrayList<FileDTO>();
 		
 		try (Connection conn = DBConnection.getConnection()){
@@ -31,6 +30,7 @@ public class FileDAO {
 			pstmt.setLong(2, refId);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
+				FileDTO fileDTO = new FileDTO();
 				fileDTO.setFileId(rs.getLong("file_id"));
 				fileDTO.setOriginalFilename(rs.getString("original_filename"));
 				String uuidStr = rs.getString("uuid");

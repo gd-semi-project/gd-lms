@@ -135,10 +135,8 @@
                       </c:choose>
                     </td>
                     <td>
-                      <%-- TODO: 파일 업로드 연동 (ref_type=SUBMISSION, ref_id=s.submissionId) --%>
-                      <jsp:include page="/WEB-INF/views/file/fileList.jsp">
-                      	<jsp:param value="${s.fileList}" name="fileList"/>
-                      </jsp:include>
+                      <c:set var="fileList" value="${s.fileList}" scope="request" />
+            		  <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
                       <span class="text-muted">-</span>
                     </td>
                     <td>
