@@ -48,16 +48,16 @@
     <c:set var="days" value="${fn:split('MON,TUE,WED,THU,FRI', ',')}" />
 
     <!-- 시간 (09~18) -->
-    <c:forEach var="hour" begin="9" end="18">
+    <c:forEach var="hour" begin="9" end="20">
       <tr>
         <td>${hour}:00</td>
 
         <c:forEach var="day" items="${days}">
-          <td>
-            <c:if test="${not empty scheduleMap[day][hour]}">
-              ${scheduleMap[day][hour]}
-            </c:if>
-          </td>
+          <td style="${not empty scheduleMap[day][hour] ? 'background-color:#e8f3ff;' : ''}">
+  <c:if test="${not empty scheduleMap[day][hour]}">
+    ${scheduleMap[day][hour]}
+  </c:if>
+</td>
         </c:forEach>
 
       </tr>
@@ -82,24 +82,23 @@
       <th>과목명</th>
       <th>담당교수</th>
       <th>강의실</th>
-      <th>강의시간</th>
+      <th>강의일정</th>
     </tr>
   </thead>
 
   <tbody>
     <!-- 수강 중인 강의 -->
-    <c:forEach var="course" items="${myCourseList}">
-      <tr class="clickable-row"
-          data-href="${pageContext.request.contextPath}/lecture/detail?lectureId=${course.lectureId}">
+    <c:forEach var="course" items="${myLecture}">
+      <tr>
         <td>${course.lectureTitle}</td>
-        <td>${course.professorName}</td>
+        <td>${course.instructorName}</td>
         <td>${course.room}</td>
-        <td>${course.scheduleText}</td>
+        <td>${course.schedule}</td>
       </tr>
     </c:forEach>
 
     <!-- 강의 없을 때 -->
-    <c:if test="${empty myCourseList}">
+    <c:if test="${empty myLecture}">
       <tr>
         <td colspan="4">수강 중인 강의가 없습니다.</td>
       </tr>

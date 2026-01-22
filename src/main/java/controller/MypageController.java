@@ -12,12 +12,15 @@ import model.dao.LectureDAO;
 import model.dto.AccessDTO;
 import model.dto.MyLectureDTO;
 import model.dto.MypageDTO;
+import model.dto.MyscheduleDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.MyPageService;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/mypage/*")
 public class MypageController extends HttpServlet {
@@ -179,6 +182,26 @@ public class MypageController extends HttpServlet {
 	            }
 	            
 	            request.setAttribute("mypage", mypage);
+	            
+	         // 내가 스케줄 불러오기
+		         long userId = access.getUserId();
+		         List<MyLectureDTO> myLecture = lectureDAO.selectMyEnrollmentedLecture(userId);
+		         List<MyscheduleDTO> mySchedule = lectureDAO.selectMySchedule(userId);
+		         
+		         Map<String, Map<Integer, String>> scheduleMap = new HashMap<>();
+		         
+		         for (MyscheduleDTO s : mySchedule) {
+		        	    scheduleMap.putIfAbsent(s.getWeekDay(), new HashMap<>());
+
+		        	    for (int h = s.getStartHour(); h < s.getEndHour(); h++) {
+		        	        scheduleMap
+		        	            .get(s.getWeekDay())
+		        	            .put(h, s.getLectureTitle());
+		        	    }
+		        	}
+		         request.setAttribute("myLecture", myLecture);
+		         request.setAttribute("mySchedule", mySchedule);
+		         request.setAttribute("scheduleMap", scheduleMap);
 
 			request.setAttribute(
 			        "contentPage",

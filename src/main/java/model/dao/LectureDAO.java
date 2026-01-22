@@ -13,6 +13,7 @@ import database.DBConnection;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
 import model.dto.MyLectureDTO;
+import model.dto.MyscheduleDTO;
 import model.dto.UserDTO;
 import model.enumtype.EnrollmentStatus;
 import model.enumtype.LectureStatus;
@@ -397,7 +398,45 @@ public class LectureDAO {
     	return list;
     }
     
-    
+    // 학생 개인의 시간표
+    public List<MyscheduleDTO> selectMySchedule(long userId){
+    	String sql = """
+    	        SELECT
+    	            s.week_day,
+    	            HOUR(s.start_time) AS start_hour,
+    	            HOUR(s.end_time)   AS end_hour,
+    	            l.lecture_title
+    	        FROM enrollment e
+    	        JOIN lecture l ON e.lecture_id = l.lecture_id
+    	        JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+    	        WHERE e.user_id = ?
+    	          AND e.status = 'ENROLLED'
+    	        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+    	                 s.start_time
+    	    """;
+
+    	    List<MyscheduleDTO> list = new ArrayList<>();
+
+    	    try (Connection conn = DBConnection.getConnection();
+    	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    	        pstmt.setLong(1, userId);
+    	        ResultSet rs = pstmt.executeQuery();
+
+    	        while (rs.next()) {
+    	            MyscheduleDTO dto = new MyscheduleDTO();
+    	            dto.setWeekDay(rs.getString("week_day"));       
+    	            dto.setStartHour(rs.getInt("start_hour"));      
+    	            dto.setEndHour(rs.getInt("end_hour"));          
+    	            dto.setLectureTitle(rs.getString("lecture_title"));
+    	            list.add(dto);
+    	        }
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	    }
+
+    	    return list;
+	}
     
     
     
