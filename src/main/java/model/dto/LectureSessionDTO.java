@@ -9,17 +9,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class LectureSessionDTO {	// 수업 회차 DTO
+public class LectureSessionDTO {
 
-    private Long sessionId;       
-    private Long lectureId;       
+    private Long sessionId;
+    private Long lectureId;
 
-    private LocalDate sessionDate; // 수업 날짜 (2026-03-18)
-    private LocalTime startTime;   // 수업 시작 시간
-    private LocalTime endTime;     // 수업 종료 시간
+    private LocalDate sessionDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    private boolean isCanceled;    // 휴강 여부
-    private String note;           // 보강/휴강 사유
-
-    private LocalDateTime createdAt;
+    private boolean attendanceOpen; // 출석 열림 여부
 }

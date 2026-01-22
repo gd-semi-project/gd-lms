@@ -36,19 +36,4 @@
     </tbody>
   </table>
 
-  <!-- 교수 전용 -->
-  <c:if test="${sessionScope.AccessInfo.role eq 'INSTRUCTOR'}">
-    <div class="mt-4 d-flex gap-2">
-      <a class="btn btn-primary"
-         href="${pageContext.request.contextPath}/lecture/attendance?lectureId=${lecture.lectureId}">
-         출석 관리
-      </a>
-
-      <a class="btn btn-secondary"
-         href="${pageContext.request.contextPath}/lecture/grades?lectureId=${lecture.lectureId}">
-         성적 관리
-      </a>
-    </div>
-  </c:if>
-
 </div>
