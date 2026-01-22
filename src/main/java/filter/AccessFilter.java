@@ -80,7 +80,7 @@ public class AccessFilter extends HttpFilter {
 					return;
 				}
 			}else if (middlePath.equals("instructor")) {
-				if (accessDTO.getRole() == Role.INSTRUCTOR) {
+				if (accessDTO.getRole() == Role.INSTRUCTOR||accessDTO.getRole() == Role.ADMIN) {
 					chain.doFilter(request, response);
 				} else {
 					System.out.println("웹필터) 비인가 접근입니다.");

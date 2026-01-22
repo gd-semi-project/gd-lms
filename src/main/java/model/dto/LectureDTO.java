@@ -2,6 +2,7 @@ package model.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,5 +28,6 @@ public class LectureDTO {
 	private LocalDateTime updatedAt;
 	private LectureValidation validation;
 	private String section;
-
+	private String instructorName;
+	private List<LectureScheduleDTO> schedules;
 }

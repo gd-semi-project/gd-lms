@@ -3,12 +3,19 @@ package service;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import database.DBConnection;
 import model.dao.LectureDAO;
+import model.dao.LectureScheduleDAO;
 import model.dto.AccessDTO;
 import model.dto.LectureDTO;
+import model.dto.LectureScheduleDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.LectureStatus;
 import model.enumtype.Role;
@@ -25,7 +32,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	}
 
 	private final LectureDAO lectureDAO = LectureDAO.getInstance();
-
+	private final LectureScheduleDAO lectureScheduleDAO = LectureScheduleDAO.getInstance();
 	
 	// 학생/교수 강의 리스트 
 	public List<LectureDTO> getMyLectures(AccessDTO access, String status) {	
@@ -86,15 +93,80 @@ public class LectureService {	// 이미 개설된 강의에 기준
 		return lectureDAO.cancelExpiredLectureRequest();
 	}
 
-		
-		
-		
 	
 	public int[] syncLectureStatusByDate(LocalDate today) {
 		int ongoingCount = lectureDAO.markOnGoing(today);
 		int endedCount = lectureDAO.markEnded(today);
 		return new int[] {ongoingCount, endedCount};
 	}
+
+	public List<LectureDTO> getAllLectureByDepartment(long departmentId, String lectureStatus) {
+	  	if (lectureStatus == null || lectureStatus.isBlank()) lectureStatus = "ALL";
+	  	
+	  	lectureStatus = lectureStatus.trim().toUpperCase();
+		
+        if (!("ALL".equals(lectureStatus)
+                || "ONGOING".equals(lectureStatus)
+                || "PLANNED".equals(lectureStatus)
+                || "ENDED".equals(lectureStatus))) {
+                 lectureStatus = "ALL";
+             }
+        
+        List<LectureDTO> lectureList;
+		
+        if ("ALL".equals(lectureStatus)) {
+        	lectureList = lectureDAO.findLectureByDepartment(departmentId);
+        } else {
+        	lectureList = lectureDAO.findByDepartmentAndStatus(departmentId, lectureStatus);
+        }
+        
+        if(lectureList == null || lectureList.isEmpty()) {
+        	return lectureList;
+        }
+        
+        List<Long> lectureIds = lectureList.stream()
+        					.map(LectureDTO::getLectureId)
+        					.filter(Objects::nonNull)
+        					.toList();
+        
+        List<LectureScheduleDTO> schedules = lectureScheduleDAO.findByLectureIds(lectureIds);
+        
+        Map<Long, List<LectureScheduleDTO>> map = new HashMap<Long, List<LectureScheduleDTO>>();
+        
+        for (LectureScheduleDTO s : schedules) {
+        	map.computeIfAbsent(s.getLectureId(), k-> new ArrayList<>()).add(s);
+        }
+        
+        for (LectureDTO l : lectureList) {
+        	l.setSchedules(map.getOrDefault(l.getLectureId(), Collections.emptyList()));
+        }
+		
+        return lectureList;
+	}
+
+	public Map<Long, Integer> getEnrollCountByLectureId(List<LectureDTO> lectureList) {
+	    if (lectureList == null || lectureList.isEmpty()) {
+	        return Collections.emptyMap();
+	    }
+	    
+
+	    List<Long> lectureIds = lectureList.stream()
+	            .map(LectureDTO::getLectureId)
+	            .filter(Objects::nonNull)
+	            .toList();
+
+	    if (lectureIds.isEmpty()) {
+	        return Collections.emptyMap();
+	    }
+
+	    return lectureDAO.selectEnrollCountMapByLectureIds(lectureIds);
+	    
+	    
+	}
+	
+	
+	
+	
 	
 	
 

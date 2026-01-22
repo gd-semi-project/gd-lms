@@ -8,7 +8,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import database.DBConnection;
 import model.dto.LectureDTO;
@@ -323,7 +326,13 @@ public class LectureDAO {
         Timestamp updatedAt = rs.getTimestamp("updated_at");
         dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
         dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
-
+        
+        try {
+        	dto.setDepartmentId(rs.getLong("department_id"));
+        	dto.setInstructorName(rs.getString("instructor_name"));
+		} catch (Exception e) {
+		}
+        
         return dto;
     }
     
@@ -543,9 +552,148 @@ public class LectureDAO {
 
         return 0;
       }
-    };
+    }
 
+	public List<LectureDTO> findLectureByDepartment(long departmentId) {
+		
+		final String sql =
+			       """
+		        SELECT
+		          l.lecture_id,
+		          l.lecture_title,
+		          l.lecture_round,
+		          l.user_id,
+		          u.name AS instructor_name,
+		          l.department_id AS department_id,
+		          l.start_date,
+		          l.end_date,
+		          l.room,
+		          l.capacity,
+		          l.status,
+		          l.validation,
+		          l.section,
+		          l.created_at,
+		          l.updated_at
+		        FROM lecture l
+		        JOIN user u ON u.user_id = l.user_id
+		        WHERE l.department_id = ?
+		        """;
+		
+		try (
+				Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				){
+			
+			pstmt.setLong(1, departmentId);
+			
+			try(ResultSet rs = pstmt.executeQuery()){
+				
+				List<LectureDTO> list = new ArrayList<LectureDTO>();
+				while (rs.next()) {
+					list.add(mapLecture(rs));
+				}
+				return list;
+			}
+			
+		} catch (Exception e) {
+			System.out.println("findLectureByDepartment():실패");
+			return null;
+		}
+	}
 
+	public List<LectureDTO> findByDepartmentAndStatus(long departmentId, String lectureStatus) {
+		final String sql =
+			       """
+		        SELECT
+		          l.lecture_id,
+		          l.lecture_title,
+		          l.lecture_round,
+		          l.user_id,
+		          u.name AS instructor_name,
+		          l.department_id,
+		          l.start_date,
+		          l.end_date,
+		          l.room,
+		          l.capacity,
+		          l.status,
+		          l.validation,
+		          l.section,
+		          l.created_at,
+		          l.updated_at
+		        FROM lecture l
+		        JOIN user u ON u.user_id = l.user_id
+		        WHERE l.department_id = ?
+		        AND l.status = ?
+		        """;
+		
+		try (
+				Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)
+				){
+			
+			pstmt.setLong(1, departmentId);
+			pstmt.setString(2, lectureStatus);
+			
+			try(ResultSet rs = pstmt.executeQuery()){
+				
+				List<LectureDTO> list = new ArrayList<LectureDTO>();
+				while (rs.next()) list.add(mapLecture(rs));
+				return list;
+			}
+		} catch (Exception e) {
+			System.out.println("findByDepartmentAndStatus(): 실패");
+			return null;
+		}
+	}
+
+	public Map<Long, Integer> selectEnrollCountMapByLectureIds(List<Long> lectureIds) {
+	    if (lectureIds == null || lectureIds.isEmpty()) {
+	        return Collections.emptyMap();
+	    }
+	    
+	    String placeholders = lectureIds.stream()
+	            .map(id -> "?")
+	            .collect(java.util.stream.Collectors.joining(","));
+	    
+	    String sql =
+	            "SELECT lecture_id, COUNT(*) AS cnt " +
+                "FROM enrollment " +
+                "WHERE status = 'ENROLLED' " +
+                "AND lecture_id IN (" + placeholders + ") " +
+                "GROUP BY lecture_id";
+	    
+	    Map<Long, Integer> map = new HashMap<Long, Integer>();
+	    
+	    try (
+	    		Connection conn = DBConnection.getConnection();
+	    		PreparedStatement pstmt = conn.prepareStatement(sql)
+	    		){
+	    	
+	    	int idx = 1;
+	    	for (Long id : lectureIds) {
+	    		pstmt.setLong(idx++, id);
+	    	}
+	    	
+	    	try(ResultSet rs = pstmt.executeQuery()){
+	    		while (rs.next()) {
+	    			long lectureId = rs.getLong("lecture_id");
+	    			int cnt = rs.getInt("cnt");
+	    			map.put(lectureId, cnt);
+	    		}
+	    	}
+	    	
+			
+		} catch (Exception e) {
+			System.out.println("selectEnrol 어쩌고 그 긴거 오류났음");
+		}
+	    return map;
+	    
+	    
+	    
+
+	};
+
+	
 
 
     

@@ -45,7 +45,7 @@ public class InstructorController extends HttpServlet {
         AccessDTO access =
             (AccessDTO) session.getAttribute("AccessInfo");
 
-        if (access == null || access.getRole() != Role.INSTRUCTOR) {
+        if (access == null || access.getRole() == Role.STUDENT) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -63,6 +63,25 @@ public class InstructorController extends HttpServlet {
 
         // 강사 프로필
         case "/profile": {
+        	
+        	String userId = request.getParameter("userId");
+        	if (userId != null) {
+        		Long userID = Long.parseLong(userId);
+                Map<String, Object> profile =
+                        instructorService.getInstructorProfile(userID);
+                
+                request.setAttribute("instructor", profile.get("instructor"));
+                request.setAttribute("user", profile.get("user"));
+                request.setAttribute(
+                		"contentPage",
+                		"/WEB-INF/views/instructor/profile.jsp"
+                		);
+                userId = null;
+                break;
+        	};
+        	
+        	
+        	
             Map<String, Object> profile =
                 instructorService.getInstructorProfile(access.getUserId());
 

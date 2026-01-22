@@ -73,6 +73,8 @@
             <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
           </li>
        </c:if>
+       
+       <c:if test="${AccessInfo.role != 'ADMIN'}">
        <li class="nav-item">
 		<button
 		  id="lectureToggle"
@@ -122,21 +124,12 @@
 				</li>
 				</c:when>
       
-              <%-- 관리자 --%>
-              <c:when test="${role == 'ADMIN'}">
-                <li class="nav-item">
-                  <a class="nav-link text-white small"
-                     href="${ctx}/admin/lectures">
-                     <span class="material-symbols-outlined">comedy_mask</span>전체 강의 목록</a>
-                </li>
-              </c:when>
-      
             </c:choose>
       
           </ul>
         </div>
       </li>
-
+	</c:if>
          
          
          <!--  스코프 확인용 TEST -->

@@ -6,11 +6,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dto.LectureDTO;
 import model.dto.ScheduleUiPolicyDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import model.enumtype.ScheduleCode;
 import service.AdminService;
+import service.LectureService;
 import service.SchoolCalendarService;
 import utils.AppTime;
 import service.LoginService;
@@ -18,6 +20,8 @@ import service.SchedulePolicyService;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 import automation.schedule.SchoolScheduleDAOImpl;
 
@@ -28,7 +32,7 @@ import automation.schedule.SchoolScheduleDAOImpl;
 public class AdminController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private AdminService service = AdminService.getInstance();
-       
+	private LectureService lectureService = LectureService.getInstance();
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		String requestURI = request.getRequestURI();
@@ -94,18 +98,47 @@ public class AdminController extends HttpServlet {
 			contentPage = "/WEB-INF/views/admin/adminDepartmentManage.jsp";
 			request.setAttribute("departmentList", service.getDepartmentList());
 			
-			String selectedDept = request.getParameter("departmentId");
+			
 			String status = request.getParameter("status");
+			if (status == null || status.isBlank()) status = "ACTIVE";
+			
+			String lectureStatus = request.getParameter("lectureStatus");
+			if (lectureStatus == null || lectureStatus.isBlank()) lectureStatus = "ALL";
+
+			request.setAttribute("currentStatus", status);
+			request.setAttribute("lectureStatus", lectureStatus);
+			
+			String selectedDept = request.getParameter("departmentId");
 			if (selectedDept != null && !selectedDept.isBlank()) {
 				try {
 					long departmentId = Long.parseLong(selectedDept);
 					request.setAttribute("selectedDepartment", service.getDepartmentById(departmentId));
 					request.setAttribute("instructorList", service.getAllInstructorByDepartment(departmentId, status));
 					request.setAttribute("studentList", service.getAllStudentByDepartment(departmentId, status));
+					
+					List<LectureDTO> lectureList = lectureService.getAllLectureByDepartment(departmentId, lectureStatus);
+					Map<Long, Integer> enrollCountMap = lectureService.getEnrollCountByLectureId(lectureList);
+					
+					request.setAttribute("lectureList", lectureList);
+					request.setAttribute("enrollCountMap", enrollCountMap);
+					
+					
+					int capacitySum = 0;
+		            int currentSum = 0;
+		            for (var l : lectureList) {
+		                capacitySum += l.getCapacity();
+		                Integer cur = enrollCountMap.get(l.getLectureId());
+		                currentSum += (cur == null ? 0 : cur);
+		            }
+		            request.setAttribute("capacitySum", capacitySum);
+		            request.setAttribute("currentSum", currentSum);
+					
+					
 				} catch (NumberFormatException ignore) {
 					System.out.println("이게 에러나면 진짜 신기할듯");
 				}
 			}
+
 			break;
 		
 			
