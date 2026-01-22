@@ -173,10 +173,10 @@ public class AssignmentService {
                 submissionDAO.update(conn, dto);
                 submissionId = dto.getSubmissionId();
                 fus.deleteFile(boardType, submissionId);
-                fus.fileUpload(boardType, assignmentId, partList);
+                fus.fileUpload(boardType, submissionId, partList);
             } else {
             	submissionId = submissionDAO.insert(conn, dto);
-                fus.fileUpload(boardType, assignmentId, partList);
+                fus.fileUpload(boardType, submissionId, partList);
             }
             
             conn.commit();

@@ -20,7 +20,6 @@ import model.enumtype.Role;
 import service.AssignmentService;
 import service.FileUploadService;
 import service.LectureService;
-import utils.FileUploadUtil;
 
 @WebServlet("/lecture/assignments")
 @MultipartConfig(
@@ -114,7 +113,7 @@ public class AssignmentController extends HttpServlet {
                     request.setAttribute("mySubmission", mySubmission);
 
                     if (mySubmission != null) {
-                        List<FileDTO> myFileList = fus.getFileList("ASSIGNMENT_SUBMISSION", mySubmission.getSubmissionId());
+                        List<FileDTO> myFileList = fus.getFileList("ASSIGNMENT_SUBMISSION/" + assignmentId,mySubmission.getSubmissionId());
                         mySubmission.setFileList(myFileList);
                     }
                 }
@@ -224,8 +223,6 @@ public class AssignmentController extends HttpServlet {
         long userId = accessInfo.getUserId();
         Role role = accessInfo.getRole();
 
-        Collection<Part> partList = request.getParts();
-
         String action = request.getParameter("action");
         long lectureId = parseLong(request.getParameter("lectureId"));
         long assignmentId = parseLong(request.getParameter("assignmentId"));
@@ -293,6 +290,7 @@ public class AssignmentController extends HttpServlet {
 
                 AssignmentSubmissionDTO dto = new AssignmentSubmissionDTO();
                 dto.setAssignmentId(assignmentId);
+                System.out.println("//과제제출:assignmentId: "+assignmentId);
                 dto.setContent(content != null ? content.trim() : "");
                 
                 assignmentService.submitAssignment(dto, lectureId, userId, role, request.getParts());

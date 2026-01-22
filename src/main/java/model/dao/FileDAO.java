@@ -66,7 +66,7 @@ public class FileDAO {
 	        throws SQLException {
 
 		String sql = """
-			    UPDATE file
+			    UPDATE file_upload
 			    SET is_deleted = 'Y'
 			    WHERE board_type = ?
 			      AND ref_id = ?
@@ -77,6 +77,25 @@ public class FileDAO {
 	        ps.setLong(2, refId);
 	        return ps.executeUpdate(); // 삭제된 파일 수
 	    }
+	}
+	
+	public String selectFileNameByUUID(UUID uuid) {
+		String sql = "SELECT original_filename FROM file_upload WHERE uuid = ?";
+		String originalFileName = null;
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, uuid.toString());
+			
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				originalFileName = rs.getString("original_filename");
+			}
+			return originalFileName;
+		} catch (SQLException | ClassNotFoundException e) {
+			// TODO: 예외처리 구문 작성 필요
+			System.out.println("FileDAO selectFileNameByUUID: " + e.getMessage());
+		}
+		return null;
 	}
 
 

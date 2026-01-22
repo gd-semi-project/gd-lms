@@ -37,15 +37,15 @@
     <div class="card-body">
       <form method="post" action="${ctx}/lecture/assignments"  
       enctype="multipart/form-data">
+	  	<input type="hidden" name="action" value="submit" />
 		  <div class="mb-3">
 		    <label class="form-label">제출 내용 <span class="text-danger">*</span></label>
 		    <textarea name="content" class="form-control" rows="10" required><c:if test="${not empty mySubmission}"><c:out value="${mySubmission.content}"/></c:if></textarea>
 		  </div>
 		
 		  <!-- ✅ 여기 추가 -->
-<!-- 		  <input type="hidden" name="action" value="submit" /> -->
-		  <input type="hidden" name="boardType" value="assignment">
-		  <input type="hidden" name="refId" value="${assignment.assignmentId}">
+		  <input type="hidden" name="lectureId" value="${lectureId}" />
+		  <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
 		  <jsp:include page="/WEB-INF/views/file/fileUpload.jsp" />
 		
 		  <div class="d-flex gap-2">

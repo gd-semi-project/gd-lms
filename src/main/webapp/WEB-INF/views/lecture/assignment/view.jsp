@@ -81,12 +81,11 @@
             <p><strong>내용:</strong></p>
             <div class="border p-2 bg-light" style="white-space: pre-wrap;"><c:out value="${mySubmission.content}" /></div>
             
+            <!-- 제출파일 목록 -->
             <p><strong>제출파일:</strong></p>
-            <!-- 파일 목록을 보여주는 fileList.jsp 필요 -->
-            <jsp:include page="/WEB-INF/views/file/fileList.jsp">
-       		  <jsp:param value="${mySubmission.fileList}" name="fileList"/>
-            </jsp:include>
-            <c:out value="${mySubmission.fileList[0].Uuid}" />
+            <c:set var="fileList" value="${mySubmission.fileList}" scope="request" />
+            <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
+            
             <c:if test="${mySubmission.score != null}">
               <hr>
               <p><strong>점수:</strong> ${mySubmission.score} / ${assignment.maxScore}</p>

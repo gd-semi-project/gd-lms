@@ -91,18 +91,12 @@ public class FileUploadService {
 	// 리스트를 받아서 화면에 아이콘 + 주소? 방식으로 리스트 나열하고
 	// 리스트의 각 객체를 클릭했을 때 fileDownload() 실행
 	
-	
 	public List<FileDTO> getFileList (String boardType, Long refId) {
 		FileDAO fileDAO = FileDAO.getInstance();
 		return fileDAO.selectFileListById(boardType, refId);
 	}
 	
-	
-	
-	public byte[] fileDownload(String uuid) throws FileNotFoundException, IOException {
-		
-		String downloadDir = "D:/upload";
-		
+	public byte[] fileDownload(String downloadDir, String uuid) throws FileNotFoundException, IOException {		
         File file = new File(downloadDir, uuid);
         byte[] fileData = new byte[(int) file.length()];
 
@@ -110,5 +104,10 @@ public class FileUploadService {
             fis.read(fileData);
         }
         return fileData;
+	}
+	
+	public String getFileOriginalName(UUID uuid) {
+		FileDAO fileDAO = FileDAO.getInstance();
+		return fileDAO.selectFileNameByUUID(uuid);
 	}
 }
