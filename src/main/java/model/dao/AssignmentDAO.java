@@ -30,10 +30,14 @@ public class AssignmentDAO {
                     dto.setAssignmentId(rs.getLong("assignment_id"));
                     dto.setLectureId(rs.getLong("lecture_id"));
                     dto.setTitle(rs.getString("title"));
-                    dto.setContent(rs.getString("content"));
-                    dto.setDueDate(rs.getTimestamp("due_date").toLocalDateTime());
+                    dto.setContent(rs.getString("content"));                 
+                    Timestamp dueTs = rs.getTimestamp("due_date");
+                    dto.setDueDate(dueTs != null ? dueTs.toLocalDateTime() : null);
+
+                    Timestamp createdTs = rs.getTimestamp("created_at");
+                    dto.setCreatedAt(createdTs != null ? createdTs.toLocalDateTime() : null);
+                    
                     dto.setMaxScore(rs.getInt("max_score"));
-                    dto.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     list.add(dto);
                 }
             }
@@ -60,9 +64,15 @@ public class AssignmentDAO {
                     dto.setLectureId(rs.getLong("lecture_id"));
                     dto.setTitle(rs.getString("title"));
                     dto.setContent(rs.getString("content"));
-                    dto.setDueDate(rs.getTimestamp("due_date").toLocalDateTime());
+                    
+                    Timestamp dueTs = rs.getTimestamp("due_date");
+                    dto.setDueDate(dueTs != null ? dueTs.toLocalDateTime() : null);
+                    
+                    Timestamp createdTs = rs.getTimestamp("created_at");
+                    dto.setCreatedAt(createdTs != null ? createdTs.toLocalDateTime() : null);
+                    
                     dto.setMaxScore(rs.getInt("max_score"));
-                    dto.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                   
                     return dto;
                 }
             }
@@ -81,7 +91,13 @@ public class AssignmentDAO {
             ps.setLong(1, dto.getLectureId());
             ps.setString(2, dto.getTitle());
             ps.setString(3, dto.getContent());
-            ps.setTimestamp(4, Timestamp.valueOf(dto.getDueDate()));
+            
+            if (dto.getDueDate() == null) {
+                ps.setNull(4, java.sql.Types.TIMESTAMP);
+            } else {
+                ps.setTimestamp(4, Timestamp.valueOf(dto.getDueDate()));
+            }
+            
             ps.setInt(5, dto.getMaxScore() != null ? dto.getMaxScore() : 100);
             ps.executeUpdate();
             
@@ -103,7 +119,13 @@ public class AssignmentDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, dto.getTitle());
             ps.setString(2, dto.getContent());
-            ps.setTimestamp(3, Timestamp.valueOf(dto.getDueDate()));
+            
+            if (dto.getDueDate() == null) {
+                ps.setNull(3, java.sql.Types.TIMESTAMP);
+            } else {
+                ps.setTimestamp(3, Timestamp.valueOf(dto.getDueDate()));
+            }
+            
             ps.setInt(4, dto.getMaxScore());
             ps.setLong(5, dto.getAssignmentId());
             ps.setLong(6, dto.getLectureId());

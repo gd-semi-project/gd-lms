@@ -261,7 +261,7 @@ public class QnaController extends HttpServlet {
                 dto.setTitle(title.trim());
                 dto.setContent(content.trim());
                 dto.setIsPrivate("Y".equals(isPrivate) 
-                        ? model.enumtype.isPrivate.Y : model.enumtype.isPrivate.N);
+                        ? model.enumtype.IsPrivate.Y : model.enumtype.IsPrivate.N);
 
                 long newQnaId = qnaService.createPost(dto, userId, role);
 
@@ -291,7 +291,7 @@ public class QnaController extends HttpServlet {
                 dto.setTitle(title.trim());
                 dto.setContent(content.trim());
                 dto.setIsPrivate("Y".equals(isPrivate) 
-                        ? model.enumtype.isPrivate.Y : model.enumtype.isPrivate.N);
+                        ? model.enumtype.IsPrivate.Y : model.enumtype.IsPrivate.N);
 
                 qnaService.updatePost(dto, userId, role);
 

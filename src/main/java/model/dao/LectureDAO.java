@@ -44,26 +44,27 @@ public class LectureDAO {
     // ======================================================
     public List<LectureDTO> selectLecturesByInstructor(Connection conn, long instructorId) throws SQLException {
 
-        String sql = """
-            SELECT
-                lecture_id,
-                user_id,
-                lecture_title,
-                lecture_round,
-                section,
-                start_date,
-                end_date,
-                room,
-                capacity,
-                status,
-                validation,
-                created_at,
-                updated_at
-            FROM lecture
-            WHERE user_id = ?
-              AND validation = 'CONFIRMED'
-            ORDER BY start_date DESC
-        """;
+    	String sql = """
+    	        SELECT
+    	            lecture_id,
+    	            user_id,
+    	            lecture_title,
+    	            lecture_round,
+    	            section,
+    	            start_date,
+    	            end_date,
+    	            room,
+    	            capacity,
+    	            status,
+    	            validation,
+    	            created_at,
+    	            updated_at
+    	        FROM lecture
+    	        WHERE user_id = ?
+    	          AND validation = 'CONFIRMED'
+    	          AND status = 'ONGOING'
+    	        ORDER BY start_date DESC
+    	    """;
 
         List<LectureDTO> list = new ArrayList<>();
 
@@ -105,6 +106,7 @@ public class LectureDAO {
             WHERE e.user_id = ?
               AND e.status = 'ENROLLED'
               AND l.validation = 'CONFIRMED'
+              AND l.status = 'ONGOING'
             ORDER BY l.start_date DESC
         """;
 
@@ -323,6 +325,7 @@ public class LectureDAO {
         return dto;
     }
     
+
     // 학생 개인이 수강하고있는 강의목록
     public List<MyLectureDTO> selectMyEnrollmentedLecture(long userId){
 		String sql = """
@@ -440,4 +443,24 @@ public class LectureDAO {
     
     
     
+
+    public int updateStatus(
+    	    Connection conn,
+    	    LectureStatus from,
+    	    LectureStatus to
+    	) throws SQLException {
+
+    	    String sql = """
+    	        UPDATE lecture
+    	        SET status = ?
+    	        WHERE status = ?
+    	    """;
+
+    	    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    	        pstmt.setString(1, to.name());
+    	        pstmt.setString(2, from.name());
+    	        return pstmt.executeUpdate();
+    	    }
+    	}
+
 }

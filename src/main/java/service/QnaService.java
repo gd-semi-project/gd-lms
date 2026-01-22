@@ -7,7 +7,7 @@ import model.dto.QnaAnswerDTO;
 import model.dto.QnaPostDTO;
 import model.enumtype.QnaStatus;
 import model.enumtype.Role;
-import model.enumtype.isPrivate;
+import model.enumtype.IsPrivate;
 import database.DBConnection;
 
 import java.sql.Connection;
@@ -304,8 +304,8 @@ public class QnaService {
     private void assertStudentCanView(QnaPostDTO post, long userId, Role role) {
         if (role != Role.STUDENT) return;
 
-        isPrivate priv = (post.getIsPrivate() == null) ? isPrivate.N : post.getIsPrivate();
-        if (priv == isPrivate.Y && !Objects.equals(post.getAuthorId(), userId)) {
+        IsPrivate priv = (post.getIsPrivate() == null) ? IsPrivate.N : post.getIsPrivate();
+        if (priv == IsPrivate.Y && !Objects.equals(post.getAuthorId(), userId)) {
             throw new AccessDeniedException("비공개 질문은 작성자 본인만 조회할 수 있습니다.");
         }
     }
