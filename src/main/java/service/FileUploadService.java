@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import database.DBConnection;
 import jakarta.servlet.http.Part;
 import lombok.NoArgsConstructor;
 import model.dao.FileDAO;
@@ -22,34 +24,67 @@ public class FileUploadService {
 		return instance;
 	}
 	
-	public void fileUpload(String BoardType, Long assignmentId, Collection<Part> partCollection) {
+	// 파일업로드
+	public void fileUpload(String boardType, Long refId, Collection<Part> partList) {
+
+	    FileDAO fileDAO = FileDAO.getInstance();
+
+	    for (Part part : partList) {
+
+	        if (part.getSize() == 0 || part.getSubmittedFileName() == null) {
+	            continue;
+	        }
+
+	        // 1. 파일 메타데이터 생성
+	        UUID uuid = UUID.randomUUID();
+	        String originalFilename = part.getSubmittedFileName();
+
+	        FileDTO fileDTO = new FileDTO();
+	        fileDTO.setBoardType(boardType);
+	        fileDTO.setRefId(refId);
+	        fileDTO.setUuid(uuid);
+	        fileDTO.setOriginalFilename(originalFilename);
+
+	        // 2. 실제 파일 write
+	        saveFileToDisk(part, uuid);
+
+	        // 3. DB insert
+	        fileDAO.isnertFileUpload(fileDTO);
+	    }
+	}
+	
+	private void saveFileToDisk(Part part, UUID uuid) {
+	    String uploadDir = "D:/upload";
+	    File dir = new File(uploadDir);
+
+	    if (!dir.exists()) {
+	        dir.mkdirs();
+	    }
+
+	    File target = new File(dir, uuid.toString());
+
+	    try {
+	        part.write(target.getAbsolutePath());
+	    } catch (IOException e) {
+	        throw new RuntimeException("파일 저장 실패", e);
+	    }
+	}
+
+	
+	public int deleteFile (String boardType, Long refId) {
 		FileDAO fileDAO = FileDAO.getInstance();
-		
-		// 파트컬렉션에서 파일리스트 반환
-		List<Part> fileList = extractFileParts(partCollection);
-		
-		// 업로드 테이블에 데이터만 추가하는것
-		for (Part filePart : fileList) {
-			FileDTO file = new FileDTO();
+		Connection conn = null;
+		int deleteFIleCount = 0;
+		try {
+			conn = DBConnection.getConnection();
 			
-			file.setBoardType(BoardType);
-			file.setRefId(assignmentId);
-			String filename = filePart.getName();
-			file.setOriginalFilename(filename);
-			UUID uuid = UUID.randomUUID();
-			file.setUuid(uuid);
+			deleteFIleCount = fileDAO.deleteFileByBoardTypeAndRefId(conn, boardType, refId);
 			
-			fileDAO.isnertFileUpload(file);
-			
-			// 실제 파일을 업로드하는 로직 필요
-			try {
-				filePart.write(getFilePath(uuid));
-			} catch (IOException e) {
-				// TODO : 예외처리
-				e.printStackTrace();
-			}
-			
+			return deleteFIleCount;
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
 		}
+		return deleteFIleCount;
 	}
 	
 	// fileDTO 리스트를 컨트롤러가 받고, 서비스에서 다운로드 로직을 별도로 수행
@@ -57,42 +92,23 @@ public class FileUploadService {
 	// 리스트의 각 객체를 클릭했을 때 fileDownload() 실행
 	
 	
-	// 컨트롤러에서 36글자의 uuid를 받음 주어졌을 때 파일 다운로드하는 서비스 로직
-	// 권한체크 로직이 필요, 강의게시판에서 접속하는 경우에는 본인의 과제만 다운로드
-	// 교수는 본인의 강의에 해당하는 학생들의 과제 다운로드 가능
-	// 다운로드 시도 로그를 남기는것도 방법
+	public List<FileDTO> getFileList (String boardType, Long refId) {
+		FileDAO fileDAO = FileDAO.getInstance();
+		return fileDAO.selectFileListById(boardType, refId);
+	}
+	
+	
+	
 	public byte[] fileDownload(String uuid) throws FileNotFoundException, IOException {
 		
-		String filePath = getFilePath(UUID.fromString(uuid));
+		String downloadDir = "D:/upload";
 		
-        File file = new File(filePath);
+        File file = new File(downloadDir, uuid);
         byte[] fileData = new byte[(int) file.length()];
 
         try (FileInputStream fis = new FileInputStream(file)) {
             fis.read(fileData);
         }
         return fileData;
-	}
-	
-	
-	
-	// 파일업로드 유틸
-	
-	// uuid값과 파일 경로를 조합해서 파일경로를 반환하는 메소드
-	// 파일경로가 게시판마다 다를 수 있으니, 미리 분리
-	public String getFilePath(UUID uuid) {
-		String FileServerPath = "D:/upload/";
-		return FileServerPath + uuid.toString();
-	}
-	
-	// Part리스트를 반환
-	public List<Part> extractFileParts (Collection<Part> partCollection) {
-		List<Part> partList = new ArrayList<Part>();
-		for (Part part : partCollection) {
-			if (part.getSubmittedFileName() != null) {
-				partList.add(part);
-			}
-		}
-		return partList;
 	}
 }

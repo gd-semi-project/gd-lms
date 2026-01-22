@@ -81,6 +81,12 @@
             <p><strong>내용:</strong></p>
             <div class="border p-2 bg-light" style="white-space: pre-wrap;"><c:out value="${mySubmission.content}" /></div>
             
+            <p><strong>제출파일:</strong></p>
+            <!-- 파일 목록을 보여주는 fileList.jsp 필요 -->
+            <jsp:include page="/WEB-INF/views/file/fileList.jsp">
+       		  <jsp:param value="${mySubmission.fileList}" name="fileList"/>
+            </jsp:include>
+            <c:out value="${mySubmission.fileList[0].Uuid}" />
             <c:if test="${mySubmission.score != null}">
               <hr>
               <p><strong>점수:</strong> ${mySubmission.score} / ${assignment.maxScore}</p>
@@ -131,6 +137,9 @@
                     </td>
                     <td>
                       <%-- TODO: 파일 업로드 연동 (ref_type=SUBMISSION, ref_id=s.submissionId) --%>
+                      <jsp:include page="/WEB-INF/views/file/fileList.jsp">
+                      	<jsp:param value="${s.fileList}" name="fileList"/>
+                      </jsp:include>
                       <span class="text-muted">-</span>
                     </td>
                     <td>

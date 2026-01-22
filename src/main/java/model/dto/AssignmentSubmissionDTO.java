@@ -3,6 +3,7 @@ package model.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class AssignmentSubmissionDTO {
@@ -17,4 +18,5 @@ public class AssignmentSubmissionDTO {
     
     // 조회용
     private String studentName;
+    private List<FileDTO> fileList;
 }

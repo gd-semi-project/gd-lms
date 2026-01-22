@@ -3,21 +3,31 @@ package controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import model.dto.AccessDTO;
 import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
+import model.dto.FileDTO;
 import model.dto.LectureDTO;
 import model.enumtype.Role;
 import service.AssignmentService;
+import service.FileUploadService;
 import service.LectureService;
+import utils.FileUploadUtil;
 
 @WebServlet("/lecture/assignments")
+@MultipartConfig(
+	    fileSizeThreshold = 1024 * 1024,  // 메모리에 저장할 임계값
+	    maxFileSize = 1024 * 1024 * 50,   // 업로드 파일 최대 크기 (50MB)
+	    maxRequestSize = 1024 * 1024 * 100 // 요청 전체 크기 (100MB)
+	)
 public class AssignmentController extends HttpServlet {
 
     private final AssignmentService assignmentService = AssignmentService.getInstance();
@@ -63,7 +73,7 @@ public class AssignmentController extends HttpServlet {
             request.setAttribute("lecture", lecture);
             request.setAttribute("lectureId", lectureId);
             request.setAttribute("activeTab", "assignments");
-
+            
             // 목록
             if ("list".equalsIgnoreCase(action)) {
                 List<AssignmentDTO> assignments = assignmentService.getAssignmentsByLecture(lectureId, userId, role);
@@ -81,14 +91,34 @@ public class AssignmentController extends HttpServlet {
                 }
 
                 request.setAttribute("assignment", assignment);
-
+                
+                FileUploadService fus = FileUploadService.getInstance();
                 if (role == Role.INSTRUCTOR || role == Role.ADMIN) {
+                    // 교수: 모든 제출물 가져오기
                     List<AssignmentSubmissionDTO> submissions = assignmentService.getSubmissions(assignmentId, lectureId, userId, role);
                     request.setAttribute("submissions", submissions);
+
+                    // 과제 자체 파일 조회
+                    List<FileDTO> assignmentFiles = fus.getFileList("ASSIGNMENT", assignmentId);
+                    request.setAttribute("fileList", assignmentFiles);
+
+                    // 제출물별 파일 조회 (교수 채점용)
+                    for (AssignmentSubmissionDTO sub : submissions) {
+                        List<FileDTO> submissionFiles = fus.getFileList("ASSIGNMENT_SUBMISSION", sub.getSubmissionId());
+                        sub.setFileList(submissionFiles); // DTO 안에 담아서 JSP에서 반복 출력
+                    }
+
                 } else if (role == Role.STUDENT) {
+                    // 학생: 본인 제출물만
                     AssignmentSubmissionDTO mySubmission = assignmentService.getMySubmission(assignmentId, lectureId, userId, role);
                     request.setAttribute("mySubmission", mySubmission);
+
+                    if (mySubmission != null) {
+                        List<FileDTO> myFileList = fus.getFileList("ASSIGNMENT_SUBMISSION", mySubmission.getSubmissionId());
+                        mySubmission.setFileList(myFileList);
+                    }
                 }
+
 
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/assignment/view.jsp");
             }
@@ -194,6 +224,8 @@ public class AssignmentController extends HttpServlet {
         long userId = accessInfo.getUserId();
         Role role = accessInfo.getRole();
 
+        Collection<Part> partList = request.getParts();
+
         String action = request.getParameter("action");
         long lectureId = parseLong(request.getParameter("lectureId"));
         long assignmentId = parseLong(request.getParameter("assignmentId"));
@@ -262,8 +294,8 @@ public class AssignmentController extends HttpServlet {
                 AssignmentSubmissionDTO dto = new AssignmentSubmissionDTO();
                 dto.setAssignmentId(assignmentId);
                 dto.setContent(content != null ? content.trim() : "");
-
-                assignmentService.submitAssignment(dto, lectureId, userId, role);
+                
+                assignmentService.submitAssignment(dto, lectureId, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + assignmentId + "&success=submitted");

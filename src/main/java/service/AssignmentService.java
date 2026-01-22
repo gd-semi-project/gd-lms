@@ -8,9 +8,11 @@ import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
 import model.enumtype.Role;
 import database.DBConnection;
+import jakarta.servlet.http.Part;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 public class AssignmentService {
@@ -141,7 +143,7 @@ public class AssignmentService {
     }
 
     // 과제 제출 (학생)
-    public long submitAssignment(AssignmentSubmissionDTO dto, long lectureId, long userId, Role role) {
+    public Long submitAssignment(AssignmentSubmissionDTO dto, long lectureId, long userId, Role role, Collection<Part> partList) {
         if (role != Role.STUDENT) {
             throw new AccessDeniedException("학생만 제출 가능합니다.");
         }
@@ -151,24 +153,34 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, lectureId);
 
             AssignmentSubmissionDTO existing = submissionDAO.selectByStudentAndAssignment(
                 conn, userId, dto.getAssignmentId()
             );
-
-            long id;
+            
+            Long submissionId;
+            Long assignmentId = dto.getAssignmentId();
+            
+            // boardType 지정, 참조아이디 지정
+            // 재제출: 내용update - 파일is_deleted 변경 - 파일upload
+            // 제출: 내용insert - 파일upload
+            String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
             if (existing != null) {
                 dto.setSubmissionId(existing.getSubmissionId());
                 submissionDAO.update(conn, dto);
-                id = existing.getSubmissionId();
+                submissionId = dto.getSubmissionId();
+                fus.deleteFile(boardType, submissionId);
+                fus.fileUpload(boardType, assignmentId, partList);
             } else {
-                id = submissionDAO.insert(conn, dto);
+            	submissionId = submissionDAO.insert(conn, dto);
+                fus.fileUpload(boardType, assignmentId, partList);
             }
-
+            
             conn.commit();
-            return id;
+            return submissionId;
         } catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 제출 실패", e);

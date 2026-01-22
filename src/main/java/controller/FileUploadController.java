@@ -30,7 +30,7 @@ public class FileUploadController extends HttpServlet {
 		
 		if (actionPath.equals("/FileUpload")) {
 			System.out.println("파일업로드 페이지는 임의로 접속할 수 없습니다.");
-		} else if (actionPath.contains("/FileUpload/Down")) {
+		} else if (actionPath.equals("/FileUpload/Down")) {
 			FileUploadService fus = FileUploadService.getInstance();
 			String fileUUID = request.getParameter("filename");
 			// 입력된 길이값이 36일 때만 DB접근
@@ -57,11 +57,11 @@ public class FileUploadController extends HttpServlet {
 		
 		if (actionPath.equals("/FileUpload")) {
 			String boardType = request.getParameter("boardType");
-			Long assignmentId =  Long.parseLong(request.getParameter("assignmentId"));
+			Long refId =  Long.parseLong(request.getParameter("refId"));
 			FileUploadService fus = FileUploadService.getInstance();
 			Collection<Part> partList = request.getParts();
 			
-			fus.fileUpload(boardType, assignmentId, partList);
+			fus.fileUpload(boardType, refId, partList);
 		}
 		
 		
