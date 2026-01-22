@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import automation.job.LectureRequestExpireJob;
+import automation.job.LectureStatusSyncJob;
 import automation.log.AutomationLogDAO;
 import automation.log.AutomationLogDAOImpl;
 import automation.schedule.SchoolScheduleDAO;
@@ -38,8 +39,8 @@ public class AppScheduleListener implements ServletContextListener{
 				List.of( 
 						// jobLists
 						
-						new LectureRequestExpireJob(logDAO, lectureService, policy)
-						
+						new LectureRequestExpireJob(logDAO, lectureService, policy),
+						new LectureStatusSyncJob(logDAO, lectureService)
 						
 						
 					)

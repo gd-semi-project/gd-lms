@@ -123,7 +123,7 @@ public class NoticeService {
 
             // 교수: 본인 강의만
             if (role == Role.INSTRUCTOR && notice.getLectureId() != null) {
-                LectureDTO lecture = lectureDAO.findById(notice.getLectureId());
+                LectureDTO lecture = lectureDAO.selectLectureById(conn, notice.getLectureId()); // ✅ conn A 사용
                 if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
                     conn.rollback();
                     throw new AccessDeniedException("담당하지 않는 강의의 공지사항입니다.");
