@@ -214,3 +214,15 @@ VALUES
 ('데이터사이언스 입문',           1, 2, (SELECT department_id FROM department WHERE department_code='DS'),    '2026-03-02', '2026-06-20', 'G-07-304', 45, 'PLANNED', 'CONFIRMED', 'A'),
 ('AI 활용 프롬프트 엔지니어링',    1, 2, (SELECT department_id FROM department WHERE department_code='AI'),    '2026-03-02', '2026-06-20', 'G-05-415', 60, 'PLANNED', 'CONFIRMED', 'A');
   
+  INSERT INTO lecture
+(lecture_title, lecture_round, user_id, department_id,
+ start_date, end_date, room, capacity, status, validation, section)
+VALUES
+('알고리즘 설계',            1, 2, 1, '2026-03-02', '2026-06-19', 'G-05-201', 80, 'PLANNED', 'CONFIRMED', 'A'),
+('백엔드 API 개발',          1, 2, 1, '2026-03-02', '2026-06-19', 'G-05-202', 70, 'PLANNED', 'CONFIRMED', 'B'),
+('클라우드 컴퓨팅 기초',     1, 2, 1, '2026-03-02', '2026-06-19', 'G-05-203', 60, 'PLANNED', 'CONFIRMED', 'A'),
+('소프트웨어 공학',          1, 2, 1, '2026-03-02', '2026-06-19', 'G-05-204', 75, 'PLANNED', 'CONFIRMED', 'B'),
+('캡스톤디자인 I',           1, 2, 1, '2026-03-02', '2026-06-19', 'G-05-205', 50, 'PLANNED', 'CONFIRMED', 'A');
+
+
+  

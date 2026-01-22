@@ -67,8 +67,12 @@ public class InstructorController extends HttpServlet {
 
 		// 내 강의 목록 (CONFIRMED)
 		case "/lectures": {
+			
+			String status = request.getParameter("status");
+			if (status == null || status.isBlank()) status = "ONGOING";
+			
 
-			List<LectureDTO> lectures = lectureService.getMyLectures(access);
+			List<LectureDTO> lectures = lectureService.getMyLectures(access, status);
 
 			request.setAttribute("lectures", lectures);
 			request.setAttribute("activeMenu", "lectures");

@@ -2,6 +2,7 @@ package service;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.List;
 
 import database.DBConnection;
@@ -26,17 +27,19 @@ public class LectureService {	// 이미 개설된 강의에 기준
 
 	
 	// 학생/교수 강의 리스트 
-	public List<LectureDTO> getMyLectures(AccessDTO access) {	
+	public List<LectureDTO> getMyLectures(AccessDTO access, String status) {	
 	    if (access == null) {
 	        throw new IllegalArgumentException("AccessInfo is null");
 	    }
+	    
 
 	    try (Connection conn = DBConnection.getConnection()) {
 
 	        if (access.getRole() == Role.INSTRUCTOR) {
 	            return lectureDAO.selectLecturesByInstructor(
 	                conn,
-	                access.getUserId()
+	                access.getUserId(),
+	                status
 	            );
 	        }
 
@@ -79,30 +82,17 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	// 강의 개설 요청 종료 후 PENDING 상태인 요청 일괄 CANCELD 처리
 	
 	public int cancelExpiredLectureRequest() {
-		final String sql = """
-				UPDATE lecture
-				SET validation = 'CANCELED'
-				WHERE validation = 'PENDING'
-				""";
-		
-		try (	Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql)
-				){
-			
-			return pstmt.executeUpdate(); // 취소된 건수 반환
-					
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
-		
-		
+		return lectureDAO.cancelExpiredLectureRequest();
 	}
+
+		
+		
 	
-	
-	
-	
+	public int[] syncLectureStatusByDate(LocalDate today) {
+		int ongoingCount = lectureDAO.markOnGoing(today);
+		int endedCount = lectureDAO.markEnded(today);
+		return new int[] {ongoingCount, endedCount};
+	}
 	
 	
 	

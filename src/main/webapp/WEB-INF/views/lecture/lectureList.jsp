@@ -4,10 +4,28 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
+<c:set var="status" value="${empty param.status ? 'ONGOING' : param.status}" /> <%-- 첨 들어가면 ongoing목록 --%>
+
 <!-- ===================== 제목 ===================== -->
 <c:choose>
     <c:when test="${role == 'INSTRUCTOR'}">
+    <div class = "d-flex align-items-center justify-content-between mb-3">
         <h3 class="mb-3">📚 내 강의 목록</h3>
+        <div class="btn-group" role="group" aria-label="lecture status filter">
+		    <a class="btn btn-sm ${status=='PLANNED' ? 'btn-primary' : 'btn-outline-dark'}"
+		       href="${ctx}/instructor/lectures?status=PLANNED">
+		      요청
+		    </a>
+		    <a class="btn btn-sm ${status=='ONGOING' ? 'btn-primary' : 'btn-outline-dark'}"
+		       href="${ctx}/instructor/lectures?status=ONGOING">
+		      진행
+		    </a>
+		    <a class="btn btn-sm ${status=='ENDED' ? 'btn-primary' : 'btn-outline-dark'}"
+		       href="${ctx}/instructor/lectures?status=ENDED">
+		      완료
+		    </a>
+  		</div>
+    </div>
     </c:when>
     <c:when test="${role == 'STUDENT'}">
         <h3 class="mb-3">📚 수강 중인 강의</h3>
@@ -22,7 +40,7 @@
     <div class="alert alert-info">
         <c:choose>
             <c:when test="${role == 'INSTRUCTOR'}">
-                담당 중인 강의가 없습니다.
+                강의가 없습니다.
             </c:when>
             <c:when test="${role == 'STUDENT'}">
                 수강 중인 강의가 없습니다.
@@ -62,6 +80,22 @@
 
                     <!-- 강의명 -->
                     <td class="text-start">
+                        
+                        <c:if test="${status == 'PLANNED'}">
+                        	<c:choose>
+                        		<c:when test="${lec.validation == 'PENDING'}">
+                        			<span class="badge bg-warning text-dark ms-2">
+                        				PENDING
+                        			</span>
+                        		</c:when>
+                        		<c:when test="${lec.validation == 'CONFIRMED'}">
+					                <span class="badge bg-success ms-2">
+					                    CONFIRMED
+					                </span>
+					            </c:when>
+                        	</c:choose>
+                        
+                        </c:if>
                         <a href="${ctx}/lecture/detail?lectureId=${lec.lectureId}"
                            class="text-decoration-none fw-semibold">
                             ${lec.lectureTitle}
