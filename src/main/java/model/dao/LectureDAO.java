@@ -364,6 +364,8 @@ public class LectureDAO {
 				JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
 				WHERE e.user_id = ?
 				  AND e.status = 'ENROLLED'
+				  AND l.validation = 'CONFIRMED'
+				  AND l.status = 'ONGOING'
 				GROUP BY
 				    l.lecture_id,
 				    l.lecture_title,
@@ -416,6 +418,8 @@ public class LectureDAO {
     	        JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
     	        WHERE e.user_id = ?
     	          AND e.status = 'ENROLLED'
+    	          AND l.validation = 'CONFIRMED'
+    			  AND l.status = 'ONGOING'
     	        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
     	                 s.start_time
     	    """;
