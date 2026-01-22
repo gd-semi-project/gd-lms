@@ -59,7 +59,7 @@ public class LectureDAO {
     	            updated_at
     	        FROM lecture
     	        WHERE user_id = ?
-    	          AND status = 'ONGOING'
+    	          AND status = ?
     	        ORDER BY start_date DESC
     	    """;
 
