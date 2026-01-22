@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
@@ -7,7 +8,7 @@
 <jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3 class="mb-0">Q&amp;A</h3>
+  <h3 class="mb-0">💬 Q&amp;A</h3>
 
   <c:if test="${sessionScope.AccessInfo.role == 'STUDENT'}">
     <a class="btn btn-primary"
@@ -51,8 +52,10 @@
                     <c:out value="${row.title}" />
                   </a>
                 </td>
-                <td><c:out value="${row.status}" /></td>
-                <td><c:out value="${row.createdAt}" /></td>
+                <td><c:out value="${row.status.displayName}" /></td>
+                <td>
+  					${fn:replace(fn:substring(row.createdAt.toString(), 0, 16), 'T', ' ')}
+				</td>
               </tr>
             </c:forEach>
           </c:otherwise>

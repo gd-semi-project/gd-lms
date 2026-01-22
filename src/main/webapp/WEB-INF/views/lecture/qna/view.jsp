@@ -14,7 +14,7 @@
     <div class="card-body">
       <h5 class="card-title"><c:out value="${post.title}" /></h5>
       <div class="text-muted mb-2">
-        작성자: ${post.authorId} | 상태: ${post.status} | 공개: ${post.isPrivate}
+        작성자: ${post.authorName} | 상태: ${post.status.displayName} | 공개: ${post.isPrivate}
       </div>
       <div class="card-text" style="white-space: pre-wrap;"><c:out value="${post.content}" /></div>
     </div>
@@ -43,7 +43,7 @@
       <c:forEach var="a" items="${answers}">
         <div class="card mb-2">
           <div class="card-body">
-            <div class="text-muted mb-2">답변자: ${a.instructorId}</div>
+            <div class="text-muted mb-2">답변자: ${a.instructorName}</div>
             <div style="white-space: pre-wrap;"><c:out value="${a.content}" /></div>
           </div>
         </div>
