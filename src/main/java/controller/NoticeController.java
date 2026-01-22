@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
+import model.enumtype.NoticeType;
 import model.enumtype.Role;
 import service.NoticeService;
 
@@ -117,7 +118,6 @@ public class NoticeController extends HttpServlet {
         Long userId = getLoginUserId(session);
         Role role = getLoginRole(session);
 
-        // 로그인/권한 정보 없으면 403 처리
         requireLogin(userId, role);
 
         int totalCount;
@@ -139,8 +139,8 @@ public class NoticeController extends HttpServlet {
             totalCount = noticeService.countByLecture(lectureId.longValue(), items, text, userId, role);
             list = noticeService.findPageByLecture(lectureId.longValue(), limit, offset, items, text, userId, role);
         }
-        int totalPages = (int) Math.ceil(totalCount / (double) size);
 
+        int totalPages = (int) Math.ceil(totalCount / (double) size);
         List<LectureDTO> userLectures = noticeService.getUserLectures(userId, role);
 
         req.setAttribute("noticeList", list);
@@ -154,7 +154,7 @@ public class NoticeController extends HttpServlet {
         req.setAttribute("tabType", tabType);
         req.setAttribute("userLectures", userLectures);
         req.setAttribute("hasUserLectures", userLectures != null && !userLectures.isEmpty());
-        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
+        req.setAttribute("role", role.name());
 
         forwardLayout(req, resp, NOTICE_LIST);
     }
@@ -182,7 +182,7 @@ public class NoticeController extends HttpServlet {
         }
 
         req.setAttribute("notice", notice);
-        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
+        req.setAttribute("role", role.name());
         forwardLayout(req, resp, NOTICE_VIEW);
     }
 
@@ -194,7 +194,6 @@ public class NoticeController extends HttpServlet {
         Role role = getLoginRole(session);
         requireLogin(userId, role);
 
-        // 학생 차단
         if (role == Role.STUDENT) {
             throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
         }
@@ -202,7 +201,7 @@ public class NoticeController extends HttpServlet {
         List<LectureDTO> lectureList = noticeService.getAvailableLectures(userId, role);
 
         req.setAttribute("lectureList", lectureList);
-        req.setAttribute("role", role.name()); // 문자열로 변환하여 전달
+        req.setAttribute("role", role.name());
 
         forwardLayout(req, resp, NOTICE_NEW);
     }
@@ -234,6 +233,7 @@ public class NoticeController extends HttpServlet {
         }
 
         req.setAttribute("notice", notice);
+        req.setAttribute("role", role.name());
         forwardLayout(req, resp, NOTICE_EDIT);
     }
 
@@ -251,11 +251,16 @@ public class NoticeController extends HttpServlet {
             throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
         }
 
-        String noticeType = trimToNull(req.getParameter("noticeType"));
-        Long lectureId = null;
+        NoticeType noticeType = parseNoticeType(req, resp);
+        if (noticeType == null) return; // 400 already sent
 
-        if ("LECTURE".equals(noticeType)) {
+        Long lectureId = null;
+        if (noticeType == NoticeType.LECTURE) {
             lectureId = parseLongNullable(req.getParameter("lectureId"));
+            if (lectureId == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId is required for LECTURE notice.");
+                return;
+            }
         }
 
         String title = trimToNull(req.getParameter("title"));
@@ -289,13 +294,24 @@ public class NoticeController extends HttpServlet {
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
         Long lectureId = parseLongNullable(req.getParameter("lectureId"));
-
         if (noticeId == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "noticeId is required.");
             return;
         }
 
-        String noticeType = trimToNull(req.getParameter("noticeType"));
+        NoticeType noticeType = parseNoticeType(req, resp);
+        if (noticeType == null) return; // 400 already sent
+
+        // 업데이트 시에도 정합성 유지: LECTURE면 lectureId 필수, ANNOUNCEMENT면 lectureId는 null이 자연스럽다.
+        if (noticeType == NoticeType.LECTURE && lectureId == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId is required for LECTURE notice.");
+            return;
+        }
+        if (noticeType == NoticeType.ANNOUNCEMENT) {
+            // 전체공지는 lectureId가 들어오더라도 혼선을 줄이기 위해 null로 정규화(선택)
+            lectureId = null;
+        }
+
         String title = trimToNull(req.getParameter("title"));
         String content = trimToNull(req.getParameter("content"));
 
@@ -341,6 +357,20 @@ public class NoticeController extends HttpServlet {
     }
 
     // ========== Helpers ==========
+
+    private NoticeType parseNoticeType(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String noticeTypeStr = trimToNull(req.getParameter("noticeType"));
+        if (noticeTypeStr == null) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "noticeType is required.");
+            return null;
+        }
+        try {
+            return NoticeType.valueOf(noticeTypeStr);
+        } catch (IllegalArgumentException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid noticeType: " + noticeTypeStr);
+            return null;
+        }
+    }
 
     private void forwardLayout(HttpServletRequest req, HttpServletResponse resp, String contentPage)
             throws ServletException, IOException {

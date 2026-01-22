@@ -1,11 +1,11 @@
 package model.enumtype;
 
-public enum isPrivate {
+public enum IsPrivate {
     Y("Y"), N("N");
 
     private final String dbValue;
 
-    isPrivate(String dbValue) {
+    IsPrivate(String dbValue) {
         this.dbValue = dbValue;
     }
 
@@ -13,11 +13,11 @@ public enum isPrivate {
         return dbValue;
     }
 
-    public static isPrivate fromDb(String db) {
+    public static IsPrivate fromDb(String db) {
         if (db == null) return N;
         String v = db.trim().toUpperCase();
         if ("Y".equals(v)) return Y;
         if ("N".equals(v)) return N;
-        throw new IllegalArgumentException("Invalid isPrivate db value: " + db);
+        throw new IllegalArgumentException("Invalid IsPrivate db value: " + db);
     }
 }

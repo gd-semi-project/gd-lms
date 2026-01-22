@@ -2,8 +2,8 @@ package model.dao;
 
 import model.dto.QnaPostDTO;
 import model.enumtype.QnaStatus;
-import model.enumtype.isDeleted;
-import model.enumtype.isPrivate;
+import model.enumtype.IsDeleted;
+import model.enumtype.IsPrivate;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -110,7 +110,7 @@ public class QnaPostDAO {
             ps.setString(3, dto.getTitle());
             ps.setString(4, dto.getContent());
 
-            isPrivate priv = (dto.getIsPrivate() == null) ? isPrivate.N : dto.getIsPrivate();
+            IsPrivate priv = (dto.getIsPrivate() == null) ? IsPrivate.N : dto.getIsPrivate();
             ps.setString(5, priv.toDb()); // ★ enum -> DB 문자열
 
             ps.executeUpdate();
@@ -131,7 +131,7 @@ public class QnaPostDAO {
             ps.setString(1, dto.getTitle());
             ps.setString(2, dto.getContent());
 
-            isPrivate priv = (dto.getIsPrivate() == null) ? isPrivate.N : dto.getIsPrivate();
+            IsPrivate priv = (dto.getIsPrivate() == null) ? IsPrivate.N : dto.getIsPrivate();
             ps.setString(3, priv.toDb()); // ★
 
             ps.setLong(4, dto.getQnaId());
@@ -168,8 +168,8 @@ public class QnaPostDAO {
         d.setContent(rs.getString("content"));
 
         // ★ String -> enum 변환
-        d.setIsPrivate(isPrivate.fromDb(rs.getString("is_private")));
-        d.setIsDeleted(isDeleted.fromDb(rs.getString("is_deleted")));
+        d.setIsPrivate(IsPrivate.fromDb(rs.getString("is_private")));
+        d.setIsDeleted(IsDeleted.fromDb(rs.getString("is_deleted")));
 
         String statusDb = rs.getString("status");
         d.setStatus(statusDb == null ? QnaStatus.OPEN : QnaStatus.valueOf(statusDb.trim().toUpperCase()));
