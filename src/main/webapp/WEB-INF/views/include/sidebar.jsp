@@ -28,7 +28,7 @@
          <a class="nav-link text-white" href="${ctx}/notice/list">📢 공지사항</a>
        </li>
        <li class="nav-item">
-         <a class="nav-link text-white" href="<%=ctx%>/calendar/view">학사일정</a>
+         <a class="nav-link text-white" href="<%=ctx%>/calendar/view">📅 학사일정</a>
        </li>
        
 <!--        권한별 개인성적 -->
