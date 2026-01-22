@@ -5,7 +5,7 @@
 
 <h3 class="mb-3">Q&amp;A 질문 작성</h3>
 
-<form method="post" action="${ctx}/lecture/qna/create">
+<form method="post" action="${ctx}/lecture/qna?action=create">
   <input type="hidden" name="lectureId" value="${lectureId}" />
 
   <div class="mb-3">

@@ -1,7 +1,7 @@
 package model.dao;
 
 import model.dto.QnaAnswerDTO;
-import model.enumtype.isDeleted;
+import model.enumtype.IsDeleted;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class QnaAnswerDAO {
         d.setContent(rs.getString("content"));
 
         // ★ String -> enum
-        d.setIsDeleted(isDeleted.fromDb(rs.getString("is_deleted")));
+        d.setIsDeleted(IsDeleted.fromDb(rs.getString("is_deleted")));
 
         Timestamp c = rs.getTimestamp("created_at");
         Timestamp u = rs.getTimestamp("updated_at");
