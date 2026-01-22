@@ -71,10 +71,15 @@
 
                         <!-- 버튼 -->
                         <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-secondary" 
-                                    onclick="location.href='${ctx}/notice/view?noticeId=${notice.noticeId}${not empty notice.lectureId ? \"&lectureId=\".concat(notice.lectureId) : \"\"}'">
-                                취소
-                            </button>
+                        <c:url var="cancelUrl" value="/notice/view">
+						  <c:param name="noticeId" value="${notice.noticeId}" />
+						  <c:if test="${not empty notice.lectureId}">
+						    <c:param name="lectureId" value="${notice.lectureId}" />
+						  </c:if>
+						</c:url>
+                       <button type="button" class="btn btn-secondary" onclick="location.href='${cancelUrl}'">
+						  취소
+					   </button>
                             <div>
                                 <button type="submit" class="btn btn-warning">✅ 수정 완료</button>
                                 <button type="button" class="btn btn-danger ms-2" 
