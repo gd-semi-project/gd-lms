@@ -12,6 +12,8 @@ import java.util.List;
 import database.DBConnection;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
+import model.dto.MyLectureDTO;
+import model.dto.UserDTO;
 import model.enumtype.EnrollmentStatus;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
@@ -319,4 +321,55 @@ public class LectureDAO {
 
         return dto;
     }
+    
+    // 학생 개인이 수강하고있는 강의목록
+    public List<MyLectureDTO> selectMyEnrollmentedLecture(long userId){
+		String sql = """
+            SELECT
+                l.lecture_id,
+                l.lecture_title,
+                l.section,
+                l.room,
+                l.start_date,
+                l.end_date,
+                u.name AS instructor_name
+            FROM enrollment e
+            JOIN lecture l ON e.lecture_id = l.lecture_id
+            JOIN user u ON l.user_id = u.user_id
+            WHERE e.user_id = ?
+              AND e.status = 'ENROLLED'
+            ORDER BY l.start_date
+        """;
+    	
+		List<MyLectureDTO> list = new ArrayList<>();
+		
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				MyLectureDTO lecture = new MyLectureDTO();
+				lecture.setLectureId(rs.getLong("lecture_id"));
+				lecture.setLectureTitle(rs.getString("lecture_title"));
+				lecture.setSection(rs.getString("section"));
+				lecture.setRoom(rs.getString("room"));
+				lecture.setStartDate(rs.getDate("start_date").toLocalDate());
+				lecture.setEndDate(rs.getDate("end_date").toLocalDate());
+				lecture.setInstructorName(rs.getString("instructor_name"));
+				
+				list.add(lecture);
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+    	
+    	return null;
+    }
+    
+    
+    
+    
+    
 }

@@ -1,8 +1,8 @@
 package model.enumtype;
 
 public enum StudentType {
-    UNDERGRADUATE("학부"),
-    GRADUATE("대학원");
+    UNDERGRADUATE("UNDERGRADUATE"),
+    GRADUATE("GRADUATE");
 
     private final String label;
 
