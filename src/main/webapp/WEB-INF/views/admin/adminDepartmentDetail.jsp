@@ -74,7 +74,7 @@
                 <c:otherwise>
                   <c:forEach var="p" items="${instructorList}">
                     <tr class="row-click"
-                    	data-href = "${pageContext.request.contextPath}/"
+                    	data-href = "${pageContext.request.contextPath}/instructor/profile?userId=${p.userId}"
                     >
                       <td class="text-muted">${p.instructorNo}</td>
                       <td class="fw-semibold text-nowrap">${p.name}</td>
@@ -124,7 +124,7 @@
                 <c:otherwise>
                   <c:forEach var="s" items="${studentList}">
                     <tr class="row-click"
-                    	data-href = "${pageContext.request.contextPath}/"
+                    	data-href = "${pageContext.request.contextPath}/mypage/studentPage?a_loginId=${s.loginId}"
                     >
                       <td class="text-muted">${s.studentNumber}</td>
                       <td class="fw-semibold text-nowrap">${s.name}</td>

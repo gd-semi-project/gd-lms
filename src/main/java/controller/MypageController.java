@@ -45,7 +45,12 @@ public class MypageController extends HttpServlet {
 	            return;
 	        }
 	        // loginId 확보
-	        String loginId = (String) session.getAttribute("loginId");
+	        
+	        String loginId = request.getParameter("a_loginId");
+	        if (loginId == null) {
+	        	loginId = (String) session.getAttribute("loginId");
+	        }
+	        
 	        if (loginId == null) {
 	            // 세션 꼬임 방어
 	            session.invalidate();
@@ -62,18 +67,19 @@ public class MypageController extends HttpServlet {
 		// 학생관련
 		case "/studentPage": {	// 학생정보
 			// ROLE이 STUDENT인경우(학생)만 접근가능
-			if (access.getRole() != Role.STUDENT) {
+			if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
 		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		        return;
 		    }
 			
-			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
-	            if (mypage == null) {
-	                response.sendRedirect(request.getContextPath() + "/login");
-	                return;
-	            }
-	            
-	            request.setAttribute("mypage", mypage);
+			MypageDTO mypage = myPageService.getMypageDTO(loginId);
+			
+            if (mypage == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            
+            request.setAttribute("mypage", mypage);
 
 			request.setAttribute(
 			        "contentPage",

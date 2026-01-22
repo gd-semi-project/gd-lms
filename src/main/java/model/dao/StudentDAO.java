@@ -214,6 +214,7 @@ public class StudentDAO {
 		String sql ="""
 				
 				SELECT
+					u.login_id,
 		            s.student_id,
 		            s.department_id,
 		            s.user_id,
@@ -269,6 +270,7 @@ public class StudentDAO {
 	                Timestamp endTs = rs.getTimestamp("end_date");
 	                dto.setEndDate(endTs == null ? null : endTs.toLocalDateTime());
 					
+	                dto.setLoginId(rs.getString("login_id"));
 	                dto.setName(rs.getString("name"));
 	                dto.setEmail(rs.getString("email"));
 	                dto.setPhone(rs.getString("phone"));
@@ -280,6 +282,7 @@ public class StudentDAO {
 			return list;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("getAllStudentByDepartment(): 실패");
 		}
 		
