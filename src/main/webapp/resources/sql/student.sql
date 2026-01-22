@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS student (
 
     enroll_date DATETIME,                           
     end_date DATETIME,                               
-    tuition_account VARCHAR(255),                   
+    tuition_account VARCHAR(255),          
 
     CONSTRAINT fk_student_user
         FOREIGN KEY (user_id) 

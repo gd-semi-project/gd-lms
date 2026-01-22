@@ -23,7 +23,9 @@ public class StudentDAO {
 		return instance;
 	}
 	
+
 	// login_id을 통해서 학생테이블을 가져옴
+
 //	public StudentDTO findStudentByLoginId(String loginId) {
 //		System.out.println("🔥 StudentDAO 진입");
 //
@@ -73,53 +75,50 @@ public class StudentDAO {
 //		
 //	}
   
-  	// user_id(FK)을 통해서 학생테이블을 가져옴
-	public StudentDTO findStudentByUserId(long userId) {
-//		StudentDTO student = new StudentDTO();
-		
-		String sql = "SELECT * FROM student WHERE user_id = ?";
-		
-		try (Connection conn = DBConnection.getConnection())
-		{
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setLong(1, userId);
+	// user_id(FK)을 통해서 학생테이블을 가져옴
+		public StudentDTO findStudentByUserId(long userId) {
+//			StudentDTO student = new StudentDTO();
 			
-			ResultSet rs = pstmt.executeQuery();
+			String sql = "SELECT * FROM student WHERE user_id = ?";
 			
-			if(rs.next()) {
-				StudentDTO student = new StudentDTO();
+			try (Connection conn = DBConnection.getConnection())
+			{
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				pstmt.setLong(1, userId);
 				
-							    student.setStudentId(rs.getLong("student_id"));
-							    student.setUserId(rs.getLong("user_id"));
-							    student.setDepartmentId(rs.getLong("department_id"));
+				ResultSet rs = pstmt.executeQuery();
 				
-							    student.setStudentNumber(rs.getInt("student_number"));
-							    student.setStudentGrade(rs.getInt("student_grade"));
-							    student.setStatus(StudentType.fromLabel(rs.getString("status")));
-							    student.setStudentStatus( StudentStatus.fromLabel(rs.getString("student_status")));
+				if(rs.next()) {
+					StudentDTO student = new StudentDTO();
+					
+								    student.setStudentId(rs.getLong("student_id"));
+								    student.setUserId(rs.getLong("user_id"));
+								    student.setDepartmentId(rs.getLong("department_id"));
+					
+								    student.setStudentNumber(rs.getInt("student_number"));
+								    student.setStudentGrade(rs.getInt("student_grade"));
+								    student.setStatus(StudentType.fromLabel(rs.getString("status")));
+								    student.setStudentStatus( StudentStatus.fromLabel(rs.getString("student_status")));
+					
+								    Timestamp enrollTs = rs.getTimestamp("enroll_date");
+								    if (enrollTs != null)
+								        student.setEnrollDate(enrollTs.toLocalDateTime());
+					
+								    Timestamp endTs = rs.getTimestamp("end_date");
+								    if (endTs != null)
+								        student.setEndDate(endTs.toLocalDateTime());
+					
+								    student.setTuitionAccount(rs.getString("tuition_account"));
+								    return student;
+				}
 				
-							    Timestamp enrollTs = rs.getTimestamp("enroll_date");
-							    if (enrollTs != null)
-							        student.setEnrollDate(enrollTs.toLocalDateTime());
-				
-							    Timestamp endTs = rs.getTimestamp("end_date");
-							    if (endTs != null)
-							        student.setEndDate(endTs.toLocalDateTime());
-				
-							    student.setTuitionAccount(rs.getString("tuition_account"));
-							    return student;
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			return null;
 			
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return null;
-		
-	}
 
-  
-  
-  
 	// 학생정보 수정
 	public void updateStudentInfo(StudentDTO studentsDTO, String loginId) {
 		String sql = "UPDATE student s "

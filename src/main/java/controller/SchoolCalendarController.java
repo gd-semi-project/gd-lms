@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.dto.SchoolCalendarDTO;
 import service.SchoolCalendarService;
+import utils.AppTime;
 
 import java.io.IOException;
 
@@ -32,8 +33,21 @@ public class SchoolCalendarController extends HttpServlet {
 			contentPage = "/WEB-INF/views/calendar/calendar.jsp";
 			SchoolCalendarService calendarService = SchoolCalendarService.getInstance();
 			
-			SchoolCalendarDTO calendar = calendarService.getCalendar(request.getParameter("year"),request.getParameter("month"));
+			int year = AppTime.now().getYear();
+			int month =AppTime.now().getMonthValue();
 			
+			String yearParam = request.getParameter("year");
+			String monthParam = request.getParameter("month");
+					
+		    if (	yearParam != null && !yearParam.isBlank() &&
+		    		monthParam != null && !monthParam.isBlank()		) {
+		    	
+	    	        year = Integer.parseInt(yearParam);
+	    	        month = Integer.parseInt(monthParam);
+	    	        
+		    	    }
+		    
+			SchoolCalendarDTO calendar = calendarService.getCalendar(String.valueOf(year), String.valueOf(month));
 			request.setAttribute("calendar", calendar);
 			
 			request.setAttribute("selectedYear", calendar.getSelectedYear());

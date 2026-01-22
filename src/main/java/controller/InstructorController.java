@@ -77,16 +77,16 @@ public class InstructorController extends HttpServlet {
 
         // 내 강의 목록
         case "/lectures": {
-            List<LectureDTO> lectures =
-                lectureService.getMyLectures(access);
+          String status = request.getParameter("status");
+          if (status == null || status.isBlank()) status = "ONGOING";
 
-            request.setAttribute("lectures", lectures);
-            request.setAttribute("activeMenu", "lectures");
-            request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/lecture/lectureList.jsp"
-            );
-            break;
+
+          List<LectureDTO> lectures = lectureService.getMyLectures(access, status);
+
+          request.setAttribute("lectures", lectures);
+          request.setAttribute("activeMenu", "lectures");
+          request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
+          break;
         }
 
         // 강의 개설 신청 목록
