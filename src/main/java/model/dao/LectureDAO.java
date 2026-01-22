@@ -13,6 +13,9 @@ import java.util.List;
 import database.DBConnection;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
+import model.dto.MyLectureDTO;
+import model.dto.MyscheduleDTO;
+import model.dto.UserDTO;
 import model.enumtype.EnrollmentStatus;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
@@ -324,8 +327,125 @@ public class LectureDAO {
         return dto;
     }
     
+
+    // 학생 개인이 수강하고있는 강의목록
+    public List<MyLectureDTO> selectMyEnrollmentedLecture(long userId){
+		String sql = """
+				           SELECT
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name AS instructor_name,
+				    GROUP_CONCAT(
+				        CONCAT(
+				            CASE s.week_day
+				                WHEN 'MON' THEN '월'
+				                WHEN 'TUE' THEN '화'
+				                WHEN 'WED' THEN '수'
+				                WHEN 'THU' THEN '목'
+				                WHEN 'FRI' THEN '금'
+				                WHEN 'SAT' THEN '토'
+				                WHEN 'SUN' THEN '일'
+				            END,
+				            ' ',
+				            TIME_FORMAT(s.start_time, '%H:%i'),
+				            '~',
+				            TIME_FORMAT(s.end_time, '%H:%i')
+				        )
+				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
+				        SEPARATOR ' / '
+				    ) AS schedule
+				FROM enrollment e
+				JOIN lecture l ON e.lecture_id = l.lecture_id
+				JOIN user u ON l.user_id = u.user_id
+				JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+				WHERE e.user_id = ?
+				  AND e.status = 'ENROLLED'
+				GROUP BY
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name
+				ORDER BY l.start_date
+				        """;
+    	
+		List<MyLectureDTO> list = new ArrayList<>();
+		
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				MyLectureDTO lecture = new MyLectureDTO();
+				lecture.setLectureId(rs.getLong("lecture_id"));
+				lecture.setLectureTitle(rs.getString("lecture_title"));
+				lecture.setSection(rs.getString("section"));
+				lecture.setRoom(rs.getString("room"));
+				lecture.setStartDate(rs.getDate("start_date").toLocalDate());
+				lecture.setEndDate(rs.getDate("end_date").toLocalDate());
+				lecture.setInstructorName(rs.getString("instructor_name"));
+				lecture.setSchedule(rs.getString("schedule"));
+				list.add(lecture);
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+    	
+    	return list;
+    }
+    
+    // 학생 개인의 시간표
+    public List<MyscheduleDTO> selectMySchedule(long userId){
+    	String sql = """
+    	        SELECT
+    	            s.week_day,
+    	            HOUR(s.start_time) AS start_hour,
+    	            HOUR(s.end_time)   AS end_hour,
+    	            l.lecture_title
+    	        FROM enrollment e
+    	        JOIN lecture l ON e.lecture_id = l.lecture_id
+    	        JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+    	        WHERE e.user_id = ?
+    	          AND e.status = 'ENROLLED'
+    	        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+    	                 s.start_time
+    	    """;
+
+    	    List<MyscheduleDTO> list = new ArrayList<>();
+
+    	    try (Connection conn = DBConnection.getConnection();
+    	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    	        pstmt.setLong(1, userId);
+    	        ResultSet rs = pstmt.executeQuery();
+
+    	        while (rs.next()) {
+    	            MyscheduleDTO dto = new MyscheduleDTO();
+    	            dto.setWeekDay(rs.getString("week_day"));       
+    	            dto.setStartHour(rs.getInt("start_hour"));      
+    	            dto.setEndHour(rs.getInt("end_hour"));          
+    	            dto.setLectureTitle(rs.getString("lecture_title"));
+    	            list.add(dto);
+    	        }
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	    }
+
+    	    return list;
+	}
     
     
+    
+
     public int updateStatus(
     	    Connection conn,
     	    LectureStatus from,
