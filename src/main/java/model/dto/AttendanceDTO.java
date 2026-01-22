@@ -1,6 +1,8 @@
 package model.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,13 +12,16 @@ import model.enumtype.AttendanceStatus;
 @NoArgsConstructor
 public class AttendanceDTO {
 
-    private Long attendanceId;   // PK
-    private Long sessionId;      // FK → lecture_session
-    private Long studentId;       // FK → student
+    private Long attendanceId;
+    private Long sessionId;
+    private Long studentId;
 
-    private AttendanceStatus status; // 출석 / 지각 / 결석
-    private LocalDateTime checkedAt; // 출석 버튼 누른 시간
+    private AttendanceStatus status; // ABSENT, PRESENT, LATE
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDate sessionDate;   // 수업 날짜
+    private LocalDateTime checkedAt; // 출석 체크 시간
+    
+    // 조회용
+    private LocalTime startTime;
+    private LocalTime endTime;
 }

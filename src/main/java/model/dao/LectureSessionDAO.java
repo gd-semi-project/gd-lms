@@ -3,38 +3,93 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import model.dto.LectureDTO;
-import model.dto.LectureScheduleDTO;
 import model.dto.LectureSessionDTO;
-import model.enumtype.Week;
 
 public class LectureSessionDAO {
 
-    private static final LectureSessionDAO instance =
-        new LectureSessionDAO();
+    private static final LectureSessionDAO instance = new LectureSessionDAO();
+    private LectureSessionDAO() {}
 
     public static LectureSessionDAO getInstance() {
         return instance;
     }
 
-    private LectureSessionDAO() {}
-
-    // =========================
-    // 회차 단건 조회
-    // =========================
-    public LectureSessionDTO selectById(
+    /* =================================================
+     * 교수 출석 시작 → 회차 생성
+     * ================================================= */
+    public long insertSession(
             Connection conn,
-            long sessionId
-    ) throws SQLException {
+            long lectureId,
+            LocalDate sessionDate,
+            LocalTime startTime,
+            LocalTime endTime
+    ) throws Exception {
 
         String sql = """
-            SELECT *
+            INSERT INTO lecture_session
+            (lecture_id, session_date, start_time, end_time)
+            VALUES (?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement pstmt =
+                     conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+            pstmt.setLong(1, lectureId);
+            pstmt.setDate(2, java.sql.Date.valueOf(sessionDate));
+            pstmt.setTime(3, java.sql.Time.valueOf(startTime));
+            pstmt.setTime(4, java.sql.Time.valueOf(endTime));
+            pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getLong(1); // 생성된 session_id
+                }
+            }
+        }
+
+        throw new IllegalStateException("회차 생성 실패");
+    }
+
+    /* =================================================
+     * 같은 날 회차 이미 존재하는지 확인
+     * ================================================= */
+    public boolean existsTodaySession(
+            Connection conn,
+            long lectureId,
+            LocalDate today
+    ) throws Exception {
+
+        String sql = """
+            SELECT 1
+            FROM lecture_session
+            WHERE lecture_id = ?
+              AND session_date = ?
+            LIMIT 1
+        """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, lectureId);
+            pstmt.setDate(2, java.sql.Date.valueOf(today));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /* =================================================
+     * 회차 단건 조회
+     * ================================================= */
+    public LectureSessionDTO findById(Connection conn, long sessionId)
+            throws Exception {
+
+        String sql = """
+            SELECT session_id, lecture_id, session_date, start_time, end_time
             FROM lecture_session
             WHERE session_id = ?
         """;
@@ -43,39 +98,32 @@ public class LectureSessionDAO {
             pstmt.setLong(1, sessionId);
 
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    LectureSessionDTO dto = new LectureSessionDTO();
-                    dto.setSessionId(rs.getLong("session_id"));
-                    dto.setLectureId(rs.getLong("lecture_id"));
-                    dto.setSessionDate(
-                        rs.getDate("session_date").toLocalDate()
-                    );
-                    dto.setStartTime(
-                        rs.getTime("start_time").toLocalTime()
-                    );
-                    dto.setEndTime(
-                        rs.getTime("end_time").toLocalTime()
-                    );
-                    return dto;
-                }
+                if (!rs.next()) return null;
+
+                LectureSessionDTO dto = new LectureSessionDTO();
+                dto.setSessionId(rs.getLong("session_id"));
+                dto.setLectureId(rs.getLong("lecture_id"));
+                dto.setSessionDate(rs.getDate("session_date").toLocalDate());
+                dto.setStartTime(rs.getTime("start_time").toLocalTime());
+                dto.setEndTime(rs.getTime("end_time").toLocalTime());
+                return dto;
             }
         }
-        return null;
     }
 
-    // =========================
-    // 강의별 회차 조회 (교수)
-    // =========================
-    public List<LectureSessionDTO> selectByLectureId(
+    /* =================================================
+     * 강의별 전체 회차 목록 (교수용)
+     * ================================================= */
+    public List<LectureSessionDTO> findByLecture(
             Connection conn,
             long lectureId
-    ) throws SQLException {
+    ) throws Exception {
 
         String sql = """
-            SELECT *
+            SELECT session_id, lecture_id, session_date, start_time, end_time
             FROM lecture_session
             WHERE lecture_id = ?
-            ORDER BY session_date
+            ORDER BY session_date DESC, start_time DESC
         """;
 
         List<LectureSessionDTO> list = new ArrayList<>();
@@ -88,15 +136,9 @@ public class LectureSessionDAO {
                     LectureSessionDTO dto = new LectureSessionDTO();
                     dto.setSessionId(rs.getLong("session_id"));
                     dto.setLectureId(rs.getLong("lecture_id"));
-                    dto.setSessionDate(
-                        rs.getDate("session_date").toLocalDate()
-                    );
-                    dto.setStartTime(
-                        rs.getTime("start_time").toLocalTime()
-                    );
-                    dto.setEndTime(
-                        rs.getTime("end_time").toLocalTime()
-                    );
+                    dto.setSessionDate(rs.getDate("session_date").toLocalDate());
+                    dto.setStartTime(rs.getTime("start_time").toLocalTime());
+                    dto.setEndTime(rs.getTime("end_time").toLocalTime());
                     list.add(dto);
                 }
             }
@@ -104,101 +146,38 @@ public class LectureSessionDAO {
         return list;
     }
 
-    // =========================
-    // 특정 날짜 수업 조회 (학생)
-    // =========================
-    public LectureSessionDTO selectByDate(
+    /* =================================================
+     * 오늘 회차 조회 (학생용)
+     * ================================================= */
+    public LectureSessionDTO findToday(
             Connection conn,
             long lectureId,
-            LocalDate date
-    ) throws SQLException {
+            LocalDate today
+    ) throws Exception {
 
         String sql = """
-            SELECT *
+            SELECT session_id, lecture_id, session_date, start_time, end_time
             FROM lecture_session
             WHERE lecture_id = ?
               AND session_date = ?
+            LIMIT 1
         """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, lectureId);
-            pstmt.setDate(2, java.sql.Date.valueOf(date));
+            pstmt.setDate(2, java.sql.Date.valueOf(today));
 
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    LectureSessionDTO dto = new LectureSessionDTO();
-                    dto.setSessionId(rs.getLong("session_id"));
-                    dto.setLectureId(rs.getLong("lecture_id"));
-                    dto.setSessionDate(
-                        rs.getDate("session_date").toLocalDate()
-                    );
-                    dto.setStartTime(
-                        rs.getTime("start_time").toLocalTime()
-                    );
-                    dto.setEndTime(
-                        rs.getTime("end_time").toLocalTime()
-                    );
-                    return dto;
-                }
+                if (!rs.next()) return null;
+
+                LectureSessionDTO dto = new LectureSessionDTO();
+                dto.setSessionId(rs.getLong("session_id"));
+                dto.setLectureId(rs.getLong("lecture_id"));
+                dto.setSessionDate(rs.getDate("session_date").toLocalDate());
+                dto.setStartTime(rs.getTime("start_time").toLocalTime());
+                dto.setEndTime(rs.getTime("end_time").toLocalTime());
+                return dto;
             }
         }
-        return null;
-    }
-
-    // =========================
-    // 회차 자동 생성
-    // =========================
-    public void generateSessions(
-            Connection conn,
-            LectureDTO lecture,
-            List<LectureScheduleDTO> schedules
-    ) throws SQLException {
-
-        String sql = """
-            INSERT IGNORE INTO lecture_session
-            (lecture_id, session_date, start_time, end_time)
-            VALUES (?, ?, ?, ?)
-        """;
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            LocalDate start = lecture.getStartDate();
-            LocalDate end   = lecture.getEndDate();
-
-            for (LocalDate date = start;
-                 !date.isAfter(end);
-                 date = date.plusDays(1)) {
-
-                DayOfWeek javaDay = date.getDayOfWeek();
-
-                for (LectureScheduleDTO s : schedules) {
-                    if (matches(javaDay, s.getWeekDay())) {
-                        pstmt.setLong(1, lecture.getLectureId());
-                        pstmt.setDate(2,
-                            java.sql.Date.valueOf(date));
-                        pstmt.setTime(3,
-                            java.sql.Time.valueOf(
-                                s.getStartTime()));
-                        pstmt.setTime(4,
-                            java.sql.Time.valueOf(
-                                s.getEndTime()));
-                        pstmt.addBatch();
-                    }
-                }
-            }
-            pstmt.executeBatch();
-        }
-    }
-
-    private boolean matches(DayOfWeek javaDay, Week dbDay) {
-        return switch (dbDay) {
-            case MON -> javaDay == DayOfWeek.MONDAY;
-            case TUE -> javaDay == DayOfWeek.TUESDAY;
-            case WED -> javaDay == DayOfWeek.WEDNESDAY;
-            case THU -> javaDay == DayOfWeek.THURSDAY;
-            case FRI -> javaDay == DayOfWeek.FRIDAY;
-            case SAT -> javaDay == DayOfWeek.SATURDAY;
-            case SUN -> javaDay == DayOfWeek.SUNDAY;
-        };
     }
 }

@@ -83,6 +83,20 @@ public class LectureController extends HttpServlet {
             );
             break;
         }
+        
+        case "/grades": {
+            long lectureId =
+                Long.parseLong(request.getParameter("lectureId"));
+
+            request.setAttribute("lectureId", lectureId);
+            request.setAttribute("activeTab", "grades");
+            request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/lecture/grades.jsp"
+            );
+            break;
+        }
+        
         default:
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
