@@ -1,80 +1,73 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<div class="container-fluid">
+<div class="container mt-4">
+    <div class="row">
+        <!-- 좌측 프로필 카드 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
+                    </div>
+                    <h5 class="card-title">${instructor.name}</h5>
+                    <p class="text-muted mb-1">강사 ID</p>
+                    <p class="fw-bold">${instructor.instructorNo}</p>
+                </div>
+            </div>
+        </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4">👨‍🏫 강사 정보</h2>
-  </div>
+        <!-- 우측 상세 정보 -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">강사 정보</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered align-middle mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="table-light" style="width: 30%;">이름</th>
+                                <td>${instructor.name}</td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">이메일</th>
+                                <td>${instructor.email}</td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">연락처</th>
+                                <td>${instructor.phone}</td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">학과</th>
+                                <td>${instructor.department}</td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">연구실</th>
+                                <td>${instructor.officeRoom}</td>
+                            </tr>
+                            <tr>
+                                <th class="table-light">연구실 전화</th>
+                                <td>${instructor.officePhone}</td>
+                            </tr>
+                            <tr>
+                                <tr>
+								    <th class="table-light">임용일</th>
+								    <td>${instructor.hireDate}</td>
+								</tr>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-  <!-- 강사 정보 없음 -->
-  <c:if test="${empty instructor}">
-    <div class="alert alert-warning">
-      강사 정보를 불러오지 못했습니다.
+                <div class="card-footer text-end">
+                    <a href="${pageContext.request.contextPath}/instructor/lectures"
+                       class="btn btn-outline-primary btn-sm">
+                        내 강의 보기
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-  </c:if>
-
-  <!-- 강사 정보 출력 -->
-  <c:if test="${not empty instructor}">
-    <div class="card shadow-sm">
-      <div class="card-body">
-
-        <table class="table table-bordered mb-0">
-          <tbody>
-
-            <!-- ================= 사용자 정보 ================= -->
-            <tr>
-              <th class="table-light" style="width: 25%;">이름</th>
-              <td>${userName}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">이메일</th>
-              <td>${userEmail}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">전화번호</th>
-              <td>${userPhone}</td>
-            </tr>
-
-            <!-- ================= 강사 정보 ================= -->
-            <tr>
-              <th class="table-light">강사 ID</th>
-              <td>${instructor.userId}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">강사 교번</th>
-              <td>${instructor.instructorNo}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">소속 학과</th>
-              <td>${instructor.department}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">연구실</th>
-              <td>${instructor.officeRoom}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">연구실 전화</th>
-              <td>${instructor.officePhone}</td>
-            </tr>
-
-            <tr>
-              <th class="table-light">임용일</th>
-              <td>${instructor.hireDate}</td>
-            </tr>
-
-            
-          </tbody>
-        </table>
-
-      </div>
-    </div>
-  </c:if>
-
 </div>
