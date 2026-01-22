@@ -112,7 +112,7 @@ public class MypageController extends HttpServlet {
 
 			    return;
 		}
-		case "/mySubjectPage": {	// 내가 수강한과목(학생)
+		case "/mySubjectPage": {	// 내가 수강한과목(학생) 안씀 나중에 지울예정
 			// ROLE이 STUDENT인경우(학생)만 접근가능
 			if (access.getRole() != Role.STUDENT) {
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -165,7 +165,7 @@ public class MypageController extends HttpServlet {
 			    request.getRequestDispatcher(
 			        "/WEB-INF/views/layout/layout.jsp"
 			    ).forward(request, response);
-
+			response.sendRedirect(request.getContextPath() + "/enroll");
 			    return;
 		}
 		case "/mySchedule": {	// 내 스케줄(학생)

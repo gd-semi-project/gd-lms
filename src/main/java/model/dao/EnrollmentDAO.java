@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import database.DBConnection;
+import model.dto.EnrollmentDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.EnrollmentStatus;
@@ -216,6 +217,11 @@ public class EnrollmentDAO {
 	        }
 	    }
 	}
+
+   public List<EnrollmentDTO> findByStudentId(long studentId) {
+	// TODO Auto-generated method stub
+	return null;
+   }
 
 
 

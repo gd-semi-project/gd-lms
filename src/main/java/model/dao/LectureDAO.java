@@ -447,6 +447,40 @@ public class LectureDAO {
     	    return list;
 	}
     
+    // 학생 수강신청 관련
+    
+    // 수강신청페이지에 들어갈 시 떠야하는 개설 강의목록을 나타내주는 메소드
+    public List<LectureDTO> findAvailableLecturesForEnroll(){
+		String sql = """
+				    SELECT *
+				FROM lecture
+				WHERE validation = 'CONFIRMED'
+				  AND status = 'PLANNED'
+				ORDER BY created_at DESC
+				 """;
+
+    	    List<LectureDTO> list = new ArrayList<>();
+
+    	    try (Connection conn = DBConnection.getConnection();
+    	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    	        ResultSet rs = pstmt.executeQuery();
+
+    	        while (rs.next()) {
+    	        	LectureDTO lt = new LectureDTO();
+    	            lt.setLectureId(rs.getLong("lecture_id"));
+    	            lt.setLectureTitle(rs.getString("lecture_title"));
+    	            lt.setCapacity(rs.getInt("capacity"));
+    	            lt.setStatus(LectureStatus.valueOf(rs.getString("status")));
+    	            lt.setValidation(LectureValidation.valueOf(rs.getString("validation")));
+    	            list.add(lt);
+    	        }
+    	    } catch (Exception e) {
+    	        e.printStackTrace();
+    	    }
+
+    	    return list;
+	}
+    
     
     
 
