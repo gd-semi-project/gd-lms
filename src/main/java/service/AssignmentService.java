@@ -45,7 +45,7 @@ public class AssignmentService {
     }
 
     // 과제 생성
-    public long createAssignment(AssignmentDTO dto, long userId, Role role) {
+    public long createAssignment(AssignmentDTO dto, long userId, Role role, Collection<Part> partList) {
         if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
             throw new AccessDeniedException("과제 생성 권한이 없습니다.");
         }
@@ -53,9 +53,14 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
             long id = assignmentDAO.insert(conn, dto);
+            
+            String boardType = "ASSIGNMENT";
+            fus.fileUpload(boardType, id, partList);
+            
             conn.commit();
             return id;
         } catch (Exception e) {
@@ -67,7 +72,7 @@ public class AssignmentService {
     }
 
     // 과제 수정
-    public void updateAssignment(AssignmentDTO dto, long userId, Role role) {
+    public void updateAssignment(AssignmentDTO dto, long userId, Role role, Collection<Part> partList) {
         if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
             throw new AccessDeniedException("과제 수정 권한이 없습니다.");
         }
@@ -75,12 +80,18 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
             int updated = assignmentDAO.update(conn, dto);
             if (updated == 0) {
                 throw new NotFoundException("과제를 찾을 수 없습니다.");
             }
+            
+            String boardType = "ASSIGNMENT";
+            fus.deleteFile(boardType, dto.getAssignmentId());
+            fus.fileUpload(boardType, dto.getAssignmentId(), partList);
+            
             conn.commit();
         } catch (Exception e) {
             rollbackQuietly(conn);
@@ -99,12 +110,16 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, lectureId);
             int deleted = assignmentDAO.softDelete(conn, assignmentId);
             if (deleted == 0) {
                 throw new NotFoundException("과제를 찾을 수 없습니다.");
             }
+            String boardType = "ASSIGNMENT";
+            fus.deleteFile(boardType, assignmentId);
+            
             conn.commit();
         } catch (Exception e) {
             rollbackQuietly(conn);

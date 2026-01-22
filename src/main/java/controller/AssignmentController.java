@@ -10,7 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
+import model.dao.FileDAO;
 import model.dto.AccessDTO;
 import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
@@ -100,7 +100,7 @@ public class AssignmentController extends HttpServlet {
 
                     // 과제 자체 파일 조회
                     List<FileDTO> assignmentFiles = fus.getFileList("ASSIGNMENT", assignmentId);
-                    request.setAttribute("fileList", assignmentFiles);
+                    assignment.setFileList(assignmentFiles);
 
                     // 제출물별 파일 조회 (교수 채점용)
                     for (AssignmentSubmissionDTO sub : submissions) {
@@ -178,6 +178,14 @@ public class AssignmentController extends HttpServlet {
                 request.setAttribute("assignment", assignment);
                 request.setAttribute("submission", submission);
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/assignment/grade.jsp");
+                
+                if (submission != null) {
+                    // 파일 리스트 가져오기
+                    FileUploadService fus = FileUploadService.getInstance();
+                    String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
+                    List<FileDTO> submissionFiles = fus.getFileList(boardType, submission.getSubmissionId());
+                    submission.setFileList(submissionFiles);
+                }
             }
 
             else {
@@ -247,8 +255,8 @@ public class AssignmentController extends HttpServlet {
                 dto.setContent(content.trim());
                 dto.setDueDate(LocalDateTime.parse(dueDateStr));
                 dto.setMaxScore(maxScore);
-
-                long newId = assignmentService.createAssignment(dto, userId, role);
+                                              
+                long newId = assignmentService.createAssignment(dto, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + newId + "&success=created");
@@ -270,7 +278,7 @@ public class AssignmentController extends HttpServlet {
                 dto.setDueDate(LocalDateTime.parse(dueDateStr));
                 dto.setMaxScore(maxScore);
 
-                assignmentService.updateAssignment(dto, userId, role);
+                assignmentService.updateAssignment(dto, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + assignmentId + "&success=updated");

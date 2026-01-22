@@ -39,6 +39,12 @@
         </div>
         <div class="card-body">
           <div class="border p-3 bg-light" style="white-space: pre-wrap;"><c:out value="${submission.content}" /></div>
+          
+          <p><strong>제출파일:</strong></p>
+          <c:set var="fileList" value="${submission.fileList}" scope="request" />
+		  <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
+          <span class="text-muted">-</span>
+          
         </div>
       </div>
 

@@ -43,7 +43,6 @@
 		    <textarea name="content" class="form-control" rows="10" required><c:if test="${not empty mySubmission}"><c:out value="${mySubmission.content}"/></c:if></textarea>
 		  </div>
 		
-		  <!-- ✅ 여기 추가 -->
 		  <input type="hidden" name="lectureId" value="${lectureId}" />
 		  <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
 		  <jsp:include page="/WEB-INF/views/file/fileUpload.jsp" />

@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import database.DBConnection;
@@ -20,10 +21,22 @@ import model.dto.FileDTO;
 @NoArgsConstructor
 public class FileUploadService {
 	private static final FileUploadService instance = new FileUploadService();
-	
+		
 	public static FileUploadService getInstance() {
 		return instance;
 	}
+	
+	private static final Map<String, String> EXT_ICON_MAP = Map.of(
+	        ".hwp", "📄",
+	        ".jpg", "🖼️",
+	        ".jpeg", "🖼️",
+	        ".png", "🖼️",
+	        ".docx", "📃",
+	        ".xlsx", "📊",
+	        ".pptx", "📈",
+	        ".pdf", "📕"
+	);
+	
 	
 	// 파일업로드
 	public void fileUpload(String boardType, Long refId, Collection<Part> partList) {
@@ -43,7 +56,8 @@ public class FileUploadService {
 	    			".jpeg",
 	    			".docx",
 	    			".xlsx",
-	    			".pdf"
+	    			".pdf",
+	    			".pptx"
 	    		);
 
 	        // 1. 파일 메타데이터 생성
@@ -52,15 +66,13 @@ public class FileUploadService {
 	        int lastOfIndexDot = originalFilename.lastIndexOf(".");
 	        String extender = originalFilename.substring(lastOfIndexDot);
 	        
-
-        	System.out.println("파일명: " + originalFilename);
 	        if (!allowFileExtenderList.contains(extender)) {
 	        	// 포함되어있을 경우 제외하고 업로드 하는 방식
 	        	// 개선방향: 예외 던져서 포함되어있을 경우 모든 파일 업로드 금지
 	        	System.out.println("허용되지 않은 확장자 파일입니다.");
 	            continue;
 	        }
-
+	        
 	        FileDTO fileDTO = new FileDTO();
 	        fileDTO.setBoardType(boardType);
 	        fileDTO.setRefId(refId);
@@ -115,7 +127,17 @@ public class FileUploadService {
 	
 	public List<FileDTO> getFileList (String boardType, Long refId) {
 		FileDAO fileDAO = FileDAO.getInstance();
-		return fileDAO.selectFileListById(boardType, refId);
+		List<FileDTO> fileList = fileDAO.selectFileListById(boardType, refId);
+		
+		for (FileDTO file : fileList) {
+			String originalFilename = file.getOriginalFilename(); 
+	        int lastOfIndexDot = originalFilename.lastIndexOf(".");
+	        String extender = originalFilename.substring(lastOfIndexDot);
+	        String icon = EXT_ICON_MAP.getOrDefault(extender, "📄");
+	        file.setExtenderIco(icon);
+		}
+		
+		return fileList; 
 	}
 	
 	public byte[] fileDownload(String downloadDir, String uuid) throws FileNotFoundException, IOException {		

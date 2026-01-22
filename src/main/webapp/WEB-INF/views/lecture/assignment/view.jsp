@@ -29,6 +29,13 @@
       </div>
       <hr>
       <div style="white-space: pre-wrap;"><c:out value="${assignment.content}" /></div>
+      <div>
+      	<p><strong>제출파일:</strong></p>
+	    <c:set var="fileList" value="${assignment.fileList}" scope="request" />
+	    <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
+      </div>   
+      
+      
     </div>
   </div>
 
@@ -136,8 +143,8 @@
                     </td>
                     <td>
                       <c:set var="fileList" value="${s.fileList}" scope="request" />
+                      <c:set var="showIconsOnly" value="true" scope="request" />
             		  <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
-                      <span class="text-muted">-</span>
                     </td>
                     <td>
                       <a class="btn btn-sm btn-outline-primary"

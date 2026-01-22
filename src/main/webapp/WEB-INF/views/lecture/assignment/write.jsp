@@ -9,7 +9,8 @@
 <div class="container mt-4">
   <h3 class="mb-3">📂 과제 등록</h3>
 
-  <form method="post" action="${ctx}/lecture/assignments">
+  <form method="post" action="${ctx}/lecture/assignments"
+  enctype="multipart/form-data">
     <input type="hidden" name="action" value="create" />
     <input type="hidden" name="lectureId" value="${lectureId}" />
 
@@ -34,12 +35,8 @@
       </div>
     </div>
 
-    <%-- TODO: 파일 업로드 연동 (ref_type=ASSIGNMENT, ref_id=생성될 assignmentId) --%>
-    <div class="mb-3">
-      <label class="form-label">첨부파일</label>
-      <input type="file" name="attachments" class="form-control" multiple disabled />
-      <div class="form-text text-muted">파일 업로드 기능 준비 중입니다.</div>
-    </div>
+	<input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
+	<jsp:include page="/WEB-INF/views/file/fileUpload.jsp" />
 
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">등록</button>
