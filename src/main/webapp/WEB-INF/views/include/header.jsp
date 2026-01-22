@@ -38,11 +38,26 @@
           </li>
         </c:if>
 
-        <li class="nav-item">
-          <a class="nav-link" href="<%=ctx%>/login/logout">로그아웃</a>
-        </li>
+		<li class="nav-item">
+		  <a class="nav-link d-flex align-items-center gap-1 logout-link"
+   				href="<%=ctx%>/login/logout">
+		    <i class="bi bi-box-arrow-right"></i>
+		    로그아웃
+		  </a>
+		</li>
+		
         <li class="nav-item"><a class="nav-link" href="<%=ctx%>/settings">알림</a></li>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+.logout-link {
+  color: var(--bs-warning);
+}
+
+.logout-link:hover {
+  color: #fff;
+}
+</style>
