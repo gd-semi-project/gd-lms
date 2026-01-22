@@ -65,6 +65,10 @@
             <span class="material-symbols-outlined">comedy_mask</span>강의 개설 관리</a>
           </li>
           <li class="nav-item">
+            <a class="nav-link text-white" href="<%=ctx%>/admin/departmentManage">
+            <span class="material-symbols-outlined">comedy_mask</span>학과 관리</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link text-white" href="<%=ctx%>/admin/campus">
             <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
           </li>
@@ -118,7 +122,8 @@
               <c:when test="${role == 'ADMIN'}">
                 <li class="nav-item">
                   <a class="nav-link text-white small"
-                     href="${ctx}/admin/lectures">전체 강의 목록</a>
+                     href="${ctx}/admin/lectures">
+                     <span class="material-symbols-outlined">comedy_mask</span>전체 강의 목록</a>
                 </li>
               </c:when>
       

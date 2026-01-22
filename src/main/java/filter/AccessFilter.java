@@ -50,7 +50,6 @@ public class AccessFilter extends HttpFilter {
 			middlePath = actionPath.split("/")[1];
 		}
 		
-		
 		// 세션이 없고, 접근 경로가 화이트리스트라면 모두 통과
 		if (session == null) {
 			if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {

@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS student (
     student_number INT NOT NULL UNIQUE,             
     student_grade INT,                              
 
-    status ENUM('학부','대학원') NOT NULL,           
-    student_status ENUM('재학','휴학','졸업') 
-                   NOT NULL DEFAULT '재학',       
+    status ENUM('UNDERGRADUATE','GRADUATE') NOT NULL,           
+    student_status ENUM('ENROLLED','LEAVE','GRADUATED') 
+                   NOT NULL DEFAULT 'ENROLLED',       
 
     enroll_date DATETIME,                           
     end_date DATETIME,                               
@@ -41,10 +41,10 @@ SELECT
   u.user_id,
   20260000 + u.user_id              AS student_number,
   1 + ((u.user_id - 1) % 4)         AS student_grade,
-  '학부'                            AS status,
+  'UNDERGRADUATE'                            AS status,
   CASE
-    WHEN u.user_id % 10 = 0 THEN '휴학'
-    ELSE '재학'
+    WHEN u.user_id % 10 = 0 THEN 'LEAVE'
+    ELSE 'ENROLLED'
   END                               AS student_status,
   DATE_ADD('2022-03-01', INTERVAL (u.user_id % 4) YEAR) AS enroll_date,
   NULL                              AS end_date,

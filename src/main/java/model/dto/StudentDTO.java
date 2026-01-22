@@ -21,4 +21,9 @@ public class StudentDTO {
 	private LocalDateTime enrollDate;	// 입학일자
 	private LocalDateTime endDate;		// 졸업일자
 	private String tuitionAccount;		// 등록금 계좌
+	
+	private String name;
+	private String email;
+	private String phone;
+	
 }
