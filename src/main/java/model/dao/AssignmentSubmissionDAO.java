@@ -35,10 +35,12 @@ public class AssignmentSubmissionDAO {
                     dto.setContent(rs.getString("content"));
                     dto.setScore(rs.getObject("score") != null ? rs.getInt("score") : null);
                     dto.setFeedback(rs.getString("feedback"));
-                    dto.setSubmittedAt(rs.getTimestamp("submitted_at").toLocalDateTime());
-                    if (rs.getTimestamp("graded_at") != null) {
-                        dto.setGradedAt(rs.getTimestamp("graded_at").toLocalDateTime());
-                    }
+                    
+                    Timestamp subTs = rs.getTimestamp("submitted_at");
+                    dto.setSubmittedAt(subTs != null ? subTs.toLocalDateTime() : null);
+
+                    Timestamp gradedTs = rs.getTimestamp("graded_at");
+                    dto.setGradedAt(gradedTs != null ? gradedTs.toLocalDateTime() : null);
                     dto.setStudentName(rs.getString("student_name"));
                     list.add(dto);
                 }
@@ -68,10 +70,13 @@ public class AssignmentSubmissionDAO {
                     dto.setContent(rs.getString("content"));
                     dto.setScore(rs.getObject("score") != null ? rs.getInt("score") : null);
                     dto.setFeedback(rs.getString("feedback"));
-                    dto.setSubmittedAt(rs.getTimestamp("submitted_at").toLocalDateTime());
-                    if (rs.getTimestamp("graded_at") != null) {
-                        dto.setGradedAt(rs.getTimestamp("graded_at").toLocalDateTime());
-                    }
+                    
+                    Timestamp subTs = rs.getTimestamp("submitted_at");
+                    dto.setSubmittedAt(subTs != null ? subTs.toLocalDateTime() : null);
+
+                    Timestamp gradedTs = rs.getTimestamp("graded_at");
+                    dto.setGradedAt(gradedTs != null ? gradedTs.toLocalDateTime() : null);
+                    
                     return dto;
                 }
             }
