@@ -1,4 +1,6 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="false" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <%
   String ctx = request.getContextPath();
 %>
@@ -16,8 +18,29 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/mypage">admin관리자</a></li>
-        <li class="nav-item"><a class="nav-link" href="<%=ctx%>/login/logout">로그아웃</a></li>
+      	<!-- 강사 -->
+        <c:if test="${sessionScope.AccessInfo.role.name() == 'INSTRUCTOR'}">
+          <li class="nav-item">
+            <a class="nav-link"
+               href="${pageContext.request.contextPath}/instructor/profile">
+              강사 마이페이지
+            </a>
+          </li>
+        </c:if>
+
+        <!-- 관리자 -->
+        <c:if test="${sessionScope.AccessInfo.role.name() == 'ADMIN'}">
+          <li class="nav-item">
+            <a class="nav-link"
+               href="${pageContext.request.contextPath}/mypage">
+              관리자 페이지
+            </a>
+          </li>
+        </c:if>
+
+        <li class="nav-item">
+          <a class="nav-link" href="<%=ctx%>/login/logout">로그아웃</a>
+        </li>
         <li class="nav-item"><a class="nav-link" href="<%=ctx%>/settings">알림</a></li>
       </ul>
     </div>

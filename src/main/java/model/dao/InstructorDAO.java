@@ -18,49 +18,77 @@ public class InstructorDAO {
         return instance;
     }
 
-    // user_id(FK)을 통해서 강사 테이블 조회
+    // 강사 테이블 조회
     public InstructorDTO selectInstructorInfo(long userId) {
 
-        InstructorDTO instructor = new InstructorDTO();
+        InstructorDTO instructor = null;
 
         String sql = """
             SELECT
-                user_id,
-                instructor_no,
-                department,
-                office_room,
-                office_phone,
-                hire_date,
-                created_at,
-                updated_at
-            FROM instructor
-            WHERE user_id = ?
+			    i.user_id,
+			    i.instructor_no,
+			    i.department_id,
+			    i.office_room,
+			    i.office_phone,
+			    i.hire_date,
+			    i.created_at,
+			    i.updated_at,
+			
+			    u.name,
+			    u.email,
+			    u.phone,
+			    d.department_name
+			FROM instructor i
+			JOIN user u
+			  ON u.user_id = i.user_id
+			LEFT JOIN department d
+			  ON d.department_id = i.department_id
+			WHERE i.user_id = ?
         """;
 
-        try (Connection conn = DBConnection.getConnection()) {
-
-            PreparedStatement pstmt = conn.prepareStatement(sql);
+        try (
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
             pstmt.setLong(1, userId);
 
-            ResultSet rs = pstmt.executeQuery();
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    instructor = new InstructorDTO();
 
-            if (rs.next()) {
-                instructor.setUserId(rs.getLong("user_id"));
-                instructor.setInstructorNo(rs.getString("instructor_no"));
-                instructor.setDepartment(rs.getString("department"));
-                instructor.setOfficeRoom(rs.getString("office_room"));
-                instructor.setOfficePhone(rs.getString("office_phone"));
-                instructor.setHireDate(
-                    rs.getDate("hire_date") != null
-                        ? rs.getDate("hire_date").toLocalDate()
-                        : null
-                );
-                instructor.setCreatedAt(
-                    rs.getTimestamp("created_at").toLocalDateTime()
-                );
-                instructor.setUpdatedAt(
-                    rs.getTimestamp("updated_at").toLocalDateTime()
-                );
+                    // instructor
+                    instructor.setUserId(rs.getLong("user_id"));
+                    instructor.setInstructorNo(rs.getString("instructor_no"));
+                    instructor.setDepartmentId(rs.getLong("department_id"));
+                    instructor.setOfficeRoom(rs.getString("office_room"));
+                    instructor.setOfficePhone(rs.getString("office_phone"));
+
+                    instructor.setHireDate(
+                        rs.getDate("hire_date") != null
+                            ? rs.getDate("hire_date").toLocalDate()
+                            : null
+                    );
+
+                    instructor.setCreatedAt(
+                        rs.getTimestamp("created_at") != null
+                            ? rs.getTimestamp("created_at").toLocalDateTime()
+                            : null
+                    );
+
+                    instructor.setUpdatedAt(
+                        rs.getTimestamp("updated_at") != null
+                            ? rs.getTimestamp("updated_at").toLocalDateTime()
+                            : null
+                    );
+
+                    // user
+                    instructor.setName(rs.getString("name"));
+                    instructor.setEmail(rs.getString("email"));
+                    instructor.setPhone(rs.getString("phone"));
+
+                    // department
+                    instructor.setDepartment(rs.getString("department_name"));
+                }
             }
 
         } catch (Exception e) {
@@ -69,7 +97,10 @@ public class InstructorDAO {
 
         return instructor;
     }
+    
+    
 
+    // admin
 	public static ArrayList<InstructorDTO> getAllInstructorByDepartment(Long departmentId, String status) {
 		ArrayList<InstructorDTO> list = new ArrayList<InstructorDTO>();
 		if (departmentId == null) return list;

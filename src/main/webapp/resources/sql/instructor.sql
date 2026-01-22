@@ -58,3 +58,21 @@ JOIN
     FROM department
   ) d
   ON d.rn = ((u.user_id - 71) % (SELECT COUNT(*) FROM department)) + 1;
+  
+  
+INSERT INTO instructor (
+    user_id,
+    instructor_no,
+    department_id,
+    office_room,
+    office_phone,
+    hire_date
+)
+VALUES (
+    2,
+    'INST-0002',
+    1,            
+    '101호',
+    '02-1234-5678',
+    '2020-03-01'
+);
