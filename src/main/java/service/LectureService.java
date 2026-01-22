@@ -9,6 +9,7 @@ import model.dao.LectureDAO;
 import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureStudentDTO;
+import model.enumtype.LectureStatus;
 import model.enumtype.Role;
 
 public class LectureService {	// 이미 개설된 강의에 기준
@@ -99,11 +100,6 @@ public class LectureService {	// 이미 개설된 강의에 기준
 		
 		
 	}
-	
-	
-	
-	
-	
 	
 	
 

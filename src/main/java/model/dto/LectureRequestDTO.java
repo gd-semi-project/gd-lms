@@ -14,6 +14,7 @@ import model.enumtype.LectureValidation;
 @Data
 public class LectureRequestDTO {
 	private Long lectureId;
+	private Long departmentId;
 	private String instructorName;
 	private String lectureTitle;
 	private String schedule;

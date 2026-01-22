@@ -10,21 +10,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InstructorDTO {
 
-    // PK, FK → users.user_id
-    private Long instructorId;
-    private Long departmentId;
-    private Long userId;
-
-    private String name;
-    private String email;
-    private String phone;
-    
-    private String instructorNo;    // 교번
-    private String department;    // 소속 학과
-    private String officeRoom;    // 연구실
-    private String officePhone;   // 연구실 전화
-    private LocalDate hireDate;   // 임용일
-
-    private LocalDateTime createdAt;   // 생성일
-    private LocalDateTime updatedAt;   // 수정일
+	private Long instructorId;   // PK (또는 user_id)
+	private Long userId;         // FK → user.user_id
+	private String instructorNo;
+	private Long departmentId;
+	private String officeRoom;
+	private String officePhone;
+	private LocalDate hireDate;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
+	
+	
+	// 조회용
+	private String name;     // user.name
+	private String email;    // user.email
+	private String phone;    // user.phone
+	private String department; // department.name
+	
 }
