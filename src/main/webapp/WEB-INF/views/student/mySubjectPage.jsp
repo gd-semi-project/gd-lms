@@ -39,32 +39,32 @@
       <th style="border:1px solid #ccc;">과목명</th>
       <th style="border:1px solid #ccc;">담당교수</th>
       <th style="border:1px solid #ccc;">강의실</th>
-      <th style="border:1px solid #ccc;">강의시간</th>
+      <th style="border:1px solid #ccc;">강의일정</th>
     </tr>
   </thead>
 
   <tbody>
     <%-- 내가 수강 중인 강의 목록 --%>
-    <c:forEach var="course" items="${myCourseList}">
+    <c:forEach var="lecture" items="${myLecture}">
       <tr class="clickable-row"
       data-href="${pageContext.request.contextPath}/강의상세내역주소">
         <td style="border:1px solid #ccc;">
-          ${course.lectureTitle}
+          ${lecture.lectureTitle}
         </td>
         <td style="border:1px solid #ccc; text-align:left; padding-left:10px;">
-          ${course.professorName}
+          ${lecture.instructorName}
         </td>
         <td style="border:1px solid #ccc;">
-          ${course.room}
+          ${lecture.room}
         </td>
         <td style="border:1px solid #ccc;">
-          ${course.scheduleText}
+         ${lecture.schedule}
 		</td>
       </tr>
     </c:forEach>
 
     <%-- 수강 중인 강의가 없을 경우 --%>
-    <c:if test="${empty myCourseList}">
+    <c:if test="${empty myLecture}">
       <tr>
         <td colspan="7">수강 중인 강의가 없습니다.</td>
       </tr>

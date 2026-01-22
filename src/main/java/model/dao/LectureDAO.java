@@ -325,21 +325,49 @@ public class LectureDAO {
     // 학생 개인이 수강하고있는 강의목록
     public List<MyLectureDTO> selectMyEnrollmentedLecture(long userId){
 		String sql = """
-            SELECT
-                l.lecture_id,
-                l.lecture_title,
-                l.section,
-                l.room,
-                l.start_date,
-                l.end_date,
-                u.name AS instructor_name
-            FROM enrollment e
-            JOIN lecture l ON e.lecture_id = l.lecture_id
-            JOIN user u ON l.user_id = u.user_id
-            WHERE e.user_id = ?
-              AND e.status = 'ENROLLED'
-            ORDER BY l.start_date
-        """;
+				           SELECT
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name AS instructor_name,
+				    GROUP_CONCAT(
+				        CONCAT(
+				            CASE s.week_day
+				                WHEN 'MON' THEN '월'
+				                WHEN 'TUE' THEN '화'
+				                WHEN 'WED' THEN '수'
+				                WHEN 'THU' THEN '목'
+				                WHEN 'FRI' THEN '금'
+				                WHEN 'SAT' THEN '토'
+				                WHEN 'SUN' THEN '일'
+				            END,
+				            ' ',
+				            TIME_FORMAT(s.start_time, '%H:%i'),
+				            '~',
+				            TIME_FORMAT(s.end_time, '%H:%i')
+				        )
+				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
+				        SEPARATOR ' / '
+				    ) AS schedule
+				FROM enrollment e
+				JOIN lecture l ON e.lecture_id = l.lecture_id
+				JOIN user u ON l.user_id = u.user_id
+				JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+				WHERE e.user_id = ?
+				  AND e.status = 'ENROLLED'
+				GROUP BY
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name
+				ORDER BY l.start_date
+				        """;
     	
 		List<MyLectureDTO> list = new ArrayList<>();
 		
@@ -357,15 +385,16 @@ public class LectureDAO {
 				lecture.setStartDate(rs.getDate("start_date").toLocalDate());
 				lecture.setEndDate(rs.getDate("end_date").toLocalDate());
 				lecture.setInstructorName(rs.getString("instructor_name"));
-				
+				lecture.setSchedule(rs.getString("schedule"));
 				list.add(lecture);
 			}
+			
 			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
     	
-    	return null;
+    	return list;
     }
     
     

@@ -27,6 +27,8 @@ public class MyLectureDTO {
 	private LectureValidation validation;
 	private String section;
 	// 과목 담당교수
-	private String InstructorName;
+	private String instructorName;
+	// 수업 일정
+	private String schedule;
 
 }

@@ -8,13 +8,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.Builder.Default;
+import model.dao.LectureDAO;
 import model.dto.AccessDTO;
+import model.dto.MyLectureDTO;
 import model.dto.MypageDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.MyPageService;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/mypage/*")
 public class MypageController extends HttpServlet {
@@ -22,7 +25,8 @@ public class MypageController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private MyPageService myPageService = new MyPageService();
-
+	private LectureDAO lectureDAO = LectureDAO.getInstance();
+	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -117,9 +121,13 @@ public class MypageController extends HttpServlet {
 	                response.sendRedirect(request.getContextPath() + "/login");
 	                return;
 	            }
-	            
 	            request.setAttribute("mypage", mypage);
-
+	            
+	         // 내가 수강중인 강의 목록 불러오기
+	         long userId = access.getUserId();
+	         List<MyLectureDTO> myLecture = lectureDAO.selectMyEnrollmentedLecture(userId);
+	         request.setAttribute("myLecture", myLecture);
+	         
 			request.setAttribute(
 			        "contentPage",
 			        "/WEB-INF/views/student/mySubjectPage.jsp"
