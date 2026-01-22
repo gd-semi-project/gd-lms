@@ -15,6 +15,7 @@ public class LectureDTO {
 
 	private Long lectureId;
 	private Long userId;
+	private Long departmentId;
 	private String lectureTitle;
 	private int lectureRound;
 	private LocalDate startDate;

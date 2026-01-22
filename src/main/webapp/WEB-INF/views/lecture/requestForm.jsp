@@ -3,6 +3,17 @@
 
 <h3 class="mb-4">📘 강의 개설 신청</h3>
 
+<!-- 🔥 에러 메시지 -->
+<c:if test="${not empty errorMessage}">
+    <div class="alert alert-danger d-flex justify-content-between align-items-center">
+        <div>
+            <strong>강의 개설 신청 불가</strong><br/>
+            ${errorMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</c:if>
+
 <form method="post"
       action="${pageContext.request.contextPath}/instructor/lecture/request"
       class="row g-3">
