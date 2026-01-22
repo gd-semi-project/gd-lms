@@ -8,9 +8,11 @@ import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
 import model.enumtype.Role;
 import database.DBConnection;
+import jakarta.servlet.http.Part;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 public class AssignmentService {
@@ -43,7 +45,7 @@ public class AssignmentService {
     }
 
     // 과제 생성
-    public long createAssignment(AssignmentDTO dto, long userId, Role role) {
+    public long createAssignment(AssignmentDTO dto, long userId, Role role, Collection<Part> partList) {
         if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
             throw new AccessDeniedException("과제 생성 권한이 없습니다.");
         }
@@ -51,9 +53,14 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
             long id = assignmentDAO.insert(conn, dto);
+            
+            String boardType = "ASSIGNMENT";
+            fus.fileUpload(boardType, id, partList);
+            
             conn.commit();
             return id;
         } catch (Exception e) {
@@ -65,7 +72,7 @@ public class AssignmentService {
     }
 
     // 과제 수정
-    public void updateAssignment(AssignmentDTO dto, long userId, Role role) {
+    public void updateAssignment(AssignmentDTO dto, long userId, Role role, Collection<Part> partList) {
         if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
             throw new AccessDeniedException("과제 수정 권한이 없습니다.");
         }
@@ -73,12 +80,18 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
             int updated = assignmentDAO.update(conn, dto);
             if (updated == 0) {
                 throw new NotFoundException("과제를 찾을 수 없습니다.");
             }
+            
+            String boardType = "ASSIGNMENT";
+            fus.deleteFile(boardType, dto.getAssignmentId());
+            fus.fileUpload(boardType, dto.getAssignmentId(), partList);
+            
             conn.commit();
         } catch (Exception e) {
             rollbackQuietly(conn);
@@ -97,12 +110,16 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, lectureId);
             int deleted = assignmentDAO.softDelete(conn, assignmentId);
             if (deleted == 0) {
                 throw new NotFoundException("과제를 찾을 수 없습니다.");
             }
+            String boardType = "ASSIGNMENT";
+            fus.deleteFile(boardType, assignmentId);
+            
             conn.commit();
         } catch (Exception e) {
             rollbackQuietly(conn);
@@ -141,7 +158,7 @@ public class AssignmentService {
     }
 
     // 과제 제출 (학생)
-    public long submitAssignment(AssignmentSubmissionDTO dto, long lectureId, long userId, Role role) {
+    public Long submitAssignment(AssignmentSubmissionDTO dto, long lectureId, long userId, Role role, Collection<Part> partList) {
         if (role != Role.STUDENT) {
             throw new AccessDeniedException("학생만 제출 가능합니다.");
         }
@@ -151,24 +168,34 @@ public class AssignmentService {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
+            FileUploadService fus = FileUploadService.getInstance();
             conn.setAutoCommit(false);
             assertCanAccessLecture(conn, userId, role, lectureId);
 
             AssignmentSubmissionDTO existing = submissionDAO.selectByStudentAndAssignment(
                 conn, userId, dto.getAssignmentId()
             );
-
-            long id;
+            
+            Long submissionId;
+            Long assignmentId = dto.getAssignmentId();
+            
+            // boardType 지정, 참조아이디 지정
+            // 재제출: 내용update - 파일is_deleted 변경 - 파일upload
+            // 제출: 내용insert - 파일upload
+            String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
             if (existing != null) {
                 dto.setSubmissionId(existing.getSubmissionId());
                 submissionDAO.update(conn, dto);
-                id = existing.getSubmissionId();
+                submissionId = dto.getSubmissionId();
+                fus.deleteFile(boardType, submissionId);
+                fus.fileUpload(boardType, submissionId, partList);
             } else {
-                id = submissionDAO.insert(conn, dto);
+            	submissionId = submissionDAO.insert(conn, dto);
+                fus.fileUpload(boardType, submissionId, partList);
             }
-
+            
             conn.commit();
-            return id;
+            return submissionId;
         } catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 제출 실패", e);

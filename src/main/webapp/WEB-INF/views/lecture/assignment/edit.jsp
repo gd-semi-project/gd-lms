@@ -16,7 +16,8 @@
       <a class="btn btn-secondary" href="${ctx}/lecture/assignments?lectureId=${lectureId}">목록</a>
     </c:when>
     <c:otherwise>
-      <form method="post" action="${ctx}/lecture/assignments">
+      <form method="post" action="${ctx}/lecture/assignments"
+  		enctype="multipart/form-data">
         <input type="hidden" name="action" value="update" />
         <input type="hidden" name="lectureId" value="${lectureId}" />
         <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
@@ -44,6 +45,10 @@
                    value="${assignment.maxScore}" min="1" max="1000" />
           </div>
         </div>
+        
+        <input type="hidden" name="assignmentId" value="${assignment.assignmentId}" />
+		<jsp:include page="/WEB-INF/views/file/fileUpload.jsp" />
+        
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary">저장</button>
