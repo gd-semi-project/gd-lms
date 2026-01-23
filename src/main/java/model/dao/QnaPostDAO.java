@@ -16,12 +16,14 @@ public class QnaPostDAO {
 
     // ====== 목록: 강의별 ======
     public List<QnaPostDTO> findByLecture(Connection conn, long lectureId, int limit, int offset) throws SQLException {
-        String sql =
-            "SELECT qna_id, lecture_id, author_id, title, content, is_private, status, is_deleted, created_at, updated_at " +
-            "FROM qna_posts " +
-            "WHERE lecture_id = ? AND is_deleted = 'N' " +
-            "ORDER BY created_at DESC " +
-            "LIMIT ? OFFSET ?";
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.lecture_id = ? AND p.is_deleted = 'N' " +
+    			  "ORDER BY p.created_at DESC " +
+    			  "LIMIT ? OFFSET ?";
 
         List<QnaPostDTO> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -30,6 +32,8 @@ public class QnaPostDAO {
             ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(map(rs));
+                	
+                
             }
         }
         return list;
@@ -37,13 +41,15 @@ public class QnaPostDAO {
 
     // STUDENT: 공개글 + 본인 비공개글만
     public List<QnaPostDTO> findByLectureForStudent(Connection conn, long lectureId, long studentId, int limit, int offset) throws SQLException {
-        String sql =
-            "SELECT qna_id, lecture_id, author_id, title, content, is_private, status, is_deleted, created_at, updated_at " +
-            "FROM qna_posts " +
-            "WHERE lecture_id = ? AND is_deleted = 'N' " +
-            "  AND (is_private = 'N' OR author_id = ?) " +
-            "ORDER BY created_at DESC " +
-            "LIMIT ? OFFSET ?";
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.lecture_id = ? AND p.is_deleted = 'N' " +
+    			  "  AND (p.is_private = 'N' OR p.author_id = ?) " +
+    			  "ORDER BY p.created_at DESC " +
+    			  "LIMIT ? OFFSET ?";
 
         List<QnaPostDTO> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -85,10 +91,12 @@ public class QnaPostDAO {
 
     // ====== 단건 조회 ======
     public QnaPostDTO findById(Connection conn, long qnaId, long lectureId) throws SQLException {
-        String sql =
-            "SELECT qna_id, lecture_id, author_id, title, content, is_private, status, is_deleted, created_at, updated_at " +
-            "FROM qna_posts " +
-            "WHERE qna_id = ? AND lecture_id = ? AND is_deleted = 'N'";
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.qna_id = ? AND p.lecture_id = ? AND p.is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, qnaId);
             ps.setLong(2, lectureId);
@@ -166,6 +174,7 @@ public class QnaPostDAO {
         d.setAuthorId(rs.getLong("author_id"));
         d.setTitle(rs.getString("title"));
         d.setContent(rs.getString("content"));
+        d.setAuthorName(rs.getString("author_name"));
 
         // ★ String -> enum 변환
         d.setIsPrivate(IsPrivate.fromDb(rs.getString("is_private")));

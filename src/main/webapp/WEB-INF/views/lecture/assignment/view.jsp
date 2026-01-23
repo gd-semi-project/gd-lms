@@ -29,6 +29,13 @@
       </div>
       <hr>
       <div style="white-space: pre-wrap;"><c:out value="${assignment.content}" /></div>
+      <div>
+      	<p><strong>제출파일:</strong></p>
+	    <c:set var="fileList" value="${assignment.fileList}" scope="request" />
+	    <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
+      </div>   
+      
+      
     </div>
   </div>
 
@@ -81,6 +88,11 @@
             <p><strong>내용:</strong></p>
             <div class="border p-2 bg-light" style="white-space: pre-wrap;"><c:out value="${mySubmission.content}" /></div>
             
+            <!-- 제출파일 목록 -->
+            <p><strong>제출파일:</strong></p>
+            <c:set var="fileList" value="${mySubmission.fileList}" scope="request" />
+            <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
+            
             <c:if test="${mySubmission.score != null}">
               <hr>
               <p><strong>점수:</strong> ${mySubmission.score} / ${assignment.maxScore}</p>
@@ -130,8 +142,9 @@
                       </c:choose>
                     </td>
                     <td>
-                      <%-- TODO: 파일 업로드 연동 (ref_type=SUBMISSION, ref_id=s.submissionId) --%>
-                      <span class="text-muted">-</span>
+                      <c:set var="fileList" value="${s.fileList}" scope="request" />
+                      <c:set var="showIconsOnly" value="true" scope="request" />
+            		  <jsp:include page="/WEB-INF/views/file/fileList.jsp" />
                     </td>
                     <td>
                       <a class="btn btn-sm btn-outline-primary"

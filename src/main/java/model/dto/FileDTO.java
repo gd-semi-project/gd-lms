@@ -18,4 +18,5 @@ public class FileDTO {
     private String originalFilename;
 
     private LocalDateTime uploadedAt;
+    private String extenderIco;
 }

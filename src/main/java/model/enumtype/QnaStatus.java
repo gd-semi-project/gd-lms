@@ -2,8 +2,8 @@ package model.enumtype;
 
 public enum QnaStatus {
     OPEN("답변대기"),
-    ANSWERED("답변완료"),
-    CLOSED("종료");
+    ANSWERED("답변완료");
+
 
     private final String displayName;
 

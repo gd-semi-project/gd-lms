@@ -110,13 +110,19 @@
               <jsp:include page="/WEB-INF/views/admin/adminDepartmentDetail.jsp" />
             </c:otherwise>
           </c:choose>
-
         </div>
       </div>
     </div>
-
   </div>
 </div>
+<c:choose>
+	<c:when test="${empty param.departmentId}">
+	</c:when>
+	
+	<c:otherwise>
+		<jsp:include page="/WEB-INF/views/admin/adminDepartmentLectureList.jsp" />
+	</c:otherwise>
+	</c:choose>
 
 <script>
   // 좌측 학과 검색 필터

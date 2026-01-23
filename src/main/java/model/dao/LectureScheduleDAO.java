@@ -1,12 +1,17 @@
 package model.dao;
 
+import java.security.Timestamp;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import database.DBConnection;
 import model.dto.LectureScheduleDTO;
 import model.enumtype.Week;
 
@@ -102,4 +107,54 @@ public class LectureScheduleDAO {
             pstmt.executeUpdate();
         }
     }
+
+	public List<LectureScheduleDTO> findByLectureIds(List<Long> lectureIds) {
+		 if (lectureIds == null || lectureIds.isEmpty()) {
+	            return Collections.emptyList();
+	        }
+
+	        String placeholders = lectureIds.stream()
+	                .map(id -> "?")
+	                .collect(Collectors.joining(","));
+
+	        String sql =
+	            "SELECT schedule_id, lecture_id, week_day, start_time, end_time, created_at " +
+	            "FROM lecture_schedule " +
+	            "WHERE lecture_id IN (" + placeholders + ") " +
+	            "ORDER BY lecture_id, FIELD(week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'), start_time";
+
+	        List<LectureScheduleDTO> list = new ArrayList<>();
+
+	        try (Connection conn = DBConnection.getConnection();
+	             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	            int idx = 1;
+	            for (Long id : lectureIds) {
+	                pstmt.setLong(idx++, id);
+	            }
+
+	            try (ResultSet rs = pstmt.executeQuery()) {
+	                while (rs.next()) {
+	                    LectureScheduleDTO schedule = new LectureScheduleDTO();
+	                    schedule.setScheduleId(rs.getLong("schedule_id"));
+	                    schedule.setLectureId(rs.getLong("lecture_id"));
+
+	                    String wd = rs.getString("week_day");
+	                    schedule.setWeekDay(wd != null ? Week.valueOf(wd.trim().toUpperCase()) : null);
+
+	                    Time st = rs.getTime("start_time");
+	                    Time et = rs.getTime("end_time");
+	                    schedule.setStartTime(st != null ? st.toLocalTime() : null);
+	                    schedule.setEndTime(et != null ? et.toLocalTime() : null);
+
+	                    list.add(schedule);
+	                }
+	            }
+
+	        } catch (Exception e) {
+	            throw new RuntimeException("findByLectureIds failed. size=" + lectureIds.size(), e);
+	        }
+
+	        return list;
+	}
 }

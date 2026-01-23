@@ -73,17 +73,23 @@
             <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
           </li>
        </c:if>
+       
+       <c:if test="${AccessInfo.role != 'ADMIN'}">
        <li class="nav-item">
-        <button
-          type="button"
-          class="nav-link text-white d-flex justify-content-between align-items-center w-100 bg-transparent border-0"
-          data-bs-toggle="collapse"
-          data-bs-target="#lectureMenu"
-          aria-expanded="false"
-          aria-controls="lectureMenu">
-          📚 강의
-          <span class="ms-auto">+</span>
-        </button>
+		<button
+		  id="lectureToggle"
+		  type="button"
+		  class="nav-link text-white d-flex justify-content-between align-items-center w-100 bg-transparent border-0"
+		  data-bs-toggle="collapse"
+		  data-bs-target="#lectureMenu"
+		  aria-expanded="false"
+		  aria-controls="lectureMenu">
+		  📚 강의
+		  <span class="ms-auto">
+		    <i class="bi bi-chevron-right" id="lectureChevron"></i>
+		  </span>
+		</button>
+
    
         <div class="collapse" id="lectureMenu">
           <ul class="nav flex-column ms-3 mt-2 gap-1">
@@ -118,21 +124,12 @@
 				</li>
 				</c:when>
       
-              <%-- 관리자 --%>
-              <c:when test="${role == 'ADMIN'}">
-                <li class="nav-item">
-                  <a class="nav-link text-white small"
-                     href="${ctx}/admin/lectures">
-                     <span class="material-symbols-outlined">comedy_mask</span>전체 강의 목록</a>
-                </li>
-              </c:when>
-      
             </c:choose>
       
           </ul>
         </div>
       </li>
-
+	</c:if>
          
          
          <!--  스코프 확인용 TEST -->
@@ -151,3 +148,9 @@
       ${sessionScope.AccessInfo.role}
    </div>
 </aside>
+
+<style>
+#lectureChevron {
+  transition: all .15s ease;
+}
+</style>

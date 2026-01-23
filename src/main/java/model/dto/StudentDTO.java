@@ -13,6 +13,7 @@ public class StudentDTO {
 	private Long studentId;
 	private Long departmentId;
 	private Long userId;
+	private String loginId;
 	
 	private Integer studentNumber;	// 학번
 	private Integer studentGrade;	// 학년

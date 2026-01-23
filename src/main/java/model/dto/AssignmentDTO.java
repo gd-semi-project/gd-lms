@@ -4,6 +4,7 @@ package model.dto;
 import lombok.Data;
 import model.enumtype.IsDeleted;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class AssignmentDTO {
@@ -20,4 +21,5 @@ public class AssignmentDTO {
     // 조회용
     private int submissionCount;
     private boolean isSubmitted;
+    private List<FileDTO> fileList;
 }

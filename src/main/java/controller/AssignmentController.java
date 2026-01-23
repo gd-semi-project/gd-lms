@@ -3,21 +3,30 @@ package controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
+import model.dao.FileDAO;
 import model.dto.AccessDTO;
 import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
+import model.dto.FileDTO;
 import model.dto.LectureDTO;
 import model.enumtype.Role;
 import service.AssignmentService;
+import service.FileUploadService;
 import service.LectureService;
 
 @WebServlet("/lecture/assignments")
+@MultipartConfig(
+	    fileSizeThreshold = 1024 * 1024,  // 메모리에 저장할 임계값
+	    maxFileSize = 1024 * 1024 * 50,   // 업로드 파일 최대 크기 (50MB)
+	    maxRequestSize = 1024 * 1024 * 100 // 요청 전체 크기 (100MB)
+	)
 public class AssignmentController extends HttpServlet {
 
     private final AssignmentService assignmentService = AssignmentService.getInstance();
@@ -63,7 +72,7 @@ public class AssignmentController extends HttpServlet {
             request.setAttribute("lecture", lecture);
             request.setAttribute("lectureId", lectureId);
             request.setAttribute("activeTab", "assignments");
-
+            
             // 목록
             if ("list".equalsIgnoreCase(action)) {
                 List<AssignmentDTO> assignments = assignmentService.getAssignmentsByLecture(lectureId, userId, role);
@@ -81,14 +90,35 @@ public class AssignmentController extends HttpServlet {
                 }
 
                 request.setAttribute("assignment", assignment);
-
+                
+                FileUploadService fus = FileUploadService.getInstance();
+                String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
                 if (role == Role.INSTRUCTOR || role == Role.ADMIN) {
+                    // 교수: 모든 제출물 가져오기
                     List<AssignmentSubmissionDTO> submissions = assignmentService.getSubmissions(assignmentId, lectureId, userId, role);
                     request.setAttribute("submissions", submissions);
+
+                    // 과제 자체 파일 조회
+                    List<FileDTO> assignmentFiles = fus.getFileList("ASSIGNMENT", assignmentId);
+                    assignment.setFileList(assignmentFiles);
+
+                    // 제출물별 파일 조회 (교수 채점용)
+                    for (AssignmentSubmissionDTO sub : submissions) {
+                        List<FileDTO> submissionFiles = fus.getFileList(boardType, sub.getSubmissionId());
+                        sub.setFileList(submissionFiles); // DTO 안에 담아서 JSP에서 반복 출력
+                    }
+
                 } else if (role == Role.STUDENT) {
+                    // 학생: 본인 제출물만
                     AssignmentSubmissionDTO mySubmission = assignmentService.getMySubmission(assignmentId, lectureId, userId, role);
                     request.setAttribute("mySubmission", mySubmission);
+
+                    if (mySubmission != null) {
+                        List<FileDTO> myFileList = fus.getFileList(boardType, mySubmission.getSubmissionId());
+                        mySubmission.setFileList(myFileList);
+                    }
                 }
+
 
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/assignment/view.jsp");
             }
@@ -148,6 +178,14 @@ public class AssignmentController extends HttpServlet {
                 request.setAttribute("assignment", assignment);
                 request.setAttribute("submission", submission);
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/assignment/grade.jsp");
+                
+                if (submission != null) {
+                    // 파일 리스트 가져오기
+                    FileUploadService fus = FileUploadService.getInstance();
+                    String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
+                    List<FileDTO> submissionFiles = fus.getFileList(boardType, submission.getSubmissionId());
+                    submission.setFileList(submissionFiles);
+                }
             }
 
             else {
@@ -217,8 +255,8 @@ public class AssignmentController extends HttpServlet {
                 dto.setContent(content.trim());
                 dto.setDueDate(LocalDateTime.parse(dueDateStr));
                 dto.setMaxScore(maxScore);
-
-                long newId = assignmentService.createAssignment(dto, userId, role);
+                                              
+                long newId = assignmentService.createAssignment(dto, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + newId + "&success=created");
@@ -240,7 +278,7 @@ public class AssignmentController extends HttpServlet {
                 dto.setDueDate(LocalDateTime.parse(dueDateStr));
                 dto.setMaxScore(maxScore);
 
-                assignmentService.updateAssignment(dto, userId, role);
+                assignmentService.updateAssignment(dto, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + assignmentId + "&success=updated");
@@ -261,9 +299,10 @@ public class AssignmentController extends HttpServlet {
 
                 AssignmentSubmissionDTO dto = new AssignmentSubmissionDTO();
                 dto.setAssignmentId(assignmentId);
+                System.out.println("//과제제출:assignmentId: "+assignmentId);
                 dto.setContent(content != null ? content.trim() : "");
-
-                assignmentService.submitAssignment(dto, lectureId, userId, role);
+                
+                assignmentService.submitAssignment(dto, lectureId, userId, role, request.getParts());
 
                 response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId
                         + "&action=view&assignmentId=" + assignmentId + "&success=submitted");

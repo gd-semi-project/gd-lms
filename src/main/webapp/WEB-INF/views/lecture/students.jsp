@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
+
 <h4 class="mb-3">👥 수강생 목록</h4>
 
 <c:if test="${empty students}">

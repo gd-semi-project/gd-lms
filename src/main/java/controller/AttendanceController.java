@@ -5,88 +5,206 @@ import java.time.LocalDate;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 
-import model.dto.LectureDTO;
+import model.dto.AccessDTO;
 import model.dto.LectureSessionDTO;
-import model.dto.UserDTO;
 import model.enumtype.AttendanceStatus;
 import model.enumtype.Role;
-
 import service.AttendanceService;
-import service.LectureService;
 import service.LectureSessionService;
 
 @WebServlet("/attendance/*")
 public class AttendanceController extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
+    private final AttendanceService attendanceService =
+            AttendanceService.getInstance();
 
-    private AttendanceService attendanceService = AttendanceService.getInstance();
-    private LectureService lectureService = LectureService.getInstance();
-    private LectureSessionService lectureSessionService = LectureSessionService.getInstance();
+    private final LectureSessionService lectureSessionService =
+            LectureSessionService.getInstance();
 
+    /* =================================================
+     * POST
+     * ================================================= */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String ctx = request.getContextPath();
+        HttpSession session = request.getSession(false);
+        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+
+        String action =
+                request.getRequestURI()
+                       .substring(ctx.length() + "/attendance".length());
+
+        try {
+
+            /* =====================================
+             * 교수: 출석 시작
+             * → 회차 생성 + 기본 ABSENT 생성
+             * POST /attendance/open
+             * ===================================== */
+            if ("/open".equals(action)) {
+
+                if (access.getRole() != Role.INSTRUCTOR) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+
+                long lectureId =
+                        Long.parseLong(request.getParameter("lectureId"));
+
+                // 1️⃣ 오늘 회차 생성
+                long sessionId =
+                        lectureSessionService.createTodaySession(lectureId);
+
+                // 2️⃣ 수강생 전원 기본 결석 생성
+                attendanceService.prepareAttendance(sessionId, lectureId);
+
+                response.sendRedirect(
+                        ctx + "/attendance/view?lectureId="
+                                + lectureId
+                                + "&sessionId="
+                                + sessionId
+                );
+                return;
+            }
+
+            /* =====================================
+             * 학생: 출석 체크
+             * POST /attendance/check
+             * ===================================== */
+            if ("/check".equals(action)) {
+
+                if (access.getRole() != Role.STUDENT) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+
+                long sessionId =
+                        Long.parseLong(request.getParameter("sessionId"));
+                long lectureId =
+                        Long.parseLong(request.getParameter("lectureId"));
+
+                attendanceService.checkAttendance(
+                        sessionId,
+                        access.getUserId()
+                );
+
+                response.sendRedirect(
+                        ctx + "/attendance/view?lectureId=" + lectureId
+                );
+                return;
+            }
+
+            /* =====================================
+             * 교수: 출결 수동 수정
+             * POST /attendance/update
+             * ===================================== */
+            if ("/update".equals(action)) {
+
+                if (access.getRole() != Role.INSTRUCTOR) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+
+                long attendanceId =
+                        Long.parseLong(request.getParameter("attendanceId"));
+                AttendanceStatus status =
+                        AttendanceStatus.valueOf(
+                                request.getParameter("status")
+                        );
+
+                long lectureId =
+                        Long.parseLong(request.getParameter("lectureId"));
+                long sessionId =
+                        Long.parseLong(request.getParameter("sessionId"));
+
+                attendanceService.updateAttendance(attendanceId, status);
+
+                response.sendRedirect(
+                        ctx + "/attendance/view?lectureId="
+                                + lectureId
+                                + "&sessionId="
+                                + sessionId
+                );
+                return;
+            }
+
+        } catch (Exception e) {
+            session.setAttribute("flashMsg", e.getMessage());
+            response.sendRedirect(
+                    ctx + "/attendance/view?lectureId="
+                            + request.getParameter("lectureId")
+            );
+        }
+    }
+
+    /* =================================================
+     * GET : 출석 화면
+     * ================================================= */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession();
-        UserDTO loginUser = (UserDTO) session.getAttribute("UserInfo");
+        String ctx = request.getContextPath();
+        HttpSession session = request.getSession(false);
+        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-        if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        long lectureId =
+                Long.parseLong(request.getParameter("lectureId"));
 
-        String lectureIdParam = request.getParameter("id");
-        if (lectureIdParam == null || lectureIdParam.isBlank()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId 누락");
-            return;
-        }
-
-        long lectureId = Long.parseLong(lectureIdParam);
-
-        LectureDTO lecture = lectureService.getLectureDetail(lectureId);
-        request.setAttribute("lecture", lecture);
+        request.setAttribute("lectureId", lectureId);
         request.setAttribute("activeTab", "attendance");
 
-        /* ================= 학생 ================= */
-        if (loginUser.getRole() == Role.STUDENT) {
+        /* ---------- 학생 ---------- */
+        if (access.getRole() == Role.STUDENT) {
 
-            long studentId = loginUser.getUserId();
-
-            LectureSessionDTO todaySession =
+            LectureSessionDTO today =
                     lectureSessionService.getTodaySession(
                             lectureId,
                             LocalDate.now()
                     );
 
-            request.setAttribute("todaySession", todaySession);
+            request.setAttribute("todaySession", today);
+
+            if (today != null) {
+                request.setAttribute(
+                        "alreadyChecked",
+                        attendanceService.isAlreadyChecked(
+                                today.getSessionId(),
+                                access.getUserId()
+                        )
+                );
+            }
+
             request.setAttribute(
                     "attendanceList",
-                    attendanceService.getStudentAttendance(studentId, lectureId)
+                    attendanceService.getStudentAttendance(
+                            lectureId,
+                            access.getUserId()
+                    )
             );
         }
 
-        /* ================= 교수 ================= */
-        if (loginUser.getRole() == Role.INSTRUCTOR) {
+        /* ---------- 교수 ---------- */
+        if (access.getRole() == Role.INSTRUCTOR) {
 
             request.setAttribute(
                     "sessions",
                     lectureSessionService.getSessionsByLecture(lectureId)
             );
 
-            String sessionIdParam = request.getParameter("sessionId");
+            String sessionIdParam =
+                    request.getParameter("sessionId");
+
             if (sessionIdParam != null && !sessionIdParam.isBlank()) {
 
-                long sessionId = Long.parseLong(sessionIdParam);
+                long sessionId =
+                        Long.parseLong(sessionIdParam);
 
-                // 자동 경석 처리
-                attendanceService.autoMarkAbsent(sessionId);
-
+                request.setAttribute("selectedSessionId", sessionId);
                 request.setAttribute(
                         "sessionAttendance",
                         attendanceService.getSessionAttendance(sessionId)
@@ -99,45 +217,8 @@ public class AttendanceController extends HttpServlet {
                 "/WEB-INF/views/lecture/attendance.jsp"
         );
 
-        request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
-               .forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String uri = request.getRequestURI();
-
-        /* ================= 학생 출석 ================= */
-        if (uri.endsWith("/check")) {
-
-            long sessionId = Long.parseLong(request.getParameter("sessionId"));
-            long lectureId = Long.parseLong(request.getParameter("lectureId"));
-
-            UserDTO user = (UserDTO) request.getSession().getAttribute("UserInfo");
-
-            try {
-                attendanceService.checkAttendance(sessionId, user.getUserId());
-            } catch (IllegalStateException e) {
-                request.getSession().setAttribute("alertMsg", e.getMessage());
-            }
-
-            response.sendRedirect(
-                    request.getContextPath() + "/attendance?id=" + lectureId
-            );
-        }
-
-        /* ================= 교수 출결 수정 ================= */
-        if (uri.endsWith("/update")) {
-
-            long sessionId = Long.parseLong(request.getParameter("sessionId"));
-            long studentId = Long.parseLong(request.getParameter("studentId"));
-            AttendanceStatus status =
-                    AttendanceStatus.valueOf(request.getParameter("status"));
-
-            attendanceService.updateAttendanceStatus(sessionId, studentId, status);
-            response.sendRedirect(request.getHeader("Referer"));
-        }
+        request.getRequestDispatcher(
+                "/WEB-INF/views/layout/layout.jsp"
+        ).forward(request, response);
     }
 }
