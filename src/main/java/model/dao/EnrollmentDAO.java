@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import database.DBConnection;
+import model.dto.EnrollmentDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.EnrollmentStatus;
@@ -217,7 +218,223 @@ public class EnrollmentDAO {
 	    }
 	}
 
+   public List<Long> findMyLectureId(long studentId) {
+	   String sql = """
+		        SELECT lecture_id
+		        FROM enrollment
+		        WHERE user_id = ?
+		          AND status = 'ENROLLED'
+		    """;
 
+		    List<Long> list = new ArrayList<>();
+
+		    try (Connection conn = DBConnection.getConnection();
+		         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+		        pstmt.setLong(1, studentId);
+		        ResultSet rs = pstmt.executeQuery();
+
+		        while (rs.next()) {
+		            list.add(rs.getLong("lecture_id"));
+		        }
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("내 수강 강의 ID 조회 실패", e);
+		    }
+
+		    return list;
+   }
+
+   // (수강신청) 중복과목 신청유무 확인
+   public boolean dpCheck(Connection conn, long studentId, long lectureId) {
+		String sql = """
+				SELECT 1
+				FROM enrollment
+				WHERE user_id = ?
+				  AND lecture_id = ?
+				  AND status = 'ENROLLED'
+				""";
+	   
+	   try {
+		   PreparedStatement pstmt = conn.prepareStatement(sql);
+		   pstmt.setLong(1, studentId);
+		   pstmt.setLong(2, lectureId);
+		   
+		   ResultSet rs = pstmt.executeQuery();
+		   
+		   return rs.next();
+		
+	} catch (Exception e) {
+		throw new RuntimeException("중복 신청 체크 실패", e);
+	}
+   }
+
+   // 시간표 겹침 체크(같은 시간대에 시간표가 겹쳐서는 안됨)
+   public boolean checkSchedule(Connection conn, long studentId, long lectureId) {
+	   String sql = """
+		        SELECT 1
+		        FROM enrollment e
+		        JOIN lecture_schedule s1
+		          ON e.lecture_id = s1.lecture_id   -- 이미 신청한 강의의 시간표
+		        JOIN lecture_schedule s2
+		          ON s2.lecture_id = ?              -- 새로 신청하려는 강의의 시간표
+		        WHERE e.user_id = ?                 -- 같은 학생
+		          AND e.status = 'ENROLLED'          -- 현재 수강 중인 강의만
+		          AND s1.week_day = s2.week_day     -- 같은 요일
+		          AND s1.start_time < s2.end_time   -- 시간 겹침 조건 ①
+		          AND s1.end_time   > s2.start_time -- 시간 겹침 조건 ②
+		        LIMIT 1
+		    """;
+
+		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+		        pstmt.setLong(1, lectureId);
+		        pstmt.setLong(2, studentId);
+
+		        ResultSet rs = pstmt.executeQuery();
+
+		        return rs.next();
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("시간표 겹침 체크 실패", e);
+		    }
+   }
+
+   	// 수강신청 등록
+	public void insertLecture(Connection conn, long studentId, long lectureId) {
+		String sql = """
+		        INSERT INTO enrollment (lecture_id, user_id, status)
+		        VALUES (?, ?, 'ENROLLED')
+		    """;
+
+		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+		        pstmt.setLong(1, lectureId);
+		        pstmt.setLong(2, studentId);
+
+		        pstmt.executeUpdate();
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("수강신청 등록 실패", e);
+		    }
+	}
+
+	// 수강 신청 상태 확인
+	public boolean isEnrolled(Connection conn, long userId, long lectureId) {
+		String sql = """
+		        SELECT 1
+		        FROM enrollment
+		        WHERE user_id = ?
+		          AND lecture_id = ?
+		          AND status = 'ENROLLED'
+		        LIMIT 1
+		    """;
+
+		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		        pstmt.setLong(1, userId);
+		        pstmt.setLong(2, lectureId);
+
+		        ResultSet rs = pstmt.executeQuery();
+		        return rs.next();
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("수강 상태 확인 실패", e);
+		    }
+	}
+
+	
+	// 수강취소 처리
+	public void dropLecture(Connection conn, long userId, long lectureId) {
+		String sql = """
+		        UPDATE enrollment
+		        SET status = 'DROPPED',
+		            updated_at = CURRENT_TIMESTAMP
+		        WHERE user_id = ?
+		          AND lecture_id = ?
+		          AND status = 'ENROLLED'
+		    """;
+
+		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		        pstmt.setLong(1, userId);
+		        pstmt.setLong(2, lectureId);
+
+		        pstmt.executeUpdate();
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("수강취소 실패", e);
+		    }
+		
+	}
+
+	// (수강신청)내가 신청한 강의
+	public List<EnrollmentDTO> findByStudentId(long studentId) {
+		String sql = """
+		        SELECT
+		            l.lecture_id,
+		            d.department_name,
+		            l.lecture_title,
+		            u.name AS instructor_name,
+		            l.room,
+		            GROUP_CONCAT(
+		                CONCAT(
+		                    s.week_day, ' ',
+		                    TIME_FORMAT(s.start_time, '%H:%i'),
+		                    '~',
+		                    TIME_FORMAT(s.end_time, '%H:%i')
+		                )
+		                ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+		                         s.start_time
+		                SEPARATOR ', '
+		            ) AS schedule,
+		            l.capacity
+		        FROM enrollment e
+		        JOIN lecture l
+		          ON e.lecture_id = l.lecture_id
+		        JOIN department d
+		          ON l.department_id = d.department_id
+		        JOIN user u
+		          ON l.user_id = u.user_id
+		        LEFT JOIN lecture_schedule s
+		          ON l.lecture_id = s.lecture_id
+		        WHERE e.user_id = ?
+		          AND e.status = 'ENROLLED'
+		        GROUP BY
+		            l.lecture_id,
+		            d.department_name,
+		            l.lecture_title,
+		            u.name,
+		            l.room,
+		            l.capacity
+		        ORDER BY l.lecture_id DESC
+		    """;
+
+		    List<EnrollmentDTO> list = new ArrayList<>();
+
+		    try (Connection conn = DBConnection.getConnection();
+		         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+		        pstmt.setLong(1, studentId);
+		        ResultSet rs = pstmt.executeQuery();
+
+		        while (rs.next()) {
+		            EnrollmentDTO dto = new EnrollmentDTO();
+		            dto.setLectureId(rs.getLong("lecture_id"));
+		            dto.setDepartmentName(rs.getString("department_name"));
+		            dto.setLectureTitle(rs.getString("lecture_title"));
+		            dto.setInstructorName(rs.getString("instructor_name"));
+		            dto.setRoom(rs.getString("room"));
+		            dto.setSchedule(rs.getString("schedule"));
+		            dto.setCapacity(rs.getInt("capacity"));
+
+		            list.add(dto);
+		        }
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("수강신청 내역 조회 실패", e);
+		    }
+
+		    return list;
+	}
 
 }
 
