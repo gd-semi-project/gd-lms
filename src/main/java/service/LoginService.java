@@ -36,8 +36,29 @@ public class LoginService {
 			UserDAO userDAO = UserDAO.getInstance();
 			String password_hash = HashUtil.sha256(userDTO.getPassword());
 			userDTO.setPassword(password_hash);
+			
+			// 입력값 검증 필요
+			// 이메일 중복 여부, 로그인아이디 중복 여부
+			if (DuplicateEmail(userDTO.getEmail())) {
+				throw new RuntimeException("이메일 중복입니다..");
+			}
+			
+			if (DuplicateLoginId(userDTO.getLoginId())) {
+				throw new RuntimeException("로그인 아이디 중복입니다.");
+			}
+			
 			userDAO.InsertUser(userDTO);
 		}
 	}
 	
+	// 중복확인용 서비스로직
+	public boolean DuplicateEmail(String email) {
+		UserDAO userDAO = UserDAO.getInstance();
+		return userDAO.selectLoginIdByLoginId(email);
+	}
+	
+	public boolean DuplicateLoginId(String loginId) {
+		UserDAO userDAO = UserDAO.getInstance();
+		return userDAO.selectLoginIdByLoginId(loginId);
+	}
 }

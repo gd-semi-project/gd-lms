@@ -1,4 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<script src="${pageContext.request.contextPath}/resources/js/registUserNotDuplicated.js"></script>
+<script>
+    const ctx = "${pageContext.request.contextPath}";
+</script>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -13,7 +17,7 @@
   </div>
 
   <div class="card-body">
-    <form method="post" action="/gd-lms/login/registUser.do" class="needs-validation" novalidate>
+    <form method="post" action="/gd-lms/admin/registUserRequest" class="needs-validation" novalidate>
       
       <!-- 이름 -->
       <div class="mb-3 input-group">
@@ -24,8 +28,10 @@
 
       <!-- 아이디 -->
       <div class="mb-3 input-group">
+        <input type="hidden" id="idChecked" value="false">
         <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
         <input type="text" class="form-control" id="loginId" name="loginId" placeholder="아이디 입력" required>
+        <button type="button" id="checkLoginIdBtn" class="btn btn-outline-secondary">중복확인</button>
         <div class="invalid-feedback">아이디를 입력하세요.</div>
       </div>
 
@@ -38,15 +44,19 @@
 
       <!-- 이메일 -->
       <div class="mb-3 input-group">
+        <input type="hidden" id="emailChecked" value="false">
         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
         <input type="email" class="form-control" id="email" name="email" placeholder="example@domain.com" required>
+        <button type="button" id="checkEmailBtn" class="btn btn-outline-secondary">중복확인</button>
         <div class="invalid-feedback">올바른 이메일을 입력하세요.</div>
       </div>
 
       <!-- 생년월일 -->
+      <!-- max값을 동적으로 변경되게 설정 변경 필요 -->
       <div class="mb-3">
         <label for="birthDate" class="form-label">생년월일</label>
-        <input type="date" class="form-control" id="birthDate" name="birthDate">
+        <input type="date" class="form-control" id="birthDate" name="birthDate" min="1900-01-01"
+       max="2026-12-31"> 
       </div>
 
       <!-- 역할 선택 -->
