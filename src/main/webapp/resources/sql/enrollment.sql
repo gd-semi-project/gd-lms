@@ -49,3 +49,15 @@ VALUES
   (160, 3, 'ENROLLED')
 ON DUPLICATE KEY UPDATE
   status = 'ENROLLED';
+  
+
+UPDATE lecture
+SET validation = 'CONFIRMED'
+WHERE lecture_id BETWEEN 158 AND 160;
+INSERT INTO enrollment (lecture_id, user_id, status)
+VALUES
+  (158, 4, 'ENROLLED'),
+  (159, 4, 'ENROLLED'),
+  (160, 4, 'ENROLLED')
+ON DUPLICATE KEY UPDATE
+  status = 'ENROLLED';

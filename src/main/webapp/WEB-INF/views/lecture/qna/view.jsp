@@ -43,7 +43,7 @@
       <c:forEach var="a" items="${answers}">
         <div class="card mb-2">
           <div class="card-body">
-            <div class="text-muted mb-2">답변자: ${a.instructorName}</div>
+            <div class="text-muted mb-2">답변자: ${a.instructorName} 교수님</div>
             <div style="white-space: pre-wrap;"><c:out value="${a.content}" /></div>
           </div>
         </div>
