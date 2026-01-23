@@ -125,7 +125,18 @@ button {
 						<td>${lecture.instructorName}</td>
 						<td>${lecture.room}</td>
 						<td>${lecture.schedule}</td>
-						<td>${lecture.capacity}</td>
+						<td>
+						<c:choose>
+       					 <c:when test="${lecture.currentCount >= lecture.capacity}">
+           					 <span style="color:red;font-weight:bold;">
+              					  ${lecture.currentCount} / ${lecture.capacity} (마감)
+           					 </span>
+       					 </c:when>
+        				<c:otherwise>
+          				  ${lecture.currentCount} / ${lecture.capacity}
+       					 </c:otherwise>
+    					</c:choose>
+    					</td>
 					</tr>
 				</c:if>
 			</c:forEach>
@@ -182,7 +193,18 @@ button {
 					<td>${enroll.instructorName}</td>
 					<td>${enroll.room}</td>
 					<td>${enroll.schedule}</td>
-					<td>${enroll.capacity}</td>
+					<td>
+					<c:choose>
+       					 <c:when test="${enroll.currentCount >= enroll.capacity}">
+           					 <span style="color:red;font-weight:bold;">
+              					  ${enroll.currentCount} / ${enroll.capacity} (마감)
+           					 </span>
+       					 </c:when>
+        				<c:otherwise>
+          				  ${enroll.currentCount} / ${enroll.capacity}
+       					 </c:otherwise>
+    					</c:choose>
+					</td>
 				</tr>
 			</c:forEach>
 

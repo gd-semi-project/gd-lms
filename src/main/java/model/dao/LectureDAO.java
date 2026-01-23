@@ -305,60 +305,59 @@ public class LectureDAO {
 	// ======================================================
 	// validation 업데이트 (오타 수정: valdidation -> validation)
 	// ======================================================
-	   public int setLectureValidation(String validation, long lectureId) {
-	        String sql = "UPDATE lecture SET validation = ? WHERE lecture_id = ?";
+	public int setLectureValidation(String validation, long lectureId) {
+		String sql = "UPDATE lecture SET validation = ? WHERE lecture_id = ?";
 
-	        try (Connection conn = DBConnection.getConnection();
-	             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-	            pstmt.setString(1, validation);
-	            pstmt.setLong(2, lectureId);
-	            return pstmt.executeUpdate();
+			pstmt.setString(1, validation);
+			pstmt.setLong(2, lectureId);
+			return pstmt.executeUpdate();
 
-	        } catch (Exception e) {
-	            throw new RuntimeException("LectureDAO.setLectureValidation error", e);
-	        }
-	    }
+		} catch (Exception e) {
+			throw new RuntimeException("LectureDAO.setLectureValidation error", e);
+		}
+	}
 
 	// ======================================================
-	    // Mapper
-	    // ======================================================
-	    private LectureDTO mapLecture(ResultSet rs) throws SQLException {
-	        LectureDTO dto = new LectureDTO();
+	// Mapper
+	// ======================================================
+	private LectureDTO mapLecture(ResultSet rs) throws SQLException {
+		LectureDTO dto = new LectureDTO();
 
-	        dto.setLectureId(rs.getLong("lecture_id"));
-	        dto.setUserId(rs.getLong("user_id"));
-	        dto.setLectureTitle(rs.getString("lecture_title"));
-	        dto.setLectureRound(rs.getInt("lecture_round"));
-	        dto.setSection(rs.getString("section"));
+		dto.setLectureId(rs.getLong("lecture_id"));
+		dto.setUserId(rs.getLong("user_id"));
+		dto.setLectureTitle(rs.getString("lecture_title"));
+		dto.setLectureRound(rs.getInt("lecture_round"));
+		dto.setSection(rs.getString("section"));
 
-	        Date startDate = rs.getDate("start_date");
-	        Date endDate = rs.getDate("end_date");
-	        dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
-	        dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
+		Date startDate = rs.getDate("start_date");
+		Date endDate = rs.getDate("end_date");
+		dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
+		dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
 
-	        dto.setRoom(rs.getString("room"));
-	        dto.setCapacity(rs.getInt("capacity"));
+		dto.setRoom(rs.getString("room"));
+		dto.setCapacity(rs.getInt("capacity"));
 
-	        String status = rs.getString("status");
-	        dto.setStatus(status != null ? LectureStatus.valueOf(status) : null);
+		String status = rs.getString("status");
+		dto.setStatus(status != null ? LectureStatus.valueOf(status) : null);
 
-	        String validation = rs.getString("validation");
-	        dto.setValidation(validation != null ? LectureValidation.valueOf(validation) : null);
+		String validation = rs.getString("validation");
+		dto.setValidation(validation != null ? LectureValidation.valueOf(validation) : null);
 
-	        Timestamp createdAt = rs.getTimestamp("created_at");
-	        Timestamp updatedAt = rs.getTimestamp("updated_at");
-	        dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
-	        dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
-	        
-	        try {
-	        	dto.setDepartmentId(rs.getLong("department_id"));
-	        	dto.setInstructorName(rs.getString("instructor_name"));
-			} catch (Exception e) {
-			}
-	        
-	        return dto;
-	    }
+		Timestamp createdAt = rs.getTimestamp("created_at");
+		Timestamp updatedAt = rs.getTimestamp("updated_at");
+		dto.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
+		dto.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
+
+		try {
+			dto.setDepartmentId(rs.getLong("department_id"));
+			dto.setInstructorName(rs.getString("instructor_name"));
+		} catch (Exception e) {
+		}
+
+		return dto;
+	}
 
 	// 학생 개인이 수강하고있는 강의목록
 	public List<MyLectureDTO> selectMyEnrollmentedLecture(long userId) {
@@ -482,15 +481,15 @@ public class LectureDAO {
 	// 수강신청페이지에 들어갈 시 떠야하는 개설 강의목록을 나타내주는 메소드
 	public List<LectureForEnrollDTO> findAvailableLecturesForEnroll() {
 		String sql = """
-								   SELECT
+									SELECT
 				    l.lecture_id,
-					l.status,
-					l.validation,
-				    d.department_name            AS departmentName,
-				    l.lecture_title              AS lectureTitle,
-				    u.name                       AS instructorName,
-				    l.room                       AS room,
-				    l.capacity                   AS capacity,
+				    d.department_name AS departmentName,
+				    l.lecture_title   AS lectureTitle,
+				    u.name            AS instructorName,
+				    l.room            AS room,
+				    l.capacity        AS capacity,
+
+				    COUNT(e.enrollment_id) AS currentCount,
 
 				    GROUP_CONCAT(
 				        CONCAT(
@@ -499,19 +498,18 @@ public class LectureDAO {
 				            '~',
 				            DATE_FORMAT(ls.end_time, '%H:%i')
 				        )
-				        ORDER BY
-				            FIELD(ls.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
-				            ls.start_time
+				        ORDER BY FIELD(ls.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+				                 ls.start_time
 				        SEPARATOR ', '
 				    ) AS schedule
 
 				FROM lecture l
-				JOIN department d
-				    ON l.department_id = d.department_id
-				JOIN user u
-				    ON l.user_id = u.user_id
-				LEFT JOIN lecture_schedule ls
-				    ON l.lecture_id = ls.lecture_id
+				JOIN department d ON l.department_id = d.department_id
+				JOIN user u       ON l.user_id = u.user_id
+				LEFT JOIN lecture_schedule ls ON l.lecture_id = ls.lecture_id
+				LEFT JOIN enrollment e
+				       ON l.lecture_id = e.lecture_id
+				      AND e.status = 'ENROLLED'
 
 				WHERE l.status = 'PLANNED'
 				  AND l.validation = 'CONFIRMED'
@@ -525,7 +523,7 @@ public class LectureDAO {
 				    l.capacity
 
 				ORDER BY l.lecture_id DESC;
-								 """;
+												 """;
 
 		List<LectureForEnrollDTO> list = new ArrayList<>();
 
@@ -541,6 +539,7 @@ public class LectureDAO {
 				lt.setRoom(rs.getString("room"));
 				lt.setCapacity(rs.getInt("capacity"));
 				lt.setSchedule(rs.getString("schedule"));
+				lt.setCurrentCount(rs.getInt("currentCount"));
 				list.add(lt);
 			}
 		} catch (Exception e) {
@@ -550,145 +549,124 @@ public class LectureDAO {
 		return list;
 	}
 
-	
-	
-	
-	 public int updateStatus(
-    	    Connection conn,
-    	    LectureStatus from,
-    	    LectureStatus to
-    	) throws SQLException {
+	public int updateStatus(Connection conn, LectureStatus from, LectureStatus to) throws SQLException {
 
-    	    String sql = """
-    	        UPDATE lecture
-    	        SET status = ?
-    	        WHERE status = ?
-    	    """;
+		String sql = """
+				    UPDATE lecture
+				    SET status = ?
+				    WHERE status = ?
+				""";
 
-    	    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-    	        pstmt.setString(1, to.name());
-    	        pstmt.setString(2, from.name());
-    	        return pstmt.executeUpdate();
-    	    }
-    	}
-  
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, to.name());
+			pstmt.setString(2, from.name());
+			return pstmt.executeUpdate();
+		}
+	}
 
-    public int cancelExpiredLectureRequest() {
-      final String sql = """
-          UPDATE lecture
-          SET validation = 'CANCELED'
-          WHERE validation = 'PENDING'
-          """;
+	public int cancelExpiredLectureRequest() {
+		final String sql = """
+				UPDATE lecture
+				SET validation = 'CANCELED'
+				WHERE validation = 'PENDING'
+				""";
 
-      try (	Connection conn = DBConnection.getConnection();
-          PreparedStatement pstmt = conn.prepareStatement(sql)
-          ){
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        return pstmt.executeUpdate(); // 취소된 건수 반환
+			return pstmt.executeUpdate(); // 취소된 건수 반환
 
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
 
-      } catch (Exception e) {
-        e.printStackTrace();
-        return 0;
-      }
-    }
+	public int markOnGoing(LocalDate today) {
+		final String sql = """
+				UPDATE lecture
+				      SET status = 'ONGOING'
+				      WHERE validation = 'CONFIRMED'
+				        AND status = 'PLANNED'
+				        AND start_date <= ?
+				  """;
 
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql);
 
+		) {
 
-    public int markOnGoing(LocalDate today) {
-      final String sql ="""
-        UPDATE lecture
-              SET status = 'ONGOING'
-              WHERE validation = 'CONFIRMED'
-                AND status = 'PLANNED'
-                AND start_date <= ?
-          """;
+			pstmt.setDate(1, java.sql.Date.valueOf(today));
 
-      try (
-          Connection conn = DBConnection.getConnection();
-          PreparedStatement pstmt = conn.prepareStatement(sql);
+			return pstmt.executeUpdate();
 
-          ) {
+		} catch (Exception e) {
+			System.out.println("markOnGoing(): 실패");
+			e.printStackTrace();
 
-        pstmt.setDate(1, java.sql.Date.valueOf(today));
+			return 0;
+		}
 
-        return pstmt.executeUpdate();
+	};
 
-      } catch (Exception e) {
-        System.out.println("markOnGoing(): 실패");
-        e.printStackTrace(); 
+	public int markEnded(LocalDate today) {
+		final String sql = """
+				    UPDATE lecture
+				    SET status = 'ENDED'
+				    WHERE validation = 'CONFIRMED'
+				      AND status <> 'ENDED'
+				      AND end_date < ?
+				""";
 
-        return 0;
-      }
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-    };
+			pstmt.setDate(1, java.sql.Date.valueOf(today));
 
-    public int markEnded(LocalDate today) {
-          final String sql = """
-                  UPDATE lecture
-                  SET status = 'ENDED'
-                  WHERE validation = 'CONFIRMED'
-                    AND status <> 'ENDED'
-                    AND end_date < ?
-              """;
+			return pstmt.executeUpdate();
 
+		} catch (Exception e) {
+			System.out.println("markOnGoing(): 실패");
+			e.printStackTrace();
 
-          try (Connection conn = DBConnection.getConnection();
-               PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-              pstmt.setDate(1, java.sql.Date.valueOf(today));
-
-              return pstmt.executeUpdate();
-
-      } catch (Exception e) {
-        System.out.println("markOnGoing(): 실패");
-        e.printStackTrace(); 
-
-        return 0;
-      }
-    }
+			return 0;
+		}
+	}
 
 	public List<LectureDTO> findLectureByDepartment(long departmentId) {
-		
-		final String sql =
-			       """
-		        SELECT
-		          l.lecture_id,
-		          l.lecture_title,
-		          l.lecture_round,
-		          l.user_id,
-		          u.name AS instructor_name,
-		          l.department_id AS department_id,
-		          l.start_date,
-		          l.end_date,
-		          l.room,
-		          l.capacity,
-		          l.status,
-		          l.validation,
-		          l.section,
-		          l.created_at,
-		          l.updated_at
-		        FROM lecture l
-		        JOIN user u ON u.user_id = l.user_id
-		        WHERE l.department_id = ?
-		        """;
-		
-		try (
-				Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql);
-				){
-			
+
+		final String sql = """
+				SELECT
+				  l.lecture_id,
+				  l.lecture_title,
+				  l.lecture_round,
+				  l.user_id,
+				  u.name AS instructor_name,
+				  l.department_id AS department_id,
+				  l.start_date,
+				  l.end_date,
+				  l.room,
+				  l.capacity,
+				  l.status,
+				  l.validation,
+				  l.section,
+				  l.created_at,
+				  l.updated_at
+				FROM lecture l
+				JOIN user u ON u.user_id = l.user_id
+				WHERE l.department_id = ?
+				""";
+
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql);) {
+
 			pstmt.setLong(1, departmentId);
-			
-			try(ResultSet rs = pstmt.executeQuery()){
-				
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+
 				List<LectureDTO> list = new ArrayList<LectureDTO>();
 				while (rs.next()) {
 					list.add(mapLecture(rs));
 				}
 				return list;
 			}
-			
+
 		} catch (Exception e) {
 			System.out.println("findLectureByDepartment():실패");
 			return null;
@@ -696,42 +674,39 @@ public class LectureDAO {
 	}
 
 	public List<LectureDTO> findByDepartmentAndStatus(long departmentId, String lectureStatus) {
-		final String sql =
-			       """
-		        SELECT
-		          l.lecture_id,
-		          l.lecture_title,
-		          l.lecture_round,
-		          l.user_id,
-		          u.name AS instructor_name,
-		          l.department_id,
-		          l.start_date,
-		          l.end_date,
-		          l.room,
-		          l.capacity,
-		          l.status,
-		          l.validation,
-		          l.section,
-		          l.created_at,
-		          l.updated_at
-		        FROM lecture l
-		        JOIN user u ON u.user_id = l.user_id
-		        WHERE l.department_id = ?
-		        AND l.status = ?
-		        """;
-		
-		try (
-				Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql)
-				){
-			
+		final String sql = """
+				SELECT
+				  l.lecture_id,
+				  l.lecture_title,
+				  l.lecture_round,
+				  l.user_id,
+				  u.name AS instructor_name,
+				  l.department_id,
+				  l.start_date,
+				  l.end_date,
+				  l.room,
+				  l.capacity,
+				  l.status,
+				  l.validation,
+				  l.section,
+				  l.created_at,
+				  l.updated_at
+				FROM lecture l
+				JOIN user u ON u.user_id = l.user_id
+				WHERE l.department_id = ?
+				AND l.status = ?
+				""";
+
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
 			pstmt.setLong(1, departmentId);
 			pstmt.setString(2, lectureStatus);
-			
-			try(ResultSet rs = pstmt.executeQuery()){
-				
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+
 				List<LectureDTO> list = new ArrayList<LectureDTO>();
-				while (rs.next()) list.add(mapLecture(rs));
+				while (rs.next())
+					list.add(mapLecture(rs));
 				return list;
 			}
 		} catch (Exception e) {
@@ -741,88 +716,73 @@ public class LectureDAO {
 	}
 
 	public Map<Long, Integer> selectEnrollCountMapByLectureIds(List<Long> lectureIds) {
-	    if (lectureIds == null || lectureIds.isEmpty()) {
-	        return Collections.emptyMap();
-	    }
-	    
-	    String placeholders = lectureIds.stream()
-	            .map(id -> "?")
-	            .collect(java.util.stream.Collectors.joining(","));
-	    
-	    String sql =
-	            "SELECT lecture_id, COUNT(*) AS cnt " +
-                "FROM enrollment " +
-                "WHERE status = 'ENROLLED' " +
-                "AND lecture_id IN (" + placeholders + ") " +
-                "GROUP BY lecture_id";
-	    
-	    Map<Long, Integer> map = new HashMap<Long, Integer>();
-	    
-	    try (
-	    		Connection conn = DBConnection.getConnection();
-	    		PreparedStatement pstmt = conn.prepareStatement(sql)
-	    		){
-	    	
-	    	int idx = 1;
-	    	for (Long id : lectureIds) {
-	    		pstmt.setLong(idx++, id);
-	    	}
-	    	
-	    	try(ResultSet rs = pstmt.executeQuery()){
-	    		while (rs.next()) {
-	    			long lectureId = rs.getLong("lecture_id");
-	    			int cnt = rs.getInt("cnt");
-	    			map.put(lectureId, cnt);
-	    		}
-	    	}
-	    	
-			
+		if (lectureIds == null || lectureIds.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		String placeholders = lectureIds.stream().map(id -> "?").collect(java.util.stream.Collectors.joining(","));
+
+		String sql = "SELECT lecture_id, COUNT(*) AS cnt " + "FROM enrollment " + "WHERE status = 'ENROLLED' "
+				+ "AND lecture_id IN (" + placeholders + ") " + "GROUP BY lecture_id";
+
+		Map<Long, Integer> map = new HashMap<Long, Integer>();
+
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+			int idx = 1;
+			for (Long id : lectureIds) {
+				pstmt.setLong(idx++, id);
+			}
+
+			try (ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					long lectureId = rs.getLong("lecture_id");
+					int cnt = rs.getInt("cnt");
+					map.put(lectureId, cnt);
+				}
+			}
+
 		} catch (Exception e) {
 			System.out.println("selectEnrol 어쩌고 그 긴거 오류났음");
 		}
-	    return map;
-	    
-	    
-	    
+		return map;
 
 	}
 
 	// 정원 체크(정원이 모두 차면 신청불가)
 	public boolean checkCapacity(Connection conn, long lectureId) {
 		String sql = """
-		        SELECT
-		            l.capacity,
-		            COUNT(e.enrollment_id) AS enrolled_count
-		        FROM lecture l
-		        LEFT JOIN enrollment e
-		          ON l.lecture_id = e.lecture_id
-		         AND e.status = 'ENROLLED'
-		        WHERE l.lecture_id = ?
-		        GROUP BY l.capacity
-		        FOR UPDATE
-		    """;
+				    SELECT
+				        l.capacity,
+				        COUNT(e.enrollment_id) AS enrolled_count
+				    FROM lecture l
+				    LEFT JOIN enrollment e
+				      ON l.lecture_id = e.lecture_id
+				     AND e.status = 'ENROLLED'
+				    WHERE l.lecture_id = ?
+				    GROUP BY l.capacity
+				    FOR UPDATE
+				""";
 
-		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-		        pstmt.setLong(1, lectureId);
+		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setLong(1, lectureId);
 
-		        ResultSet rs = pstmt.executeQuery();
+			ResultSet rs = pstmt.executeQuery();
 
-		        if (!rs.next()) {
-		            // 강의 자체가 없으면 신청 불가
-		            return false;
-		        }
+			if (!rs.next()) {
+				// 강의 자체가 없으면 신청 불가
+				return false;
+			}
 
-		        int capacity = rs.getInt("capacity");
-		        int enrolledCount = rs.getInt("enrolled_count");
+			int capacity = rs.getInt("capacity");
+			int enrolledCount = rs.getInt("enrolled_count");
 
-		        // 정원보다 작으면 신청 가능
-		        return enrolledCount < capacity;
+			// 정원보다 작으면 신청 가능
+			return enrolledCount < capacity;
 
-		    } catch (Exception e) {
-		        throw new RuntimeException("정원 체크 실패", e);
-		    }
+		} catch (Exception e) {
+			throw new RuntimeException("정원 체크 실패", e);
+		}
 	}
 
-    
-    
 }

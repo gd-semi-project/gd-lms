@@ -26,6 +26,7 @@ public class EnrollmentDTO {
     private String room;
     private String schedule;
     private int capacity;
+    private int currentCount;
 
     
 }
