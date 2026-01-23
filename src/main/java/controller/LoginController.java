@@ -50,9 +50,6 @@ public class LoginController extends HttpServlet {
 			}
 			response.sendRedirect(contextPath + "/");
 			return;
-		} else {
-			// 비정상적인 접근 페이지 연결
-			// response.sendRedirect(contextPath + "/login");
 		}
 		
 	}
@@ -83,23 +80,6 @@ public class LoginController extends HttpServlet {
 				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 				rd.forward(request, response);
 			}
-		} 
-		// DOTO : AdminController로 이전 필요
-		else if (action.equals("/registUser.do")) {
-			UserDTO userDTO = new UserDTO();
-			userDTO.setLoginId(request.getParameter("loginId"));
-			userDTO.setPassword(request.getParameter("password"));
-			userDTO.setName(request.getParameter("name"));
-			userDTO.setEmail(request.getParameter("enail"));
-			userDTO.setBirthDate(LocalDate.parse(request.getParameter("birthDate")));
-			
-			Role role = Role.fromLabel(request.getParameter("role"));
-			userDTO.setRole(role);
-			
-			LoginService ls = LoginService.getInstance();
-			ls.RegistUser(userDTO);
-			
-			response.sendRedirect("/WEB-INF/views/user/index.jsp");
 		}
 		
 	}
