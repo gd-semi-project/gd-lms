@@ -785,13 +785,44 @@ public class LectureDAO {
 	    
 	    
 
-	};
+	}
 
-	
+	// 정원 체크(정원이 모두 차면 신청불가)
+	public boolean checkCapacity(Connection conn, long lectureId) {
+		String sql = """
+		        SELECT
+		            l.capacity,
+		            COUNT(e.enrollment_id) AS enrolled_count
+		        FROM lecture l
+		        LEFT JOIN enrollment e
+		          ON l.lecture_id = e.lecture_id
+		         AND e.status = 'ENROLLED'
+		        WHERE l.lecture_id = ?
+		        GROUP BY l.capacity
+		        FOR UPDATE
+		    """;
 
+		    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+		        pstmt.setLong(1, lectureId);
 
-    
-    
+		        ResultSet rs = pstmt.executeQuery();
+
+		        if (!rs.next()) {
+		            // 강의 자체가 없으면 신청 불가
+		            return false;
+		        }
+
+		        int capacity = rs.getInt("capacity");
+		        int enrolledCount = rs.getInt("enrolled_count");
+
+		        // 정원보다 작으면 신청 가능
+		        return enrolledCount < capacity;
+
+		    } catch (Exception e) {
+		        throw new RuntimeException("정원 체크 실패", e);
+		    }
+	}
+
     
     
 }

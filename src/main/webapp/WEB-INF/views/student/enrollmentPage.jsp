@@ -2,7 +2,7 @@
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
-  String ctx = request.getContextPath();
+String ctx = request.getContextPath();
 %>
 
 <style>
@@ -38,24 +38,37 @@ button {
 	padding: 4px 8px;
 	cursor: pointer;
 }
+
 .btn-approve {
-    background-color: #28a745;   /* 초록색 */
-    color: #fff;
-    border: none;
-    border-radius: 6px;          /* 둥근 모서리 */
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    line-height: 1;
+	background-color: #28a745; /* 초록색 */
+	color: #fff;
+	border: none;
+	border-radius: 6px; /* 둥근 모서리 */
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	line-height: 1;
+}
+
+.btn-cancel {
+	background-color: #ff5252; /* 빨강색 */
+	color: #fff;
+	border: none;
+	border-radius: 6px; /* 둥근 모서리 */
+	padding: 6px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	line-height: 1;
 }
 
 .btn-approve:hover {
-    background-color: #218838;   /* hover 시 더 진한 초록 */
+	background-color: #218838; /* hover 시 더 진한 초록 */
 }
 
 .btn-approve:active {
-    background-color: #1e7e34;   /* 클릭 시 */
+	background-color: #1e7e34; /* 클릭 시 */
 }
 </style>
 
@@ -97,27 +110,36 @@ button {
 
 		<tbody>
 			<c:forEach var="lecture" items="${lectureList}" varStatus="status">
-				<tr>
-				<td>${status.index + 1}</td>
-				<td>
-					<form method="post" action="<%=ctx %>/enroll/apply">
-						<input type="hidden" name="lectureId" value="${lecture.lectureId}">
-						<button type="submit" class="btn-approve">신청</button>
-					</form>
-					</td>
-					<td>${lecture.departmentName}</td>
-					<td>${lecture.lectureTitle}</td>
-					<td>${lecture.instructorName}</td>
-					<td>${lecture.room}</td>
-					<td>${lecture.schedule}</td>
-					<td>${lecture.capacity}</td>
-				</tr>
+				<c:if test="${not myLectureId.contains(lecture.lectureId)}">
+					<tr>
+						<td>${status.index + 1}</td>
+						<td>
+							<form method="post" action="<%=ctx%>/enroll/apply">
+								<input type="hidden" name="lectureId"
+									value="${lecture.lectureId}">
+								<button type="submit" class="btn-approve">신청</button>
+							</form>
+						</td>
+						<td>${lecture.departmentName}</td>
+						<td>${lecture.lectureTitle}</td>
+						<td>${lecture.instructorName}</td>
+						<td>${lecture.room}</td>
+						<td>${lecture.schedule}</td>
+						<td>${lecture.capacity}</td>
+					</tr>
+				</c:if>
 			</c:forEach>
 
 			<c:if test="${empty lectureList}">
 				<tr>
 					<td colspan="7">개설된 강좌가 없습니다.</td>
 				</tr>
+			</c:if>
+			<c:if test="${not empty alertMsg}">
+				<script>
+					alert("${alertMsg}");
+				</script>
+				<c:remove var="alertMsg" scope="session" />
 			</c:if>
 		</tbody>
 	</table>
@@ -134,29 +156,33 @@ button {
 	<table>
 		<thead>
 			<tr>
-				<th>취소</th>
-				<th>년도/학기</th>
-				<th>과목번호</th>
-				<th>과목명</th>
-				<th>학점/시간</th>
+				<th>NO</th>
+				<th>신청</th>
+				<th>과목</th>
+				<th>강의명</th>
 				<th>담당교수</th>
+				<th>강의실</th>
 				<th>강의시간</th>
+				<th>정원</th>
 			</tr>
 		</thead>
 
 		<tbody>
-			<c:forEach var="enroll" items="${enrollList}">
+			<c:forEach var="enroll" items="${enrollList}" varStatus="status">
 				<tr>
-					<form method="post" action="<%=ctx %>/enroll/cancel">
+				<td>${status.index + 1}</td>
+				<td>
+					<form method="post" action="<%=ctx%>/enroll/cancel">
 						<input type="hidden" name="lectureId" value="${enroll.lectureId}">
-						<button type="submit">취소</button>
+						<button type="submit" class="btn-cancel">취소</button>
 					</form>
-					<td>${enroll.semester}</td>
-					<td>${enroll.subjectCode}</td>
-					<td>${enroll.subjectName}</td>
-					<td>${enroll.credit}/${enroll.hours}</td>
-					<td>${enroll.professorName}</td>
+					</td>
+					<td>${enroll.departmentName}</td>
+					<td>${enroll.lectureTitle}</td>
+					<td>${enroll.instructorName}</td>
+					<td>${enroll.room}</td>
 					<td>${enroll.schedule}</td>
+					<td>${enroll.capacity}</td>
 				</tr>
 			</c:forEach>
 

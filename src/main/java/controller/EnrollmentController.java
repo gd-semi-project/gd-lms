@@ -26,7 +26,6 @@ public class EnrollmentController extends HttpServlet {
 	private EnrollmentService enrollmentService = new EnrollmentService();
 	private MyPageService myPageService = new MyPageService();
 
-	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
@@ -53,12 +52,12 @@ public class EnrollmentController extends HttpServlet {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}
-		
+
 		Long studentId = (Long) session.getAttribute("userId");
 		if (studentId == null) {
-		    session.invalidate();
-		    response.sendRedirect(request.getContextPath() + "/login");
-		    return;
+			session.invalidate();
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
 		}
 
 		String action = request.getPathInfo();
@@ -71,13 +70,15 @@ public class EnrollmentController extends HttpServlet {
 			}
 			// 수강신청 가능한 강의목록
 			List<LectureForEnrollDTO> lectureList = enrollmentService.getAvailableLecturesForEnroll();
-			
-			
-			// 내가 신청한 강의
+
+			// 내가 신청한 강의(수강신청 내역)
 			List<EnrollmentDTO> enrollList = enrollmentService.getMyEnrollments(studentId);
-			
+			// 이미 신청한 강의(신청한 강의는 숨기기위해)
+			List<Long> myLectureId = enrollmentService.getMyLectureId(studentId);
+
 			request.setAttribute("lectureList", lectureList);
 			request.setAttribute("enrollList", enrollList);
+			request.setAttribute("myLectureId", myLectureId);
 
 			request.setAttribute("mypage", mypage);
 
@@ -92,8 +93,33 @@ public class EnrollmentController extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
+		HttpSession session = request.getSession(false);
+		Long studentId = (Long) session.getAttribute("userId");
+
+		String action = request.getPathInfo();
+
+		try {
+			if ("/apply".equals(action)) {
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				enrollmentService.apply(studentId, lectureId);
+
+				session.setAttribute("alertMsg", "수강신청이 완료되었습니다.");
+			}
+
+			else if ("/cancel".equals(action)) {
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				enrollmentService.cancel(studentId, lectureId);
+
+				session.setAttribute("alertMsg", "수강취소가 완료되었습니다.");
+			}
+
+		} catch (RuntimeException e) {
+			// 서비스에서 던진 메시지 그대로 알림
+			session.setAttribute("alertMsg", e.getMessage());
+		}
+
+		// ⭐ 무조건 목록 화면으로 복귀
+		response.sendRedirect(request.getContextPath() + "/enroll/enrollment");
 	}
 
 }
