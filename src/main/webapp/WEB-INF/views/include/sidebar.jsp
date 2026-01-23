@@ -12,7 +12,7 @@
 <aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
    <ul class="nav nav-pills flex-column gap-1">
 
-	<c:if test="${role!='ADMIN' }">
+	<c:if test="${AccessInfo.role!='ADMIN' }">
       <li class="nav-item"><a class="nav-link text-white"
          href="<%=ctx%>/about"> 🎓 대학소개 </a></li></c:if>
 
@@ -46,16 +46,9 @@
          </a>
        </li>
        </c:when>
-      
-       <c:when test="${AccessInfo.role == 'ADMIN'}">
-       <li class="nav-item">
-         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
-         </a>
-       </li>
-       </c:when>
        </c:choose>
        
-       <c:if test="${role == 'ADMIN'}">
+       <c:if test="${AccessInfo.role == 'ADMIN'}">
           <li class="nav-item">
             <a class="nav-link text-white" href="<%=ctx%>/admin/dashboard">
             <span class="material-symbols-outlined">comedy_mask</span>수강 대시보드</a>
