@@ -24,6 +24,9 @@ public class AccessFilter extends HttpFilter {
 			"",
 		    "/login",
 		    "/login/login.do",
+		    "/login/passwordReset",
+		    "/login/check-info",
+		    "login/get-user-id",
 		    "resources",
 		    "error",
 		    "appTime.now"
@@ -36,6 +39,9 @@ public class AccessFilter extends HttpFilter {
 	
 	@Override
 	public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+		// Context Path 값
+		request.setAttribute("ctx", request.getContextPath());
+		
 		// 요청과 응답에 인코딩 설정
         request.setCharacterEncoding(encoding);
         response.setCharacterEncoding(encoding);
@@ -84,6 +90,7 @@ public class AccessFilter extends HttpFilter {
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
 					if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
 						System.out.println("웹필터) 화이트리스트 통과");
+						System.out.println(middlePath);
 					}
 					chain.doFilter(request, response);
 				} else {

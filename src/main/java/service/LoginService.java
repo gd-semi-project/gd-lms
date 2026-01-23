@@ -51,7 +51,7 @@ public class LoginService {
 		}
 	}
 	
-	// 중복확인용 서비스로직
+	// 중복확인용 서비스로직(회원등록)
 	public boolean DuplicateEmail(String email) {
 		UserDAO userDAO = UserDAO.getInstance();
 		return userDAO.selectLoginIdByLoginId(email);
@@ -61,4 +61,16 @@ public class LoginService {
 		UserDAO userDAO = UserDAO.getInstance();
 		return userDAO.selectLoginIdByLoginId(loginId);
 	}
+	
+	// 이메일, 생년월일이 일치하는 user 있는지 확인 로직(비밀번호 초기화)
+	public boolean verifyUserInfo(String email, String birthDate) {
+		UserDAO userDAO = UserDAO.getInstance();
+        return userDAO.existsByEmailAndBirth(email, birthDate);
+    }
+	
+	// 이메일, 생년월일로 user_id 반환(토큰 생성시 이용)
+	public Long getUserId(String email, String birthDate) {
+		UserDAO userDAO = UserDAO.getInstance();
+        return userDAO.selectUserIdByEmailAndBirthDate(email, birthDate);
+    }
 }

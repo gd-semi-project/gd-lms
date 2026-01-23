@@ -50,6 +50,12 @@ public class LoginController extends HttpServlet {
 			}
 			response.sendRedirect(contextPath + "/");
 			return;
+		} else if (actionPath.equals("/login/passwordReset")) {
+			// 리셋 페이지 연결
+			// jsp를 직접 연결할건지? 포워드로?
+			// 아니면 
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/login/resetPassword.jsp");
+			rd.forward(request, response);
 		}
 		
 	}
@@ -80,6 +86,50 @@ public class LoginController extends HttpServlet {
 				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 				rd.forward(request, response);
 			}
+		} else if (action.equals("/check-info")) {
+			// 1. 요청 파라미터
+		    String email = request.getParameter("email");
+		    String birthDate = request.getParameter("birthDate"); // "yyyy-MM-dd" 형식
+
+		    // 2. 입력 검증
+		    if (email == null || email.trim().isEmpty() || birthDate == null || birthDate.trim().isEmpty()) {
+		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		        response.getWriter().write("{\"error\":\"email and birthDate are required\"}");
+		        return;
+		    }
+
+		    // 3. 서비스 호출
+		    LoginService loginService = LoginService.getInstance();
+		    boolean isMatch = loginService.verifyUserInfo(email, birthDate); 
+		    // verifyUserInfo: email + birthDate 일치하면 true, 아니면 false
+
+		    // 4. JSON 응답 설정
+		    response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+		    String json = "{\"match\":" + isMatch + "}";
+		    response.getWriter().write(json);
+		} else if (action.equals("/get-user-id")) {
+			// 1. 요청 파라미터
+		    String email = request.getParameter("email");
+		    String birthDate = request.getParameter("birthDate"); // "yyyy-MM-dd" 형식
+
+		    // 2. 입력 검증
+		    if (email == null || email.trim().isEmpty() || birthDate == null || birthDate.trim().isEmpty()) {
+		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		        response.getWriter().write("{\"error\":\"email and birthDate are required\"}");
+		        return;
+		    }
+
+		    // 3. 서비스 호출
+		    LoginService loginService = LoginService.getInstance();
+		    boolean isMatch = loginService.verifyUserInfo(email, birthDate); 
+		    // verifyUserInfo: email + birthDate 일치하면 true, 아니면 false
+
+		    // 4. JSON 응답 설정
+		    response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+		    String json = "{\"match\":" + isMatch + "}";
+		    response.getWriter().write(json);
 		}
 		
 	}
