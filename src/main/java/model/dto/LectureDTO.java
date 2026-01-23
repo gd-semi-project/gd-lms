@@ -30,4 +30,5 @@ public class LectureDTO {
 	private String section;
 	private String instructorName;
 	private List<LectureScheduleDTO> schedules;
+	private String scheduleHtml;
 }

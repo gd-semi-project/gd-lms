@@ -1,287 +1,318 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h1 class="h3 mb-1">강의 운영 통계</h1>
-    <div class="text-muted small">강의개설 · 강의분반(Section) · 시간표 · 수강정원/수강인원</div>
-  </div>
-  <span class="text-muted small">기준일: <%= java.time.LocalDate.now() %></span>
-</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
+<style>
+  tr.lecture-row { position: relative; }
+  tr.lecture-row:hover { background: rgba(13,110,253,.06); }
+
+  .metric-card .label { font-size: .85rem; color: #6c757d; }
+  .metric-card .value { font-size: 1.9rem; font-weight: 800; line-height: 1.05; }
+  .metric-card .sub { font-size: .825rem; color: #6c757d; }
+
+  .risk-pill { font-weight: 800; letter-spacing: .2px; }
+  .progress-thin { height: 8px; }
+  .table thead th { white-space: nowrap; }
+</style>
 
 <c:choose>
 <c:when test="${policy.available}">
 
 
+<div class="container-fluid my-4">
 
-<!-- 상단 요약 KPI (실무형) -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-md-3">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">개설 강의 수</div>
-        <div class="fs-3 fw-bold">124</div>
-        <div class="small text-muted">이번 학기 기준</div>
-        <!-- 예: ${courseCount} -->
+  <!-- =======================
+       헤더 (컨트롤러 값 사용)
+  ======================= -->
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h5 fw-bold mb-1">수강신청 결과 · 강의 목록</h1>
+      <div class="text-muted small">학과 선택 후 통계/목록을 한 번에 확인합니다.</div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="badge bg-secondary">개설(중복X): ${empty lectureCount ? 0 : lectureCount}</span>
+      <span class="badge bg-dark">전체(중복O): ${empty totalLectureCount ? 0 : totalLectureCount}</span>
+      <span class="badge bg-danger">폐강위기: ${empty lowFillRateLecture ? 0 : lowFillRateLecture}</span>
+      <span class="badge bg-light text-dark border">평균 충원율: ${empty lectureFillRate ? 0 : lectureFillRate}%</span>
+      <span class="text-muted small ms-1">기준일: <%= java.time.LocalDate.now() %></span>
+    </div>
+  </div>
+
+  <!-- =======================
+       KPI (4개) - 컨트롤러 값
+  ======================= -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-3">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">개설된 강의(중복X)</div>
+          <div class="value">${empty lectureCount ? 0 : lectureCount}</div>
+          <div class="sub">강의명 기준</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">전체 강의(중복O)</div>
+          <div class="value text-dark">${empty totalLectureCount ? 0 : totalLectureCount}</div>
+          <div class="sub">분반 포함</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">폐강 위기</div>
+          <div class="value text-danger">${empty lowFillRateLecture ? 0 : lowFillRateLecture}</div>
+          <div class="sub">충원율 50% 미만</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-3">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">평균 충원율</div>
+          <div class="value">${empty lectureFillRate ? 0 : lectureFillRate}%</div>
+          <div class="sub">전체 기준</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-12 col-md-3">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">강의분반 수 (Section)</div>
-        <div class="fs-3 fw-bold">312</div>
-        <div class="small text-muted">운영 중 분반</div>
-        <!-- 예: ${sectionCount} -->
+  <!-- =======================
+       KPI (3개) - 컨트롤러 값
+  ======================= -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">총 정원</div>
+          <div class="value">${empty totalLectureCapacity ? 0 : totalLectureCapacity}</div>
+          <div class="sub">정원 합계</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">전체 학생 수(Active)</div>
+          <div class="value">${empty totalEnrollment ? 0 : totalEnrollment}</div>
+          <div class="sub">재학 중 학생</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card shadow-sm metric-card h-100">
+        <div class="card-body">
+          <div class="label">평균 충원율</div>
+          <div class="value">${empty lectureFillRate ? 0 : lectureFillRate}%</div>
+          <div class="sub">정원 대비 인원</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="col-12 col-md-3">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">평균 충원율</div>
-        <div class="fs-3 fw-bold">78%</div>
-        <div class="small text-muted">수강인원/수강정원</div>
-        <!-- 예: ${avgFillRate}% -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+    <form action="${pageContext.request.contextPath}/admin/dashboard" method="get">
+      <select name="departmentId" onchange="this.form.submit()" id="deptSelect" class="form-select form-select-sm" style="width: 280px;">
+        <option value="" ${empty param.departmentId ? 'selected' : ''}>전체 학과</option>
+        <c:forEach var="d" items="${departmentList}">
+          <option value="${d.departmentId}" ${param.departmentId == d.departmentId ? 'selected' : ''}>
+            ${d.departmentName} (${d.departmentCode})
+          </option>
+        </c:forEach>
+      </select>
+	</form>
+      <div class="input-group input-group-sm" style="width: 340px;">
+        <span class="input-group-text">검색</span>
+        <input id="lectureQ" class="form-control" placeholder="강의명/강의실 검색">
+        <button class="btn btn-primary" type="button" id="lectureQBtn">검색</button>
       </div>
+    </div>
+
+    <div class="text-muted small">
+      <c:choose>
+        <c:when test="${empty param.departmentId}">전체 학과 조회</c:when>
+        <c:otherwise>학과 ID: ${param.departmentId}</c:otherwise>
+      </c:choose>
     </div>
   </div>
 
-  <div class="col-12 col-md-3">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">저충원 분반</div>
-        <div class="fs-3 fw-bold text-danger">46</div>
-        <div class="small text-muted">충원율 50% 미만</div>
-        <!-- 예: ${lowFillSectionCount} -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between">
+      <div class="fw-bold">강의 목록</div>
+      <div class="text-muted small">* 인원/정원 기준 운영 상태를 표시합니다.</div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 28%;">강의명</th>
+              <th style="width: 7%;">분반</th>
+              <th style="width: 18%;">시간표</th>
+              <th style="width: 22%;">인원/정원</th>
+              <th style="width: 11%;">강의실</th>
+              <th style="width: 12%;">기간</th>
+              <th style="width: 2%;">운영</th>
+            </tr>
+          </thead>
+
+          <tbody id="lectureTbody">
+            <c:choose>
+              <c:when test="${empty lectureList}">
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-5">표시할 강의가 없습니다.</td>
+                </tr>
+              </c:when>
+
+              <c:otherwise>
+                <c:forEach var="l" items="${lectureList}">
+                  <tr class="lecture-row">
+                    <td>
+					  <div class="fw-semibold">
+					    ${fn:escapeXml(l.lectureTitle)}
+					    <span class="text-muted fw-normal ms-1">
+					      (${fn:escapeXml(l.instructorName)})
+					    </span>
+					    <a class="stretched-link"
+					       href="${pageContext.request.contextPath}/lecture/detail?lectureId=${l.lectureId}">
+					    </a>
+					  </div>
+					  <div class="text-muted small">
+					    강의 ID: ${l.lectureId} · 학과 ID: ${l.departmentId}
+					  </div>
+					</td>
+
+                    <td>
+                      <span class="badge bg-light text-dark border">${l.section}</span>
+                    </td>
+
+                    <td>
+                      <div class="text-muted small">
+                        <c:out value="${empty l.scheduleHtml ? '-' : l.scheduleHtml}" escapeXml="false"/>
+                      </div>
+                    </td>
+
+                    <td>
+					  <div class="d-flex justify-content-between align-items-center">
+					    <div class="fw-semibold">
+					      <span
+					        <c:if test="${(empty l.capacity ? 0 : l.capacity) > 0
+					                     and (empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) >= (empty l.capacity ? 0 : l.capacity)}">
+					          class="text-danger"
+					        </c:if>
+					      >
+					        ${empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])}
+					      </span>
+					      /
+					      <span>${empty l.capacity ? 0 : l.capacity}</span>
+					    </div>
+					
+					    <span class="small text-muted">
+					      ${ (empty l.capacity ? 0 : l.capacity) > 0
+					          ? ((empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) * 100) / (empty l.capacity ? 0 : l.capacity)
+					          : 0
+					      }%
+					    </span>
+					  </div>
+					
+					  <div class="progress progress-thin mt-2">
+					    <div class="progress-bar"
+					         style="width: ${
+					            ((empty l.capacity ? 0 : l.capacity) > 0
+					              ? ((empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) * 100) / (empty l.capacity ? 0 : l.capacity)
+					              : 0
+					            ) > 100
+					            ? 100
+					            : ((empty l.capacity ? 0 : l.capacity) > 0
+					                ? ((empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) * 100) / (empty l.capacity ? 0 : l.capacity)
+					                : 0
+					              )
+					         }%"></div>
+					  </div>
+					
+					  <c:if test="${(empty l.capacity ? 0 : l.capacity) > 0
+					               and (empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) >= (empty l.capacity ? 0 : l.capacity)}">
+					    <div class="text-danger small mt-1">정원 마감</div>
+					  </c:if>
+					</td>
+
+                    <td>${empty l.room ? '-' : fn:escapeXml(l.room)}</td>
+
+                    <td>
+                      <div class="text-muted small">
+                        ${l.startDate}<c:if test="${l.endDate ne l.startDate}"> ~ ${l.endDate}</c:if>
+                      </div>
+                    </td>
+
+                    <td>
+                      <c:choose>
+                        <c:when test="${
+                          (empty l.capacity ? 0 : l.capacity) > 0
+                          && (empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) >= (empty l.capacity ? 0 : l.capacity)
+                        }">
+                          <span class="badge bg-dark risk-pill">정원마감</span>
+                        </c:when>
+
+                        <c:when test="${
+                          (empty l.capacity ? 0 : l.capacity) > 0
+                          && ((empty enrollCountMap ? 0 : (empty enrollCountMap[l.lectureId] ? 0 : enrollCountMap[l.lectureId])) * 100) < ((empty l.capacity ? 0 : l.capacity) * 50)
+                        }">
+                          <span class="badge bg-danger risk-pill">폐강위기</span>
+                        </c:when>
+
+                        <c:otherwise>
+                          <span class="badge bg-success risk-pill">정상</span>
+                        </c:otherwise>
+                      </c:choose>
+                    </td>
+                  </tr>
+                </c:forEach>
+              </c:otherwise>
+            </c:choose>
+          </tbody>
+
+        </table>
       </div>
     </div>
   </div>
+  <script>
+    // 검색(클라 필터)
+    (function () {
+      const q = document.getElementById('lectureQ');
+      const btn = document.getElementById('lectureQBtn');
+      const tbody = document.getElementById('lectureTbody');
+      if (!q || !tbody) return;
+
+      function apply() {
+        const keyword = q.value.trim().toLowerCase();
+        const rows = tbody.querySelectorAll('tr.lecture-row');
+        rows.forEach(tr => {
+          const text = tr.innerText.toLowerCase();
+          tr.style.display = text.includes(keyword) ? '' : 'none';
+        });
+      }
+
+      q.addEventListener('input', apply);
+      if (btn) btn.addEventListener('click', apply);
+    })();
+  </script>
+
 </div>
-
-<!-- 2열 KPI (요청/승인/정원 총량) -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">총 수강정원</div>
-        <div class="fs-3 fw-bold">7,840</div>
-        <div class="small text-muted">모든 강의분반 수강정원 합계</div>
-        <!-- 예: ${totalCapacity} -->
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">총 수강인원</div>
-        <div class="fs-3 fw-bold">6,155</div>
-        <div class="small text-muted">현재 수강신청/등록 기준</div>
-        <!-- 예: ${totalEnrolled} -->
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="text-muted">강의 개설 요청(대기)</div>
-        <div class="fs-3 fw-bold text-warning">12</div>
-        <div class="small text-muted">처리 지연 방지 필요</div>
-        <!-- 예: ${pendingOpenReqCount} -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 중단: 강의분반별 수강정원/수강인원(운영 효율) -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <span class="fw-bold">강의분반 운영 효율 (수강정원 대비 충원율)</span>
-    <span class="text-muted small">마감임박/저충원 분반을 빠르게 식별</span>
-  </div>
-
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 14%">강의분반</th>
-            <th style="width: 22%">과목</th>
-            <th style="width: 18%">시간표</th>
-            <th style="width: 12%" class="text-end">수강정원</th>
-            <th style="width: 12%" class="text-end">수강인원</th>
-            <th style="width: 22%">충원율</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 예시 데이터 (실데이터는 forEach로 교체) -->
-          <tr>
-            <td class="fw-semibold">CS101-01</td>
-            <td>자료구조</td>
-            <td>월·수 09:00~10:15</td>
-            <td class="text-end">30</td>
-            <td class="text-end">28</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 10px;">
-                  <div class="progress-bar" style="width: 93%"></div>
-                </div>
-                <span class="small text-muted">93%</span>
-                <span class="badge bg-warning text-dark ms-1">마감 임박</span>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="fw-semibold">CS101-02</td>
-            <td>자료구조</td>
-            <td>화·목 14:00~15:15</td>
-            <td class="text-end">30</td>
-            <td class="text-end">22</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 10px;">
-                  <div class="progress-bar" style="width: 73%"></div>
-                </div>
-                <span class="small text-muted">73%</span>
-                <span class="badge bg-success ms-1">적정</span>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="fw-semibold">DB201-01</td>
-            <td>데이터베이스</td>
-            <td>월·수 14:00~15:15</td>
-            <td class="text-end">25</td>
-            <td class="text-end">25</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 10px;">
-                  <div class="progress-bar" style="width: 100%"></div>
-                </div>
-                <span class="small text-muted">100%</span>
-                <span class="badge bg-danger ms-1">정원 초과/마감</span>
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="fw-semibold">SP301-01</td>
-            <td>Spring</td>
-            <td>금 10:00~12:00</td>
-            <td class="text-end">20</td>
-            <td class="text-end">8</td>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height: 10px;">
-                  <div class="progress-bar" style="width: 40%"></div>
-                </div>
-                <span class="small text-muted">40%</span>
-                <span class="badge bg-secondary ms-1">저충원</span>
-              </div>
-            </td>
-          </tr>
-          <!-- /예시 데이터 -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- 하단: 시간표/자원 관점 요약 + 운영 리스크 요약 -->
-<div class="row g-4">
-  <div class="col-12 col-lg-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-bold">시간대별 강의분반 수</div>
-      <div class="card-body">
-        <div class="mb-3">
-          <div class="d-flex justify-content-between">
-            <span>09:00 ~ 12:00</span>
-            <span class="fw-semibold">86개</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 60%"></div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <div class="d-flex justify-content-between">
-            <span>13:00 ~ 16:00</span>
-            <span class="fw-semibold">132개</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 80%"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="d-flex justify-content-between">
-            <span>17:00 이후</span>
-            <span class="fw-semibold">94개</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 57%"></div>
-          </div>
-        </div>
-
-        <hr>
-
-        <div class="small text-muted">
-          * 특정 시간대 집중은 강의실/강사 배정 충돌 가능성을 높입니다.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-lg-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-bold">운영 리스크 요약</div>
-      <div class="card-body">
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <span class="badge bg-danger">정원 초과 3</span>
-          <span class="badge bg-warning text-dark">마감 임박(90%↑) 21</span>
-          <span class="badge bg-secondary">저충원(50%↓) 46</span>
-          <span class="badge bg-success">적정(50~89%) 242</span>
-        </div>
-
-        <ul class="list-group">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            마감 임박 강의분반
-            <span class="badge bg-warning text-dark rounded-pill">CS101-01 외 20</span>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            저충원 강의분반(폐강/통합 검토)
-            <span class="badge bg-secondary rounded-pill">SP301-01 외 45</span>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            개설 요청 대기(처리 지연)
-            <span class="badge bg-warning text-dark rounded-pill">12</span>
-          </li>
-        </ul>
-
-        <div class="mt-3 text-end d-flex justify-content-end gap-2">
-          <a class="btn btn-outline-primary btn-sm" href="<%=request.getContextPath()%>/admin/lecture-requests">
-            개설 요청 관리
-          </a>
-          <a class="btn btn-outline-secondary btn-sm" href="<%=request.getContextPath()%>/admin/sections">
-            강의분반 관리
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 </c:when>
 <c:otherwise>
 	<div class = "alert alert-warning">${policy.message}</div>
 </c:otherwise>
 </c:choose>
-
