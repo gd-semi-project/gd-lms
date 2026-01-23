@@ -4,7 +4,6 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
-<!-- 현재 강의 ID는 무조건 URL 파라미터 기준 -->
 <c:set var="lectureId" value="${param.lectureId}" />
 
 <div class="mb-4 border-bottom pb-2">

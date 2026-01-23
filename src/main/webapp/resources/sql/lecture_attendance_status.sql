@@ -1,7 +1,7 @@
 CREATE TABLE lecture_attendance_status (
     session_id BIGINT PRIMARY KEY,
 
-    is_open BOOLEAN NOT NULL DEFAULT FALSE, -- 출석 열림 여부
+    is_open BOOLEAN NOT NULL DEFAULT FALSE,
     opened_at DATETIME NULL,
     closed_at DATETIME NULL,
 
