@@ -61,3 +61,9 @@ VALUES
   (160, 4, 'ENROLLED')
 ON DUPLICATE KEY UPDATE
   status = 'ENROLLED';
+  
+  
+  
+UPDATE student
+SET department_id=21
+WHERE user_id in(3,4);
