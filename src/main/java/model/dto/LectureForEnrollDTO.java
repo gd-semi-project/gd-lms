@@ -19,6 +19,7 @@ public class LectureForEnrollDTO {
 	private String instructorName;
 	private String room;
 	private int capacity;
+	private int currentCount;    // 현재 수강 인원
 	private String schedule;
 
 }
