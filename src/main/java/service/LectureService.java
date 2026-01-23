@@ -163,6 +163,10 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	    
 	    
 	}
+
+	public List<LectureDTO> getAllLecture() {
+		return lectureDAO.getAllLecture();
+	}
 	
 	
 	

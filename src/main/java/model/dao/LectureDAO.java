@@ -35,36 +35,104 @@ public class LectureDAO {
 		return instance;
 	}
 
-	// =========================
-	// TODO 통계성 메서드(그대로 둠)
-	// =========================
-	public int getLectureCount() {
-		return 0;
+    public int getLectureCount() { // 개설된 강의 개수 (이름 중첩x)
+        final String sql = """
+        		SELECT COUNT(DISTINCT lecture_title) AS cnt 
+        		FROM lecture
+        		WHERE status = 'PLANNED'
+        		AND validation = 'CONFIRMED'
+        		""";
+        return queryForInt(sql);
 	}
 
-	public int getTotalLectureCount() {
-		return 0;
+	public int getTotalLectureCount() { // 모든 강의 개수 (이름 중첩o)
+        final String sql = """
+        		SELECT COUNT(*) AS cnt 
+        		FROM lecture
+        		WHERE status = 'PLANNED'
+        		AND validation = 'CONFIRMED'
+        		""";
+        return queryForInt(sql);
 	}
 
-	public int getLectureFillRate() {
-		return 0;
+	public int getLectureFillRate() { // 정원/인원
+        final String sql =
+        		"""
+        		SELECT
+        			COALESCE(SUM(l.capacity), 0) AS cap_sum,
+        			COALESCE(SUM(CASE WHEN e.status = 'ENROLLED' THEN 1 ELSE 0 END), 0) AS cur_sum
+        		FROM lecture l
+        		LEFT JOIN enrollment e ON e.lecture_id = l.lecture_id
+        		WHERE l.status = 'PLANNED'
+        		AND l.validation = 'CONFIRMED'
+        		""";
+
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql);
+                 ResultSet rs = pstmt.executeQuery()) {
+
+                if (!rs.next()) return 0;
+
+                int capSum = rs.getInt("cap_sum");
+                int curSum = rs.getInt("cur_sum");
+
+                if (capSum <= 0) return 0;
+
+                return (curSum * 100) / capSum;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return 0;
+            }
 	}
 
-	public int getLowFillRateLecture() {
-		return 0;
+	public int getLowFillRateLecture() { // 정원/인원이 50% 미만인 모든 강의 수
+		final String sql = """
+				
+				        SELECT COUNT(*) AS cnt
+				        FROM (
+				            SELECT 
+				                l.lecture_id,
+				                l.capacity,
+				                COALESCE(SUM(CASE WHEN e.status='ENROLLED' THEN 1 ELSE 0 END), 0) AS enrolled_cnt
+				            FROM lecture l
+				            LEFT JOIN enrollment e
+				              ON e.lecture_id = l.lecture_id
+				            WHERE l.status = 'PLANNED'
+				              AND l.validation = 'CONFIRMED'
+				            GROUP BY l.lecture_id, l.capacity
+				        ) t
+				        WHERE t.capacity > 0
+				          AND (t.enrolled_cnt * 100) < (t.capacity * 50)
+				        """;
+		return queryForInt(sql);
 	}
 
-	public int getTotalLectureCapacity() {
-		return 0;
+	public int getTotalLectureCapacity() { // 모든 정원 수
+        final String sql = 
+        		
+        		"""
+        		SELECT COALESCE(SUM(capacity), 0) AS cnt
+        		FROM lecture
+        		WHERE status = 'PLANNED'
+        		AND validation = 'CONFIRMED'
+        		""";
+		
+		return queryForInt(sql);
 	}
 
-	public int getTotalEnrollment() {
-		return 0;
+	public int getTotalEnrollment() { // 모든 수강 인원 수
+        final String sql = 
+        		"""
+        		SELECT COUNT(*) AS cnt
+        		FROM `user`
+        		WHERE role = 'STUDENT'
+        		AND status = 'ACTIVE'
+        		""";
+        return queryForInt(sql);
+        
 	}
 
-	public int getLectureRequestCount() {
-		return 0;
-	}
 
 	// ======================================================
 	// 1) 교수 강의 목록 (validation = CONFIRMED)
@@ -823,6 +891,105 @@ public class LectureDAO {
 		    }
 	}
 
-    
+    	
+    private int queryForInt(String sql) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) return rs.getInt("cnt");
+            return 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+
+    }
+      
+      
+	public List<LectureDTO> getAllLecture() {
+		final String sql =
+			       """
+		        SELECT
+		          l.lecture_id,
+		          l.lecture_title,
+		          l.lecture_round,
+		          l.user_id,
+		          u.name AS instructor_name,
+		          l.department_id AS department_id,
+		          l.start_date,
+		          l.end_date,
+		          l.room,
+		          l.capacity,
+		          l.status,
+		          l.validation,
+		          l.section,
+	          
+				COALESCE(
+			      GROUP_CONCAT(
+			        CONCAT(
+			          s.week_day, ' ',
+			          TIME_FORMAT(s.start_time, '%H:%i'), '~',
+			          TIME_FORMAT(s.end_time, '%H:%i')
+			        )
+			        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+			                 s.start_time
+			        SEPARATOR ' <br> '
+			      ),
+			      '-'
+			    ) AS scheduleHtml
+						          
+		        FROM lecture l
+		        JOIN user u ON u.user_id = l.user_id
+		        LEFT JOIN lecture_schedule s ON s.lecture_id = l.lecture_id
+		        WHERE l.status = 'PLANNED'
+		        AND l.validation = 'CONFIRMED'
+		        GROUP BY
+		        l.lecture_id,
+			    l.lecture_title,
+			    l.section,
+			    l.capacity,
+			    l.status,
+			    l.validation,
+			    l.created_at,
+			    u.name,
+			    l.department_id
+		        """;
+		
+		try (
+				Connection conn = DBConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				){
+			
+			try(ResultSet rs = pstmt.executeQuery()){
+				
+				List<LectureDTO> list = new ArrayList<LectureDTO>();
+				while (rs.next()) {
+	                LectureDTO dto = new LectureDTO();
+	                dto.setLectureId(rs.getLong("lecture_id"));
+	                dto.setLectureTitle(rs.getString("lecture_title"));
+	                dto.setSection(rs.getString("section"));
+	                dto.setCapacity(rs.getInt("capacity"));
+	                dto.setInstructorName(rs.getString("instructor_name"));
+	                dto.setDepartmentId(rs.getLong("department_id"));
+	                dto.setScheduleHtml(rs.getString("scheduleHtml"));
+	                dto.setRoom(rs.getString("room"));
+	                Date startDate = rs.getDate("start_date");
+	                Date endDate = rs.getDate("end_date");
+	                dto.setStartDate(startDate != null ? startDate.toLocalDate() : null);
+	                dto.setEndDate(endDate != null ? endDate.toLocalDate() : null);
+	                list.add(dto);
+				}
+				return list;
+			}
+			
+		} catch (Exception e) {
+			System.out.println("getAllLecture():실패");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
     
 }

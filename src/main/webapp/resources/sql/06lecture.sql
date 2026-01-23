@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS lecture (
     room            VARCHAR(100) COMMENT '강의실',
     capacity        INT NOT NULL COMMENT '정원',
 
-    status          ENUM('PLANNED','ONGOING','ENDED')
+    status          ENUM('PLANNED','ONGOING','ENDED','CLOSED')
                     NOT NULL DEFAULT 'PLANNED'
                     COMMENT '진행 상태',
 
