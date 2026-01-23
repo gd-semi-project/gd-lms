@@ -5,7 +5,7 @@ import java.util.List;
 import model.dao.EnrollmentDAO;
 import model.dao.LectureDAO;
 import model.dto.EnrollmentDTO;
-import model.dto.LectureDTO;
+import model.dto.LectureForEnrollDTO;
 
 public class EnrollmentService {
 
@@ -13,7 +13,7 @@ public class EnrollmentService {
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
 	
 	// 수강신청 가능한 강의목록 조회
-	 public List<LectureDTO> getAvailableLecturesForEnroll() {
+	 public List<LectureForEnrollDTO> getAvailableLecturesForEnroll() {
 	        return lectureDAO.findAvailableLecturesForEnroll();
 	    }
 	

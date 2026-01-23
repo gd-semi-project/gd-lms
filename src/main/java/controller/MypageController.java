@@ -159,7 +159,7 @@ public class MypageController extends HttpServlet {
 
 			request.setAttribute(
 			        "contentPage",
-			        "/WEB-INF/views/student/enrollmentPage.jsp"
+			        "/WEB-INF/views/student/enrollNotice.jsp"
 			    );
 
 			    request.getRequestDispatcher(

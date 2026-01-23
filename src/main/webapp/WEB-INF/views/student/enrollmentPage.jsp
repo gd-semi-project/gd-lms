@@ -1,6 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%
+  String ctx = request.getContextPath();
+%>
+
 <style>
 .box {
 	border: 1px solid #ddd;
@@ -65,6 +69,7 @@ button {
 				<th>과목</th>
 				<th>강의명</th>
 				<th>담당교수</th>
+				<th>강의실</th>
 				<th>강의시간</th>
 				<th>정원</th>
 
@@ -72,18 +77,21 @@ button {
 		</thead>
 
 		<tbody>
-			<c:forEach var="lecture" items="${lectureList}">
+			<c:forEach var="lecture" items="${lectureList}" varStatus="status">
 				<tr>
-					<form method="post" action="${ctx}/enroll/apply">
+				<td>${status.index + 1}</td>
+				<td>
+					<form method="post" action="<%=ctx %>/enroll/apply">
 						<input type="hidden" name="lectureId" value="${lecture.lectureId}">
 						<button type="submit">신청</button>
 					</form>
-					<td>${lecture.semester}</td>
-					<td>${lecture.subjectCode}</td>
-					<td>${lecture.subjectName}</td>
-					<td>${lecture.credit}/${lecture.hours}</td>
-					<td>${lecture.professorName}</td>
+					</td>
+					<td>${lecture.departmentName}</td>
+					<td>${lecture.lectureTitle}</td>
+					<td>${lecture.instructorName}</td>
+					<td>${lecture.room}</td>
 					<td>${lecture.schedule}</td>
+					<td>${lecture.capacity}</td>
 				</tr>
 			</c:forEach>
 
@@ -120,7 +128,7 @@ button {
 		<tbody>
 			<c:forEach var="enroll" items="${enrollList}">
 				<tr>
-					<form method="post" action="${ctx}/enroll/cancel">
+					<form method="post" action="<%=ctx %>/enroll/cancel">
 						<input type="hidden" name="lectureId" value="${enroll.lectureId}">
 						<button type="submit">취소</button>
 					</form>
