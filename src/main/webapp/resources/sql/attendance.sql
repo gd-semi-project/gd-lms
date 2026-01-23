@@ -1,13 +1,13 @@
 CREATE TABLE attendance (
     attendance_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
-    session_id BIGINT NOT NULL,   -- 수업 회차
-    student_id BIGINT NOT NULL,   -- 학생(user_id)
+    session_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
 
     status ENUM('ABSENT','PRESENT','LATE')
            NOT NULL DEFAULT 'ABSENT',
 
-    checked_at DATETIME NULL,     -- 출석 체크 시간
+    checked_at DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_attendance_session
