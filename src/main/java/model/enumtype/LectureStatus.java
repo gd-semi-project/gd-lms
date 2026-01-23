@@ -3,5 +3,6 @@ package model.enumtype;
 public enum LectureStatus {
 	PLANNED,
 	ONGOING,
-	ENDED
+	ENDED,
+	CLOSED
 }

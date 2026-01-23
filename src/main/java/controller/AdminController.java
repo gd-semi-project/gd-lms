@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import model.dao.SchoolScheduleDAO;
 import model.dto.CodeOptionDTO;
 import model.dto.LectureDTO;
+import model.dto.LectureRequestDTO;
 import model.dto.ScheduleUiPolicyDTO;
 import model.dto.SchoolScheduleDTO;
 import model.dto.UserDTO;
@@ -63,16 +64,55 @@ public class AdminController extends HttpServlet {
 			
 			request.setAttribute("policy", policy);
 			if(policy.isAvailable()) {
+				
 				request.setAttribute("lectureCount", service.getLectureCount());
 				request.setAttribute("totalLectureCount", service.getTotalLectureCount());
 				request.setAttribute("lectureFillRate", service.getLectureFillRate());
 				request.setAttribute("lowFillRateLecture", service.getLowFillRateLecture());
 				request.setAttribute("totalLectureCapacity", service.getTotalLectureCapacity());
 				request.setAttribute("totalEnrollment", service.getTotalEnrollment());
-				request.setAttribute("lectureRequestCount", service.getLectureRequestCount());
-			}
-			
-			break;
+				
+				request.setAttribute("departmentList", service.getDepartmentList());
+				
+				String status = request.getParameter("status");
+				if (status == null || status.isBlank()) status = "ACTIVE";
+				
+				String lectureStatus = request.getParameter("lectureStatus");
+				if (lectureStatus == null || lectureStatus.isBlank()) lectureStatus = "ALL";
+
+				String selectedDept = request.getParameter("departmentId");
+				if (selectedDept != null && !selectedDept.isBlank()) {
+					try {
+						long departmentId = Long.parseLong(selectedDept);
+						request.setAttribute("selectedDepartment", service.getDepartmentById(departmentId));
+						
+						List<LectureDTO> lectureList = lectureService.getAllLectureByDepartment(departmentId, lectureStatus);
+						Map<Long, Integer> enrollCountMap = lectureService.getEnrollCountByLectureId(lectureList);
+						
+						request.setAttribute("lectureList", lectureList);
+						request.setAttribute("enrollCountMap", enrollCountMap);
+						
+						
+						int capacitySum = 0;
+			            int currentSum = 0;
+			            for (var l : lectureList) {
+			                capacitySum += l.getCapacity();
+			                Integer cur = enrollCountMap.get(l.getLectureId());
+			                currentSum += (cur == null ? 0 : cur);
+			            }
+			            request.setAttribute("capacitySum", capacitySum);
+			            request.setAttribute("currentSum", currentSum);
+						
+						
+					} catch (NumberFormatException ignore) {
+						System.out.println("이게 에러나면 진짜 신기할듯");
+						return;
+					}
+				} else {
+					request.setAttribute("lectureList", lectureService.getAllLecture());
+					break;
+				}
+			} else break;
 		}
 		case "/lectureRequest":{
 			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
