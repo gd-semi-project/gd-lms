@@ -38,6 +38,25 @@ button {
 	padding: 4px 8px;
 	cursor: pointer;
 }
+.btn-approve {
+    background-color: #28a745;   /* 초록색 */
+    color: #fff;
+    border: none;
+    border-radius: 6px;          /* 둥근 모서리 */
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.btn-approve:hover {
+    background-color: #218838;   /* hover 시 더 진한 초록 */
+}
+
+.btn-approve:active {
+    background-color: #1e7e34;   /* 클릭 시 */
+}
 </style>
 
 <!-- ===================== -->
@@ -83,7 +102,7 @@ button {
 				<td>
 					<form method="post" action="<%=ctx %>/enroll/apply">
 						<input type="hidden" name="lectureId" value="${lecture.lectureId}">
-						<button type="submit">신청</button>
+						<button type="submit" class="btn-approve">신청</button>
 					</form>
 					</td>
 					<td>${lecture.departmentName}</td>

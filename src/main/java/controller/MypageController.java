@@ -171,7 +171,6 @@ public class MypageController extends HttpServlet {
 			    request.getRequestDispatcher(
 			        "/WEB-INF/views/layout/layout.jsp"
 			    ).forward(request, response);
-			response.sendRedirect(request.getContextPath() + "/enroll");
 			    return;
 		}
 		case "/mySchedule": {	// 내 스케줄(학생)
