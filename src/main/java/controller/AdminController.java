@@ -6,8 +6,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dao.SchoolScheduleDAO;
+import model.dto.CodeOptionDTO;
 import model.dto.LectureDTO;
 import model.dto.ScheduleUiPolicyDTO;
+import model.dto.SchoolScheduleDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import model.enumtype.ScheduleCode;
@@ -20,6 +23,7 @@ import service.SchedulePolicyService;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -141,6 +145,42 @@ public class AdminController extends HttpServlet {
 
 			break;
 		
+		case "/calendarEdit":
+			
+			List<CodeOptionDTO> codeOptions = Arrays.stream(ScheduleCode.values())
+												.map(c -> new CodeOptionDTO(c.name(), c.getLabel()))
+												.toList();
+			request.setAttribute("codeOptions", codeOptions);
+			
+			String mode = request.getParameter("action");
+			String schId = request.getParameter("id");
+			if("EDIT".equalsIgnoreCase(mode)) {
+				if (schId == null || schId.isBlank()) {
+					System.out.println("일정 id가 없습니다.");
+				} else {
+					
+					try {
+						
+						long scheduleId = Long.parseLong(schId);
+						SchoolScheduleDTO event = SchoolScheduleDAO.getInstance().findById(scheduleId);
+						if (event == null) {
+							System.out.println("존재하지 않는 일정입니다.");
+						} else {
+							request.setAttribute("event", event);
+							SchoolScheduleDAO.getInstance().scheduleDelete(scheduleId);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.out.println("calendarEdit doGet 에러남");
+					}
+					
+					
+				}
+			}
+			
+			
+			contentPage = "/WEB-INF/views/admin/adminCalendarEdit.jsp";
+			break;
 			
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
@@ -210,9 +250,84 @@ public class AdminController extends HttpServlet {
 				LoginService ls = LoginService.getInstance();
 				ls.RegistUser(userDTO);
 				
-				response.sendRedirect(contextPath + "/admin/dashboard");
+				// response.sendRedirect("/gd-lms/login.jsp");
+				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
+				
+				request.setAttribute("contentPage", contentPage);
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+				rd.forward(request, response);
 				break;
 			}
+			
+			case "/calendarEdit": {
+				if("CREATE".equals(action)||"EDIT".equals(action)) {
+				try {
+					
+	                String title = request.getParameter("title");
+	                String startDateParam = request.getParameter("startDate");
+	                String endDateParam = request.getParameter("endDate");
+	                String memo = request.getParameter("memo");
+	                String scheduleCodeParam = request.getParameter("scheduleCode");
+	                
+	                if (title == null || title.isBlank()
+	                        || startDateParam == null || startDateParam.isBlank()
+	                        || scheduleCodeParam == null || scheduleCodeParam.isBlank()) {
+	                    throw new IllegalArgumentException("필수값이 누락되었습니다.");
+	                }
+	                
+	                LocalDate startDate = LocalDate.parse(startDateParam);
+	                LocalDate endDate = (endDateParam == null||endDateParam.isBlank())
+	                        ? startDate
+	                        : LocalDate.parse(endDateParam);
+	                ScheduleCode scheduleCode = ScheduleCode.valueOf(scheduleCodeParam);
+
+	                SchoolScheduleDTO dto = new SchoolScheduleDTO();
+	                dto.setTitle(title.trim());
+	                dto.setStartDate(startDate);
+	                dto.setEndDate(endDate);
+	                dto.setMemo(memo);
+	                dto.setScheduleCode(scheduleCode);
+	                
+	                if("CREATE".equalsIgnoreCase(action)) {
+	                	SchoolScheduleDAO.getInstance().scheduleAdd(dto);
+	                } else if ("EDIT".equalsIgnoreCase(action)) {
+	                	String idParam = request.getParameter("id");
+	                	if (idParam == null || idParam.isBlank()) {
+	                		System.out.println("일정 id가 없습니다.");
+	                	}
+	                	dto.setId(Long.parseLong(idParam));
+	                	SchoolScheduleDAO.getInstance().scheduleUpdate(dto);
+	                	
+	                }
+	                
+	                response.sendRedirect(contextPath + "/calendar/view");
+	                break;
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("calendarEdit doPost에서 에러남");
+					break;
+				}
+				
+			}
+			
+        if("DELETE".equalsIgnoreCase(action)) {
+          try {
+            long id = Long.parseLong(request.getParameter("id"));
+            SchoolScheduleDAO.getInstance().scheduleDelete(id);
+          } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("calendarEdit doPost delete 에러남");
+          }
+
+          response.sendRedirect(contextPath+"/calendar/view");
+          return;
+
+        }
+				
+			}
+			
+			
 			case "/check-email": {
 				// 1. 요청 파라미터
 		        String email = request.getParameter("email");
@@ -265,7 +380,6 @@ public class AdminController extends HttpServlet {
 		        response.getWriter().write(json);
 				break;
 			}
-			
 			default: break;
 		}
 		
