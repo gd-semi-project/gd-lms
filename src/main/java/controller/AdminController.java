@@ -210,13 +210,62 @@ public class AdminController extends HttpServlet {
 				LoginService ls = LoginService.getInstance();
 				ls.RegistUser(userDTO);
 				
-				// response.sendRedirect("/gd-lms/login.jsp");
-				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
-				
-				request.setAttribute("contentPage", contentPage);
-				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
-				rd.forward(request, response);
+				response.sendRedirect(contextPath + "/admin/dashboard");
+				break;
 			}
+			case "/check-email": {
+				// 1. 요청 파라미터
+		        String email = request.getParameter("email");
+
+		        // 2. 기본 유효성 검사
+		        // input타입 지정이라 불필요?
+		        // 이메일 형식도 input type=email로 되어있어 통과 불가?
+		        if (email == null || email.trim().isEmpty()) {
+		            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		            response.getWriter().write("{\"error\":\"email is required\"}");
+		            return;
+		        }
+
+		        // 3. 중복 여부 확인
+		        LoginService ls = LoginService.getInstance();
+		        boolean isDuplicate = ls.DuplicateEmail(email);
+
+		        // 4. 응답 타입 설정 (중요)
+		        response.setContentType("application/json");
+		        response.setCharacterEncoding("UTF-8");
+
+		        // 5. JSON 응답
+		        String json = "{\"duplicate\":" + isDuplicate + "}";
+		        response.getWriter().write(json);
+				break;
+			}
+			case "/check-loginId": {
+				// 1. 요청 파라미터
+		        String loginId = request.getParameter("loginId");
+
+		        // 2. 기본 유효성 검사
+		        // input타입 지정이라 불필요?
+		        // 이메일 형식도 input type=email로 되어있어 통과 불가?
+		        if (loginId == null || loginId.trim().isEmpty()) {
+		            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		            response.getWriter().write("{\"error\":\"loginId is required\"}");
+		            return;
+		        }
+
+		        // 3. 중복 여부 확인
+		        LoginService ls = LoginService.getInstance();
+		        boolean isDuplicate = ls.DuplicateLoginId(loginId);
+
+		        // 4. 응답 타입 설정 (중요)
+		        response.setContentType("application/json");
+		        response.setCharacterEncoding("UTF-8");
+
+		        // 5. JSON 응답
+		        String json = "{\"duplicate\":" + isDuplicate + "}";
+		        response.getWriter().write(json);
+				break;
+			}
+			
 			default: break;
 		}
 		
