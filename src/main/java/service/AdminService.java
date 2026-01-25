@@ -54,10 +54,6 @@ public class AdminService {
 		return lectureDAO.getTotalEnrollment();
 	}
 	
-	public int getLectureRequestCount() {
-		return lectureDAO.getLectureRequestCount();
-	}
-	
 	
 	public ArrayList<LectureRequestDTO> getPendingLectureList(Long departmentId){
 		

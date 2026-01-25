@@ -184,5 +184,39 @@ public class UserDAO {
 
 	}
 	
+	public boolean selectLoginIdByLoginId(String loginId) {
+		String sql = "SELECT 1 FROM user WHERE user_id = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setString(1, loginId);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	        	return true;
+	        }
+	    } catch (Exception e) {
+	        System.out.println("selectLoginIdByUserId: " + e.getMessage());
+	    }
+        return false;
+	}
+	
+	public boolean selectEmailByEmail(String email) {
+		String sql = "SELECT 1 FROM user WHERE email = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setString(1, email);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	        	return true;
+	        }
+	    } catch (Exception e) {
+	        System.out.println("selectLoginIdByUserId: " + e.getMessage());
+	    }
+        return false;
+	}
+	
 	
 }

@@ -17,5 +17,17 @@ public class EnrollmentDTO {
 	private Long lectureId;		//강의 테이블의 PK
 	private Long userId;		//학생 테이블의 PK
 	private EnrollmentStatus status;
+	
+	// 화면용 상태
+    private boolean alreadyEnrolled; // 신청 여부
+    private String departmentName;
+    private String lectureTitle;
+    private String instructorName;
+    private String room;
+    private String schedule;
+    private int capacity;
+    private int currentCount;
+
+    
 }
 

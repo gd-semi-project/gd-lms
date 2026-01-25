@@ -50,9 +50,6 @@ public class LoginController extends HttpServlet {
 			}
 			response.sendRedirect(contextPath + "/");
 			return;
-		} else {
-			// 비정상적인 접근 페이지 연결
-			// response.sendRedirect(contextPath + "/login");
 		}
 		
 	}
@@ -76,6 +73,8 @@ public class LoginController extends HttpServlet {
 				session.setAttribute("AccessInfo", accessDTO);
 				// 조회 기준 MyPageService용(로그인동안 loginId값 기억 mypage관련 로직을 사용하기위해서 필요)
 				session.setAttribute("loginId", user_id);
+				// 로그인 동안 user_id(PK)가져옴
+				session.setAttribute("userId", accessDTO.getUserId());
 				response.sendRedirect(contextPath + "/main");
 			} else {
 				request.setAttribute("LoginErrorMsg", "로그인 정보가 맞지 않습니다.");
@@ -83,23 +82,6 @@ public class LoginController extends HttpServlet {
 				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 				rd.forward(request, response);
 			}
-		} 
-		// DOTO : AdminController로 이전 필요
-		else if (action.equals("/registUser.do")) {
-			UserDTO userDTO = new UserDTO();
-			userDTO.setLoginId(request.getParameter("loginId"));
-			userDTO.setPassword(request.getParameter("password"));
-			userDTO.setName(request.getParameter("name"));
-			userDTO.setEmail(request.getParameter("enail"));
-			userDTO.setBirthDate(LocalDate.parse(request.getParameter("birthDate")));
-			
-			Role role = Role.fromLabel(request.getParameter("role"));
-			userDTO.setRole(role);
-			
-			LoginService ls = LoginService.getInstance();
-			ls.RegistUser(userDTO);
-			
-			response.sendRedirect("/WEB-INF/views/user/index.jsp");
 		}
 		
 	}

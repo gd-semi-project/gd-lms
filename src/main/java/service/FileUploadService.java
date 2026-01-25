@@ -132,9 +132,12 @@ public class FileUploadService {
 		for (FileDTO file : fileList) {
 			String originalFilename = file.getOriginalFilename(); 
 	        int lastOfIndexDot = originalFilename.lastIndexOf(".");
-	        String extender = originalFilename.substring(lastOfIndexDot);
-	        String icon = EXT_ICON_MAP.getOrDefault(extender, "📄");
-	        file.setExtenderIco(icon);
+	        String icon = "📄";
+	        if (lastOfIndexDot > 0) {
+		        String extender = originalFilename.substring(lastOfIndexDot);
+		        icon = EXT_ICON_MAP.getOrDefault(extender, "📄");
+		        file.setExtenderIco(icon);
+	        }
 		}
 		
 		return fileList; 

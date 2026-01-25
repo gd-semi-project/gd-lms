@@ -32,7 +32,6 @@ public class QnaAnswerDAO {
     }
 
     // ====== insert ======
-    // 버전1) 기존처럼 is_deleted는 무조건 'N'으로 저장 (가장 단순)
     public long insert(Connection conn, QnaAnswerDTO dto) throws SQLException {
         String sql =
             "INSERT INTO qna_answers (qna_id, instructor_id, content, is_deleted) " +
@@ -50,27 +49,7 @@ public class QnaAnswerDAO {
         }
     }
 
-    /*  버전2) DTO의 isDeleted 값도 반영하고 싶으면 이걸로 교체
-    public long insert(Connection conn, QnaAnswerDTO dto) throws SQLException {
-        String sql =
-            "INSERT INTO qna_answers (qna_id, instructor_id, content, is_deleted) " +
-            "VALUES (?, ?, ?, ?)";
 
-        isDeleted del = (dto.getIsDeleted() == null) ? isDeleted.N : dto.getIsDeleted();
-
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setLong(1, dto.getQnaId());
-            ps.setLong(2, dto.getInstructorId());
-            ps.setString(3, dto.getContent());
-            ps.setString(4, del.toDb()); // ★ enum -> DB
-            ps.executeUpdate();
-
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getLong(1) : 0L;
-            }
-        }
-    }
-    */
 
     public int update(Connection conn, QnaAnswerDTO dto) throws SQLException {
         String sql =

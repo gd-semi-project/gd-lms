@@ -6,8 +6,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dao.SchoolScheduleDAO;
+import model.dto.CodeOptionDTO;
 import model.dto.LectureDTO;
+import model.dto.LectureRequestDTO;
 import model.dto.ScheduleUiPolicyDTO;
+import model.dto.SchoolScheduleDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import model.enumtype.ScheduleCode;
@@ -20,6 +24,7 @@ import service.SchedulePolicyService;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -59,16 +64,55 @@ public class AdminController extends HttpServlet {
 			
 			request.setAttribute("policy", policy);
 			if(policy.isAvailable()) {
+				
 				request.setAttribute("lectureCount", service.getLectureCount());
 				request.setAttribute("totalLectureCount", service.getTotalLectureCount());
 				request.setAttribute("lectureFillRate", service.getLectureFillRate());
 				request.setAttribute("lowFillRateLecture", service.getLowFillRateLecture());
 				request.setAttribute("totalLectureCapacity", service.getTotalLectureCapacity());
 				request.setAttribute("totalEnrollment", service.getTotalEnrollment());
-				request.setAttribute("lectureRequestCount", service.getLectureRequestCount());
-			}
-			
-			break;
+				
+				request.setAttribute("departmentList", service.getDepartmentList());
+				
+				String status = request.getParameter("status");
+				if (status == null || status.isBlank()) status = "ACTIVE";
+				
+				String lectureStatus = request.getParameter("lectureStatus");
+				if (lectureStatus == null || lectureStatus.isBlank()) lectureStatus = "ALL";
+
+				String selectedDept = request.getParameter("departmentId");
+				if (selectedDept != null && !selectedDept.isBlank()) {
+					try {
+						long departmentId = Long.parseLong(selectedDept);
+						request.setAttribute("selectedDepartment", service.getDepartmentById(departmentId));
+						
+						List<LectureDTO> lectureList = lectureService.getAllLectureByDepartment(departmentId, lectureStatus);
+						Map<Long, Integer> enrollCountMap = lectureService.getEnrollCountByLectureId(lectureList);
+						
+						request.setAttribute("lectureList", lectureList);
+						request.setAttribute("enrollCountMap", enrollCountMap);
+						
+						
+						int capacitySum = 0;
+			            int currentSum = 0;
+			            for (var l : lectureList) {
+			                capacitySum += l.getCapacity();
+			                Integer cur = enrollCountMap.get(l.getLectureId());
+			                currentSum += (cur == null ? 0 : cur);
+			            }
+			            request.setAttribute("capacitySum", capacitySum);
+			            request.setAttribute("currentSum", currentSum);
+						
+						
+					} catch (NumberFormatException ignore) {
+						System.out.println("이게 에러나면 진짜 신기할듯");
+						return;
+					}
+				} else {
+					request.setAttribute("lectureList", lectureService.getAllLecture());
+					break;
+				}
+			} else break;
 		}
 		case "/lectureRequest":{
 			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
@@ -141,6 +185,42 @@ public class AdminController extends HttpServlet {
 
 			break;
 		
+		case "/calendarEdit":
+			
+			List<CodeOptionDTO> codeOptions = Arrays.stream(ScheduleCode.values())
+												.map(c -> new CodeOptionDTO(c.name(), c.getLabel()))
+												.toList();
+			request.setAttribute("codeOptions", codeOptions);
+			
+			String mode = request.getParameter("action");
+			String schId = request.getParameter("id");
+			if("EDIT".equalsIgnoreCase(mode)) {
+				if (schId == null || schId.isBlank()) {
+					System.out.println("일정 id가 없습니다.");
+				} else {
+					
+					try {
+						
+						long scheduleId = Long.parseLong(schId);
+						SchoolScheduleDTO event = SchoolScheduleDAO.getInstance().findById(scheduleId);
+						if (event == null) {
+							System.out.println("존재하지 않는 일정입니다.");
+						} else {
+							request.setAttribute("event", event);
+							SchoolScheduleDAO.getInstance().scheduleDelete(scheduleId);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						System.out.println("calendarEdit doGet 에러남");
+					}
+					
+					
+				}
+			}
+			
+			
+			contentPage = "/WEB-INF/views/admin/adminCalendarEdit.jsp";
+			break;
 			
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
@@ -216,6 +296,129 @@ public class AdminController extends HttpServlet {
 				request.setAttribute("contentPage", contentPage);
 				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
 				rd.forward(request, response);
+				break;
+			}
+			
+			case "/calendarEdit": {
+				if("CREATE".equals(action)||"EDIT".equals(action)) {
+				try {
+					
+	                String title = request.getParameter("title");
+	                String startDateParam = request.getParameter("startDate");
+	                String endDateParam = request.getParameter("endDate");
+	                String memo = request.getParameter("memo");
+	                String scheduleCodeParam = request.getParameter("scheduleCode");
+	                
+	                if (title == null || title.isBlank()
+	                        || startDateParam == null || startDateParam.isBlank()
+	                        || scheduleCodeParam == null || scheduleCodeParam.isBlank()) {
+	                    throw new IllegalArgumentException("필수값이 누락되었습니다.");
+	                }
+	                
+	                LocalDate startDate = LocalDate.parse(startDateParam);
+	                LocalDate endDate = (endDateParam == null||endDateParam.isBlank())
+	                        ? startDate
+	                        : LocalDate.parse(endDateParam);
+	                ScheduleCode scheduleCode = ScheduleCode.valueOf(scheduleCodeParam);
+
+	                SchoolScheduleDTO dto = new SchoolScheduleDTO();
+	                dto.setTitle(title.trim());
+	                dto.setStartDate(startDate);
+	                dto.setEndDate(endDate);
+	                dto.setMemo(memo);
+	                dto.setScheduleCode(scheduleCode);
+	                
+	                if("CREATE".equalsIgnoreCase(action)) {
+	                	SchoolScheduleDAO.getInstance().scheduleAdd(dto);
+	                } else if ("EDIT".equalsIgnoreCase(action)) {
+	                	String idParam = request.getParameter("id");
+	                	if (idParam == null || idParam.isBlank()) {
+	                		System.out.println("일정 id가 없습니다.");
+	                	}
+	                	dto.setId(Long.parseLong(idParam));
+	                	SchoolScheduleDAO.getInstance().scheduleUpdate(dto);
+	                	
+	                }
+	                
+	                response.sendRedirect(contextPath + "/calendar/view");
+	                break;
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+					System.out.println("calendarEdit doPost에서 에러남");
+					break;
+				}
+				
+			}
+			
+        if("DELETE".equalsIgnoreCase(action)) {
+          try {
+            long id = Long.parseLong(request.getParameter("id"));
+            SchoolScheduleDAO.getInstance().scheduleDelete(id);
+          } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("calendarEdit doPost delete 에러남");
+          }
+
+          response.sendRedirect(contextPath+"/calendar/view");
+          return;
+
+        }
+				
+			}
+			
+			
+			case "/check-email": {
+				// 1. 요청 파라미터
+		        String email = request.getParameter("email");
+
+		        // 2. 기본 유효성 검사
+		        // input타입 지정이라 불필요?
+		        // 이메일 형식도 input type=email로 되어있어 통과 불가?
+		        if (email == null || email.trim().isEmpty()) {
+		            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		            response.getWriter().write("{\"error\":\"email is required\"}");
+		            return;
+		        }
+
+		        // 3. 중복 여부 확인
+		        LoginService ls = LoginService.getInstance();
+		        boolean isDuplicate = ls.DuplicateEmail(email);
+
+		        // 4. 응답 타입 설정 (중요)
+		        response.setContentType("application/json");
+		        response.setCharacterEncoding("UTF-8");
+
+		        // 5. JSON 응답
+		        String json = "{\"duplicate\":" + isDuplicate + "}";
+		        response.getWriter().write(json);
+				break;
+			}
+			case "/check-loginId": {
+				// 1. 요청 파라미터
+		        String loginId = request.getParameter("loginId");
+
+		        // 2. 기본 유효성 검사
+		        // input타입 지정이라 불필요?
+		        // 이메일 형식도 input type=email로 되어있어 통과 불가?
+		        if (loginId == null || loginId.trim().isEmpty()) {
+		            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		            response.getWriter().write("{\"error\":\"loginId is required\"}");
+		            return;
+		        }
+
+		        // 3. 중복 여부 확인
+		        LoginService ls = LoginService.getInstance();
+		        boolean isDuplicate = ls.DuplicateLoginId(loginId);
+
+		        // 4. 응답 타입 설정 (중요)
+		        response.setContentType("application/json");
+		        response.setCharacterEncoding("UTF-8");
+
+		        // 5. JSON 응답
+		        String json = "{\"duplicate\":" + isDuplicate + "}";
+		        response.getWriter().write(json);
+				break;
 			}
 			default: break;
 		}

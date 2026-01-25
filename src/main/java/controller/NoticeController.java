@@ -74,17 +74,18 @@ public class NoticeController extends HttpServlet {
             switch (action) {
                 case "/create":
                     handleCreate(req, resp);
-                    break;
+                    return;
                 case "/update":
                     handleUpdate(req, resp);
-                    break;
+                    return;
                 case "/delete":
                     handleDelete(req, resp);
-                    break;
+                    return;
                 default:
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND); return;
             }
         } catch (NoticeService.AccessDeniedException e) {
+        	if (resp.isCommitted()) return; // 응답 있다면 포워드 금지 
             req.setAttribute("errorMessage", e.getMessage());
             forwardLayout(req, resp, ERROR_403);
         }
