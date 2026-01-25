@@ -27,7 +27,7 @@
         <tr>
           <td>${s.studentNumber}</td>
           <td>${s.studentName}</td>
-          <td>${s.studenGrade}</td>
+          <td>${s.studentGrade}</td>
           <td>${s.enrollmentStatus}</td>
           <td>${s.appliedAt}</td>
         </tr>

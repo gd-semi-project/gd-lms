@@ -9,6 +9,7 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import model.dto.LectureRequestDTO;
+import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
 
 public class LectureRequestDAO {
@@ -26,17 +27,22 @@ public class LectureRequestDAO {
 	public List<LectureRequestDTO> selectByInstructor(Connection conn, long instructorId) {
 
 		String sql = """
-				    SELECT
-				        lecture_id,
-				        lecture_title,
-				        section,
-				        capacity,
-				        validation,
-				        created_at
-				    FROM lecture
-				    WHERE user_id = ?
-				    ORDER BY created_at DESC
-				""";
+			    SELECT
+				    lecture_id,
+				    lecture_title,
+				    start_date,
+				    end_date,
+				    section,
+				    capacity,
+				    validation,
+				    status,
+				    created_at
+				FROM lecture
+				WHERE user_id = ?
+				  AND validation IN ('CONFIRMED', 'PENDING')
+				  AND status <> 'ENDED'
+				ORDER BY created_at DESC
+			""";
 
 		List<LectureRequestDTO> list = new ArrayList<>();
 
@@ -48,9 +54,18 @@ public class LectureRequestDAO {
 					LectureRequestDTO dto = new LectureRequestDTO();
 					dto.setLectureId(rs.getLong("lecture_id"));
 					dto.setLectureTitle(rs.getString("lecture_title"));
+					dto.setStartDate(
+						    rs.getDate("start_date").toLocalDate()
+						);
+						dto.setEndDate(
+						    rs.getDate("end_date").toLocalDate()
+						);
 					dto.setSection(rs.getString("section"));
 					dto.setCapacity(rs.getInt("capacity"));
 					dto.setValidation(LectureValidation.valueOf(rs.getString("validation")));
+					dto.setStatus(
+						    LectureStatus.valueOf(rs.getString("status"))
+						);
 					dto.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
 					list.add(dto);
 				}

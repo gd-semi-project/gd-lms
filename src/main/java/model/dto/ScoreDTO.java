@@ -8,19 +8,25 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ScoreDTO {
-	private Long gradeId;
-	
-	private Long enrollmentId; // enroll FK
-	private Long lectureId;	// lecture FK
-	private Long usersId;	// user FK
-	
-	// 점수 입력전에 값은 NULL이여야 하기 때문 int대신 Integer사용(int는 NULL불가)
-	private Integer attendanceScore;	// 출석 점수
-	private Integer middleScore;	// 중간고사 점수
-	private Integer finalScore;	// 기말고사 점수
-	private Integer totalScore;	// 종합 점수
-	private Integer gradeScore;	// 과제 점수
-	private String score;		// 등급 A+, A, B+ 등등등
-		
-	
+    private Long scoreId;
+    private Long lectureId;
+    private Long studentId;
+
+    private Integer attendanceScore;
+    private Integer assignmentScore;
+    private Integer midtermScore;
+    private Integer finalScore;
+
+    private Integer totalScore;
+    private String gradeLetter;
+
+    private boolean isCompleted;
+    private boolean isConfirmed;
+    
+    
+    // 조회용
+    private String studentName;
+    private Long studentNumber;
+    private Integer studentGrade;
+    
 }

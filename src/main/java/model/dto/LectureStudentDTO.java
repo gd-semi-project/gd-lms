@@ -14,7 +14,7 @@ public class LectureStudentDTO {	// 화면에 뿌릴 용도 : 수강중인 학�
     private Long userId;
     private String studentName;
     private Integer studentNumber;
-    private int studenGrade;
+    private int studentGrade;
 
     private EnrollmentStatus enrollmentStatus;
     private LocalDateTime appliedAt;
