@@ -18,3 +18,15 @@ CREATE TABLE score_policy (
 
     FOREIGN KEY (lecture_id) REFERENCES lecture(lecture_id)
 );
+
+SELECT
+    l.lecture_id,
+    l.lecture_title,
+    sp.attendance_weight,
+    sp.assignment_weight,
+    sp.midterm_weight,
+    sp.final_weight
+FROM lecture l
+LEFT JOIN score_policy sp
+    ON l.lecture_id = sp.lecture_id
+ORDER BY l.lecture_id;

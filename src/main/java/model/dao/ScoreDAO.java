@@ -197,4 +197,51 @@ public class ScoreDAO {
             throw new RuntimeException("총점/학점 저장 실패", e);
         }
     }
+    
+    // 학생 본인 성적 조회
+    public ScoreDTO selectScoreByLectureAndStudent(
+            Connection conn,
+            Long lectureId,
+            Long studentId
+    ) {
+
+        String sql = """
+            SELECT
+                s.score_id,
+                s.lecture_id,
+                s.student_id,
+                s.assignment_score,
+                s.midterm_score,
+                s.final_score
+            FROM score s
+            WHERE s.lecture_id = ?
+              AND s.student_id = ?
+        """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, lectureId);
+            pstmt.setLong(2, studentId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    ScoreDTO dto = new ScoreDTO();
+                    dto.setScoreId(rs.getLong("score_id"));
+                    dto.setLectureId(rs.getLong("lecture_id"));
+                    dto.setStudentId(rs.getLong("student_id"));
+
+                    dto.setAssignmentScore(rs.getObject("assignment_score", Integer.class));
+                    dto.setMidtermScore(rs.getObject("midterm_score", Integer.class));
+                    dto.setFinalScore(rs.getObject("final_score", Integer.class));
+
+                    return dto;
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("학생 성적 조회 실패", e);
+        }
+
+        return null;
+    }
 }
