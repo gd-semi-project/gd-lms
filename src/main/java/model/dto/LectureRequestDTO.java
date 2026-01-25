@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
 
 @NoArgsConstructor
@@ -28,4 +29,5 @@ public class LectureRequestDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private String room; 
+    private LectureStatus status;
 }

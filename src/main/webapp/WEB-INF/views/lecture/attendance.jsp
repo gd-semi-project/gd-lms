@@ -8,15 +8,16 @@
 
 <h3 class="mb-4">출석</h3>
 
+<!-- ================= 플래시 메시지 ================= -->
 <c:if test="${not empty flashMsg}">
     <div class="alert alert-warning">
         ${flashMsg}
     </div>
 </c:if>
 
-<!-- =========================================================
-     학생 화면
-========================================================= -->
+<!-- ================================================= -->
+<!-- ====================== 학생 ===================== -->
+<!-- ================================================= -->
 <c:if test="${role eq 'STUDENT'}">
 
     <h5 class="mb-3">오늘 출석</h5>
@@ -36,6 +37,10 @@
                     ${todaySession.startTime} ~ ${todaySession.endTime}
                 </p>
 
+                <div class="text-muted mb-2">
+                    출석 가능 시간: 수업 시작 후 10분 이내
+                </div>
+
                 <c:choose>
                     <c:when test="${alreadyChecked}">
                         <button class="btn btn-outline-secondary" disabled>
@@ -45,10 +50,8 @@
 
                     <c:otherwise>
                         <form method="post" action="${ctx}/attendance/check">
-                            <input type="hidden" name="lectureId"
-                                   value="${lectureId}" />
-                            <input type="hidden" name="sessionId"
-                                   value="${todaySession.sessionId}" />
+                            <input type="hidden" name="lectureId" value="${lectureId}" />
+                            <input type="hidden" name="sessionId" value="${todaySession.sessionId}" />
                             <button class="btn btn-success">
                                 출석하기
                             </button>
@@ -60,6 +63,7 @@
         </div>
     </c:if>
 
+    <!-- ================= 나의 출석 기록 ================= -->
     <h5 class="mt-4">나의 출석 기록</h5>
 
     <table class="table table-bordered text-center">
@@ -105,20 +109,44 @@
 
 </c:if>
 
-<!-- =========================================================
-     교수 화면
-========================================================= -->
+<!-- ================================================= -->
+<!-- ====================== 교수 ===================== -->
+<!-- ================================================= -->
 <c:if test="${role eq 'INSTRUCTOR'}">
 
     <h5 class="mb-3">출석 관리</h5>
 
-    <form method="post" action="${ctx}/attendance/open" class="mb-4">
-        <input type="hidden" name="lectureId" value="${lectureId}" />
-        <button class="btn btn-success">
-            출석 시작
-        </button>
-    </form>
+    <!-- 출석 시작 / 종료 -->
+    <c:choose>
+    
+        <c:when test="${not attendanceOpen}">
+	        <form method="post" action="${ctx}/attendance/open" class="mb-4">
+	            <input type="hidden" name="lectureId" value="${lectureId}" />
+	            <button class="btn btn-success">
+	                출석 시작
+	            </button>
+	        </form>
+    	</c:when>
 
+        <c:when test="${not attendanceOpen}">
+            <div class="alert alert-secondary mb-3">
+                출석이 종료 되었습니다.
+            </div>
+        </c:when>
+
+        <c:otherwise>
+        <form method="post" action="${ctx}/attendance/close" class="mb-4">
+            <input type="hidden" name="lectureId" value="${lectureId}" />
+            <input type="hidden" name="sessionId" value="${todaySession.sessionId}" />
+            <button class="btn btn-danger">
+                출석 종료
+            </button>
+        </form>
+    </c:otherwise>
+
+    </c:choose>
+
+    <!-- ================= 회차별 출석부 ================= -->
     <h5 class="mt-4">회차별 출석부</h5>
 
     <form method="get" class="mb-3">
@@ -157,17 +185,14 @@
                             <form method="post"
                                   action="${ctx}/attendance/update"
                                   class="d-inline">
-                                <input type="hidden" name="attendanceId"
-                                       value="${s.attendanceId}" />
-                                <input type="hidden" name="lectureId"
-                                       value="${lectureId}" />
-                                <input type="hidden" name="sessionId"
-                                       value="${selectedSessionId}" />
+                                <input type="hidden" name="attendanceId" value="${s.attendanceId}" />
+                                <input type="hidden" name="lectureId" value="${lectureId}" />
+                                <input type="hidden" name="sessionId" value="${selectedSessionId}" />
 
                                 <select name="status" class="form-select d-inline w-auto">
-                                    <option value="PRESENT">출석</option>
-                                    <option value="LATE">지각</option>
-                                    <option value="ABSENT">결석</option>
+                                    <option value="PRESENT" ${s.status == 'PRESENT' ? 'selected' : ''}>출석</option>
+                                    <option value="LATE" ${s.status == 'LATE' ? 'selected' : ''}>지각</option>
+                                    <option value="ABSENT" ${s.status == 'ABSENT' ? 'selected' : ''}>결석</option>
                                 </select>
                                 <button class="btn btn-sm btn-outline-primary ms-1">
                                     변경

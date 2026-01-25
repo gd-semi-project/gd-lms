@@ -16,7 +16,7 @@ public class AttendanceDTO {
     private Long sessionId;
     private Long studentId;
 
-    private AttendanceStatus status; // ABSENT, PRESENT, LATE
+    private AttendanceStatus status;
 
     private LocalDate sessionDate;   // 수업 날짜
     private LocalDateTime checkedAt; // 출석 체크 시간
