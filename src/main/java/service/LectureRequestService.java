@@ -156,17 +156,13 @@ public class LectureRequestService {
 
             conn.setAutoCommit(false);
 
-            // 1️⃣ 기간 검증
             validateLecturePeriod(conn, request);
 
-            // 2️⃣ lecture 생성
             Long lectureId =
                 lectureDAO.insertLecture(conn, instructorId, request);
 
-            // 3️⃣ 요일/시간 등록
             lectureDAO.insertSchedule(conn, lectureId, request);
 
-            // 4️⃣ 성적 배점 생성
             ScorePolicyDTO policy =
                 buildScorePolicy(lectureId, request);
 
@@ -182,7 +178,7 @@ public class LectureRequestService {
     }
 
     /* ==================================================
-     * 8. 강의 개설 신청 수정 (🔥 핵심 수정)
+     * 8. 강의 개설 신청 수정 
      * ================================================== */
     public void updateLectureRequest(
             Long lectureId,
@@ -202,13 +198,9 @@ public class LectureRequestService {
                 );
             }
 
-            // 1️⃣ 기간 검증
             validateLecturePeriod(conn, request);
-
-            // 2️⃣ lecture 수정
             lectureDAO.updateLecture(conn, lectureId, request);
 
-            // 3️⃣ 성적 배점 (INSERT or UPDATE)
             ScorePolicyDTO policy =
                 buildScorePolicy(lectureId, request);
 
@@ -228,7 +220,7 @@ public class LectureRequestService {
     }
 
     /* ==================================================
-     * 9. 강의 개설 신청 삭제 (🔥 완전 수정)
+     * 9. 강의 개설 신청 삭제 
      * ================================================== */
     public void deleteLectureRequest(Long lectureId) {
 
@@ -245,13 +237,10 @@ public class LectureRequestService {
                 );
             }
 
-            // 1️⃣ 성적 배점 삭제
             scorePolicyDAO.deleteByLectureId(conn, lectureId);
 
-            // 2️⃣ 강의 스케줄 삭제
             lectureScheduleDAO.deleteByLectureId(conn, lectureId.intValue());
 
-            // 3️⃣ 강의 삭제
             lectureDAO.deleteLecture(conn, lectureId);
 
             conn.commit();
@@ -278,7 +267,7 @@ public class LectureRequestService {
     }
 
     /* ==================================================
-     * 내부 유틸 1️⃣ 성적 배점 생성 + 검증
+     * 내부 유틸 성적 배점 생성 + 검증
      * ================================================== */
     private ScorePolicyDTO buildScorePolicy(
             Long lectureId,
@@ -310,7 +299,7 @@ public class LectureRequestService {
     }
 
     /* ==================================================
-     * 내부 유틸 2️⃣ 강의 기간 검증
+     * 내부 유틸 강의 기간 검증
      * ================================================== */
     private void validateLecturePeriod(
             Connection conn,

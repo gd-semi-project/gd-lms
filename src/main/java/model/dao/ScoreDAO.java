@@ -18,10 +18,7 @@ public class ScoreDAO {
         return instance;
     }
 
-    /* ==================================================
-     * 1. 성적/출석용 수강생 기준 score row 최초 생성
-     *    - enrollment + student 기준
-     * ================================================== */
+    //  성적/출석용 수강생 기준 score row 최초 생성
     public void insertInitialScores(
             Connection conn,
             Long lectureId
@@ -53,10 +50,7 @@ public class ScoreDAO {
         }
     }
 
-    /* ==================================================
-     * 2. 강의별 성적 목록 조회
-     *    - score + student + user
-     * ================================================== */
+    // 강의별 성적 목록 조회
     public List<ScoreDTO> selectScoresByLecture(
             Connection conn,
             Long lectureId
@@ -132,11 +126,7 @@ public class ScoreDAO {
 
         return list;
     }
-
-    /* ==================================================
-     * 3. 성적 저장 (출석/과제/중간/기말)
-     *    - null 안전 처리
-     * ================================================== */
+    // 성적 저장
     public void updateScore(
             Connection conn,
             ScoreDTO dto
@@ -181,9 +171,7 @@ public class ScoreDAO {
         }
     }
 
-    /* ==================================================
-     * 4. 총점 / 학점 계산 결과 저장
-     * ================================================== */
+    // 총점 / 학점 계산 결과 저장
     public void updateTotalAndGrade(
             Connection conn,
             Long scoreId,

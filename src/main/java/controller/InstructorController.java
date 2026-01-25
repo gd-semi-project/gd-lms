@@ -28,10 +28,6 @@ public class InstructorController extends HttpServlet {
 
 	private final LectureRequestService lectureRequestService = LectureRequestService.getInstance();
 
-	/*
-	 * ================================================== GET
-	 * ==================================================
-	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -63,9 +59,6 @@ public class InstructorController extends HttpServlet {
 
 		switch (action) {
 
-		/*
-		 * ========================= 강사 프로필 =========================
-		 */
 		case "/profile": {
 
 			String userIdParam = request.getParameter("userId");
@@ -80,9 +73,6 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		/*
-		 * ========================= 내 강의 목록 =========================
-		 */
 		case "/lectures": {
 
 			String status = request.getParameter("status");
@@ -98,9 +88,6 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		/*
-		 * ========================= 강의 개설 신청 목록 =========================
-		 */
 		case "/lecture/request": {
 
 			boolean isOpen = lectureRequestService.isLectureRequestPeriod();
@@ -123,12 +110,8 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		/*
-		 * ========================= 강의 개설 신청 폼 =========================
-		 */
 		case "/lecture/request/new": {
 
-			// ❌ redirect 제거 → forward
 			if (!lectureRequestService.isLectureRequestPeriod()) {
 
 				SchoolScheduleDTO period = lectureRequestService.getNearestLectureRequestPeriod();
@@ -152,9 +135,6 @@ public class InstructorController extends HttpServlet {
 			break;
 		}
 
-		/*
-		 * ========================= 강의 개설 수정 폼 =========================
-		 */
 		case "/lecture/request/edit": {
 
 			if (!lectureRequestService.isLectureRequestPeriod()) {
@@ -188,10 +168,6 @@ public class InstructorController extends HttpServlet {
 		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 	}
 
-	/*
-	 * ================================================== POST
-	 * ==================================================
-	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -242,8 +218,6 @@ public class InstructorController extends HttpServlet {
 		} catch (IllegalArgumentException e) {
 
 			request.setAttribute("errorMessage", e.getMessage());
-
-			// 🔥 반드시 강의실 다시 세팅
 			request.setAttribute("rooms", lectureRequestService.getAllRooms());
 
 			if (uri.endsWith("/lecture/request/edit")) {

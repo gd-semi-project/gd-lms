@@ -380,7 +380,7 @@ public class LectureRequestDAO {
         );
     }
     
-    
+    // 강의실..
     public List<RoomDTO> selectAllRooms(Connection conn) throws Exception {
 
         String sql = """
