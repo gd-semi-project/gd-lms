@@ -7,9 +7,14 @@ import java.util.List;
 import database.DBConnection;
 import jakarta.servlet.http.HttpServletRequest;
 import model.dao.LectureRequestDAO;
+import model.dao.LectureScheduleDAO;
 import model.dao.SchoolScheduleDAO;
+import model.dao.ScorePolicyDAO;
 import model.dto.LectureRequestDTO;
+import model.dto.LectureScheduleDTO;
+import model.dto.RoomDTO;
 import model.dto.SchoolScheduleDTO;
+import model.dto.ScorePolicyDTO;
 import model.enumtype.LectureValidation;
 import model.enumtype.ScheduleCode;
 import utils.AppTime;
@@ -25,15 +30,23 @@ public class LectureRequestService {
         return instance;
     }
 
-    private final LectureRequestDAO dao =
+    private final LectureRequestDAO lectureDAO =
         LectureRequestDAO.getInstance();
 
     private final SchoolScheduleDAO scheduleDAO =
         SchoolScheduleDAO.getInstance();
 
- 
-    // 강의 개설 신청 가능 여부
+    private final ScorePolicyDAO scorePolicyDAO =
+        ScorePolicyDAO.getInstance();
+
+    private final LectureScheduleDAO lectureScheduleDAO =
+        LectureScheduleDAO.getInstance();
+
+    /* ==================================================
+     * 1. 강의 개설 신청 기간 여부
+     * ================================================== */
     public boolean isLectureRequestPeriod() {
+
         try (Connection conn = DBConnection.getConnection()) {
 
             LocalDate today = AppTime.now().toLocalDate();
@@ -51,12 +64,17 @@ public class LectureRequestService {
                 && !today.isAfter(schedule.getEndDate());
 
         } catch (Exception e) {
-            throw new RuntimeException("강의 신청 기간 확인 실패", e);
+            throw new RuntimeException(
+                "강의 개설 신청 기간 확인 실패", e
+            );
         }
     }
 
-    // 가장 가까운 강의 신청 기간
+    /* ==================================================
+     * 2. 가장 가까운 강의 개설 신청 기간
+     * ================================================== */
     public SchoolScheduleDTO getNearestLectureRequestPeriod() {
+
         try (Connection conn = DBConnection.getConnection()) {
             return scheduleDAO.findNearestSchedule(
                 conn,
@@ -64,56 +82,119 @@ public class LectureRequestService {
                 AppTime.now().toLocalDate()
             );
         } catch (Exception e) {
-            throw new RuntimeException("강의 신청 기간 조회 실패", e);
+            throw new RuntimeException(
+                "강의 신청 기간 조회 실패", e
+            );
         }
     }
 
-    // 목록 조회
+    /* ==================================================
+     * 3. 내 강의 개설 신청 목록
+     * ================================================== */
     public List<LectureRequestDTO> getMyLectureRequests(Long instructorId) {
+
         try (Connection conn = DBConnection.getConnection()) {
-            return dao.selectByInstructor(conn, instructorId);
+            return lectureDAO.selectByInstructor(conn, instructorId);
         } catch (Exception e) {
-            throw new RuntimeException("강의 개설 신청 목록 조회 실패", e);
+            throw new RuntimeException(
+                "강의 개설 신청 목록 조회 실패", e
+            );
         }
     }
 
-    // 단건 조회
+    /* ==================================================
+     * 4. 강의 개설 신청 상세
+     * ================================================== */
     public LectureRequestDTO getLectureRequestDetail(Long lectureId) {
+
         try (Connection conn = DBConnection.getConnection()) {
-            return dao.selectByLectureId(conn, lectureId);
+            return lectureDAO.selectByLectureId(conn, lectureId);
         } catch (Exception e) {
-            throw new RuntimeException("강의 개설 신청 상세 조회 실패", e);
+            throw new RuntimeException(
+                "강의 개설 신청 상세 조회 실패", e
+            );
         }
     }
 
-    // 신규 신청
+    /* ==================================================
+     * 5. 성적 배점 조회
+     * ================================================== */
+    public ScorePolicyDTO getScorePolicy(Long lectureId) {
+
+        try (Connection conn = DBConnection.getConnection()) {
+            return scorePolicyDAO.findByLectureId(conn, lectureId);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "성적 배점 조회 실패", e
+            );
+        }
+    }
+
+    /* ==================================================
+     * 6. 강의실 목록
+     * ================================================== */
+    public List<RoomDTO> getAllRooms() {
+
+        try (Connection conn = DBConnection.getConnection()) {
+            return lectureDAO.selectAllRooms(conn);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "강의실 목록 조회 실패", e
+            );
+        }
+    }
+
+    /* ==================================================
+     * 7. 신규 강의 개설 신청
+     * ================================================== */
     public void createLectureRequest(
-        Long instructorId, HttpServletRequest request) {
+            Long instructorId,
+            HttpServletRequest request
+    ) {
 
         try (Connection conn = DBConnection.getConnection()) {
 
+            conn.setAutoCommit(false);
+
+            // 1️⃣ 기간 검증
             validateLecturePeriod(conn, request);
 
+            // 2️⃣ lecture 생성
             Long lectureId =
-                dao.insertLecture(conn, instructorId, request);
+                lectureDAO.insertLecture(conn, instructorId, request);
 
-            dao.insertSchedule(conn, lectureId, request);
+            // 3️⃣ 요일/시간 등록
+            lectureDAO.insertSchedule(conn, lectureId, request);
 
-        } catch (IllegalArgumentException e) {
-            throw e;
+            // 4️⃣ 성적 배점 생성
+            ScorePolicyDTO policy =
+                buildScorePolicy(lectureId, request);
+
+            scorePolicyDAO.insert(conn, policy);
+
+            conn.commit();
+
         } catch (Exception e) {
-            throw new RuntimeException("강의 개설 신청 중 시스템 오류", e);
+            throw new RuntimeException(
+                "강의 개설 신청 실패", e
+            );
         }
     }
 
-    // 수정
+    /* ==================================================
+     * 8. 강의 개설 신청 수정 (🔥 핵심 수정)
+     * ================================================== */
     public void updateLectureRequest(
-        Long lectureId, HttpServletRequest request) {
+            Long lectureId,
+            HttpServletRequest request
+    ) {
 
         try (Connection conn = DBConnection.getConnection()) {
 
+            conn.setAutoCommit(false);
+
             LectureValidation validation =
-                dao.getValidation(conn, lectureId);
+                lectureDAO.getValidation(conn, lectureId);
 
             if (validation == LectureValidation.CANCELED) {
                 throw new IllegalStateException(
@@ -121,21 +202,42 @@ public class LectureRequestService {
                 );
             }
 
+            // 1️⃣ 기간 검증
             validateLecturePeriod(conn, request);
-            dao.updateLecture(conn, lectureId, request);
 
-        } catch (IllegalArgumentException e) {
-            throw e;
+            // 2️⃣ lecture 수정
+            lectureDAO.updateLecture(conn, lectureId, request);
+
+            // 3️⃣ 성적 배점 (INSERT or UPDATE)
+            ScorePolicyDTO policy =
+                buildScorePolicy(lectureId, request);
+
+            if (scorePolicyDAO.existsByLectureId(conn, lectureId)) {
+                scorePolicyDAO.update(conn, policy);
+            } else {
+                scorePolicyDAO.insert(conn, policy);
+            }
+
+            conn.commit();
+
         } catch (Exception e) {
-            throw new RuntimeException("강의 개설 수정 중 시스템 오류", e);
+            throw new RuntimeException(
+                "강의 개설 수정 실패", e
+            );
         }
     }
-    // 삭제
+
+    /* ==================================================
+     * 9. 강의 개설 신청 삭제 (🔥 완전 수정)
+     * ================================================== */
     public void deleteLectureRequest(Long lectureId) {
+
         try (Connection conn = DBConnection.getConnection()) {
 
+            conn.setAutoCommit(false);
+
             LectureValidation validation =
-                dao.getValidation(conn, lectureId);
+                lectureDAO.getValidation(conn, lectureId);
 
             if (validation != LectureValidation.PENDING) {
                 throw new IllegalStateException(
@@ -143,23 +245,84 @@ public class LectureRequestService {
                 );
             }
 
-            dao.deleteLecture(conn, lectureId);
+            // 1️⃣ 성적 배점 삭제
+            scorePolicyDAO.deleteByLectureId(conn, lectureId);
+
+            // 2️⃣ 강의 스케줄 삭제
+            lectureScheduleDAO.deleteByLectureId(conn, lectureId.intValue());
+
+            // 3️⃣ 강의 삭제
+            lectureDAO.deleteLecture(conn, lectureId);
+
+            conn.commit();
 
         } catch (Exception e) {
-            throw new RuntimeException("강의 삭제 실패", e);
+            throw new RuntimeException(
+                "강의 삭제 실패", e
+            );
         }
     }
 
-    // 개강~종강 검증 (AppTime 기준)
-    private void validateLecturePeriod(
-        Connection conn, HttpServletRequest request) {
+    /* ==================================================
+     * 10. 강의 요일/시간 조회
+     * ================================================== */
+    public List<LectureScheduleDTO> getLectureSchedules(Long lectureId) {
 
-        LocalDate lectureStart =
+        try (Connection conn = DBConnection.getConnection()) {
+            return lectureScheduleDAO.selectByLectureId(conn, lectureId);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "강의 요일/시간 조회 실패", e
+            );
+        }
+    }
+
+    /* ==================================================
+     * 내부 유틸 1️⃣ 성적 배점 생성 + 검증
+     * ================================================== */
+    private ScorePolicyDTO buildScorePolicy(
+            Long lectureId,
+            HttpServletRequest request
+    ) {
+
+        ScorePolicyDTO policy = new ScorePolicyDTO();
+        policy.setLectureId(lectureId);
+        policy.setAttendanceWeight(
+            Integer.parseInt(request.getParameter("attendanceWeight"))
+        );
+        policy.setAssignmentWeight(
+            Integer.parseInt(request.getParameter("assignmentWeight"))
+        );
+        policy.setMidtermWeight(
+            Integer.parseInt(request.getParameter("midtermWeight"))
+        );
+        policy.setFinalWeight(
+            Integer.parseInt(request.getParameter("finalWeight"))
+        );
+
+        if (policy.getTotalWeight() != 100) {
+            throw new IllegalArgumentException(
+                "성적 배점의 합은 100%여야 합니다."
+            );
+        }
+
+        return policy;
+    }
+
+    /* ==================================================
+     * 내부 유틸 2️⃣ 강의 기간 검증
+     * ================================================== */
+    private void validateLecturePeriod(
+            Connection conn,
+            HttpServletRequest request
+    ) {
+
+        LocalDate start =
             LocalDate.parse(request.getParameter("startDate"));
-        LocalDate lectureEnd =
+        LocalDate end =
             LocalDate.parse(request.getParameter("endDate"));
 
-        if (lectureEnd.isBefore(lectureStart)) {
+        if (end.isBefore(start)) {
             throw new IllegalArgumentException(
                 "강의 종료일은 시작일보다 빠를 수 없습니다."
             );
@@ -183,14 +346,11 @@ public class LectureRequestService {
                 false
             );
 
-        if (lectureStart.isBefore(semesterStart)
-            || lectureEnd.isAfter(semesterEnd)) {
+        if (start.isBefore(semesterStart) ||
+            end.isAfter(semesterEnd)) {
 
             throw new IllegalArgumentException(
-                "강의 기간(" + lectureStart + " ~ " + lectureEnd + ")은 "
-                + "다가오는 학기 개강~종강 기간("
-                + semesterStart + " ~ " + semesterEnd
-                + ") 내에 있어야 합니다."
+                "강의 기간은 학기 기간 내에 있어야 합니다."
             );
         }
     }

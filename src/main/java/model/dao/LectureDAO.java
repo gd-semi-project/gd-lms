@@ -271,7 +271,7 @@ public class LectureDAO {
 					int studentGrade = rs.getInt("student_grade");
 					if (rs.wasNull())
 						studentGrade = 0;
-					dto.setStudenGrade(studentGrade);
+					dto.setStudentGrade(studentGrade);
 
 					dto.setEnrollmentStatus(EnrollmentStatus.valueOf(rs.getString("enrollment_status")));
 
@@ -679,8 +679,7 @@ public class LectureDAO {
 		final String sql = """
 				    UPDATE lecture
 				    SET status = 'ENDED'
-				    WHERE validation = 'CONFIRMED'
-				      AND status <> 'ENDED'
+				    WHERE status <> 'ENDED'
 				      AND end_date < ?
 				""";
 

@@ -25,11 +25,11 @@
 
     <!-- 성적 -->
     <li class="nav-item">
-	  <a class="nav-link ${activeTab eq 'grades' ? 'active' : ''}"
-	     href="${ctx}/score/grades?lectureId=${lecture.lectureId}">
-	    📝 성적
-	  </a>
-	</li>
+        <a class="nav-link ${activeTab == 'grades' ? 'active' : ''}"
+           href="${ctx}/score/grades?lectureId=${lecture.lectureId}">
+            성적
+        </a>
+    </li>
 
     <!-- 과제 -->
     <li class="nav-item">

@@ -222,7 +222,7 @@ public class AttendanceDAO {
     }
     
     
-    
+    // 출석 합계
     public AttendanceSummaryDTO getAttendanceSummary(
             Connection conn,
             Long lectureId,
@@ -235,9 +235,11 @@ public class AttendanceDAO {
                 SUM(CASE WHEN a.status = 'PRESENT' THEN 1 ELSE 0 END) AS present_count,
                 SUM(CASE WHEN a.status = 'LATE' THEN 1 ELSE 0 END) AS late_count
             FROM lecture_session ls
+            JOIN student s
+                ON s.student_id = ?
             LEFT JOIN attendance a
                 ON a.session_id = ls.session_id
-               AND a.student_id = ?
+               AND a.student_id = s.user_id
             WHERE ls.lecture_id = ?
         """;
 
@@ -259,7 +261,6 @@ public class AttendanceDAO {
                 dto.setLateCount(late);
 
                 calculateAttendance(dto);
-
                 return dto;
             }
         } catch (Exception e) {
