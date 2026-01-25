@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+
 <jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
 
 <h3 class="mb-4">📝 성적 관리</h3>

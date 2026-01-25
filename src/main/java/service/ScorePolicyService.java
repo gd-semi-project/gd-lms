@@ -11,70 +11,99 @@ public class ScorePolicyService {
     private static final ScorePolicyService instance =
             new ScorePolicyService();
 
-    public static ScorePolicyService getInstance() {
-        return instance;
-    }
-
-    private final ScorePolicyDAO scorePolicyDAO =
+    private final ScorePolicyDAO dao =
             ScorePolicyDAO.getInstance();
 
     private ScorePolicyService() {}
 
-    // 배점 조회
-    public ScorePolicyDTO getPolicy(long lectureId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return scorePolicyDAO.findByLecture(conn, lectureId);
+    public static ScorePolicyService getInstance() {
+        return instance;
+    }
+
+    /* =========================
+     * 배점 등록
+     * ========================= */
+    public void createPolicy(ScorePolicyDTO dto) {
+
+        validate(dto);
+
+        try (Connection conn =
+                     DBConnection.getConnection()) {
+
+            dao.insert(conn, dto);
+
         } catch (Exception e) {
-            throw new RuntimeException("배점 조회 실패", e);
+            throw new RuntimeException(
+                "성적 배점 등록 실패", e);
         }
     }
 
-    // 배전 저장
-    public void savePolicy(ScorePolicyDTO policy) {
-        try (Connection conn = DBConnection.getConnection()) {
+    /* =========================
+     * 배점 조회
+     * ========================= */
+    public ScorePolicyDTO getPolicy(Long lectureId) {
 
-            if (scorePolicyDAO.isConfirmed(conn, policy.getLectureId())) {
-                throw new IllegalStateException("이미 배점이 확정되었습니다.");
-            }
+        try (Connection conn =
+                     DBConnection.getConnection()) {
 
-            int sum =
-                policy.getAttendanceWeight()
-              + policy.getAssignmentWeight()
-              + policy.getMidtermWeight()
-              + policy.getFinalWeight();
-
-            if (sum != 100) {
-                throw new IllegalArgumentException("배점 합계는 100이어야 합니다.");
-            }
-
-            scorePolicyDAO.upsert(conn, policy);
+            return dao.findByLectureId(conn, lectureId);
 
         } catch (Exception e) {
-            throw new RuntimeException("배점 저장 실패", e);
+            throw new RuntimeException(
+                "성적 배점 조회 실패", e);
         }
     }
 
-    // 배점 확정
-    public void confirmPolicy(long lectureId) {
-        try (Connection conn = DBConnection.getConnection()) {
+    /* =========================
+     * 배점 수정
+     * ========================= */
+    public void updatePolicy(ScorePolicyDTO dto) {
 
-            if (scorePolicyDAO.isConfirmed(conn, lectureId)) {
-                throw new IllegalStateException("이미 확정된 배점입니다.");
-            }
+        validate(dto);
 
-            scorePolicyDAO.confirmPolicy(conn, lectureId);
+        try (Connection conn =
+                     DBConnection.getConnection()) {
+
+            dao.update(conn, dto);
 
         } catch (Exception e) {
-            throw new RuntimeException("배점 확정 실패", e);
+            throw new RuntimeException(
+                "성적 배점 수정 실패", e);
         }
     }
 
-    // 배점 확정 여부
-    public boolean isConfirmed(long lectureId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return scorePolicyDAO.isConfirmed(conn, lectureId);
+    /* =========================
+     * 배점 확정
+     * ========================= */
+    public void confirmPolicy(Long lectureId) {
+
+        try (Connection conn =
+                     DBConnection.getConnection()) {
+
+            dao.confirm(conn, lectureId);
+
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException(
+                "성적 배점 확정 실패", e);
+        }
+    }
+
+    private void validate(ScorePolicyDTO dto) {
+
+        if (dto.getTotalWeight() != 100) {
+            throw new IllegalArgumentException(
+                "성적 배점의 합은 반드시 100이어야 합니다."
+            );
+        }
+
+        if (dto.getAttendanceWeight() < 0 ||
+            dto.getAssignmentWeight() < 0 ||
+            dto.getMidtermWeight() < 0 ||
+            dto.getFinalWeight() < 0) {
+
+            throw new IllegalArgumentException(
+                "배점은 음수가 될 수 없습니다."
+            );
         }
     }
 }

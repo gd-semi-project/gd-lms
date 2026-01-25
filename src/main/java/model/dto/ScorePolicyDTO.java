@@ -16,4 +16,12 @@ public class ScorePolicyDTO {
     private int finalWeight;
 
     private boolean isConfirmed;
+    
+    // 헬퍼
+    public int getTotalWeight() {
+        return attendanceWeight
+             + assignmentWeight
+             + midtermWeight
+             + finalWeight;
+    }
 }

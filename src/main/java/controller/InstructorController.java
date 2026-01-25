@@ -22,265 +22,220 @@ import service.LectureService;
 @WebServlet("/instructor/*")
 public class InstructorController extends HttpServlet {
 
-    private InstructorService instructorService =
-        InstructorService.getInstance();
-    private LectureService lectureService =
-        LectureService.getInstance();
-    private LectureRequestService lectureRequestService =
-        LectureRequestService.getInstance();
+	private final InstructorService instructorService = InstructorService.getInstance();
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	private final LectureService lectureService = LectureService.getInstance();
 
-        HttpSession session = request.getSession(false);
-        String ctx = request.getContextPath();
+	private final LectureRequestService lectureRequestService = LectureRequestService.getInstance();
 
-        // 로그인 체크
-        if (session == null) {
-            response.sendRedirect(ctx + "/login");
-            return;
-        }
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        AccessDTO access =
-            (AccessDTO) session.getAttribute("AccessInfo");
+		HttpSession session = request.getSession(false);
+		String ctx = request.getContextPath();
 
-        if (access == null || access.getRole() == Role.STUDENT) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
+		/* 로그인 체크 */
+		if (session == null) {
+			response.sendRedirect(ctx + "/login");
+			return;
+		}
 
-        Long instructorId = access.getUserId();
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-        String uri = request.getRequestURI();
-        String action =
-            uri.substring(ctx.length() + "/instructor".length());
+		if (access == null || access.getRole() == Role.STUDENT) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
 
-        if (action.isEmpty())
-            action = "/lectures";
+		Long instructorId = access.getUserId();
 
-        switch (action) {
+		String uri = request.getRequestURI();
+		String action = uri.substring(ctx.length() + "/instructor".length());
 
-        // 강사 프로필
-        case "/profile": {
-        	
-        	String userId = request.getParameter("userId");
-        	if (userId != null) {
-        		Long userID = Long.parseLong(userId);
-                Map<String, Object> profile =
-                        instructorService.getInstructorProfile(userID);
-                
-                request.setAttribute("instructor", profile.get("instructor"));
-                request.setAttribute("user", profile.get("user"));
-                request.setAttribute(
-                		"contentPage",
-                		"/WEB-INF/views/instructor/profile.jsp"
-                		);
-                userId = null;
-                break;
-        	};
-        	
-        	
-        	
-            Map<String, Object> profile =
-                instructorService.getInstructorProfile(access.getUserId());
+		if (action.isEmpty()) {
+			action = "/lectures";
+		}
 
-            request.setAttribute("instructor", profile.get("instructor"));
-            request.setAttribute("user", profile.get("user"));
-            request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/instructor/profile.jsp"
-            );
-            break;
-        }
+		switch (action) {
 
-        // 내 강의 목록
-        case "/lectures": {
-          String status = request.getParameter("status");
-          if (status == null || status.isBlank()) status = "ONGOING";
+		case "/profile": {
 
+			String userIdParam = request.getParameter("userId");
 
-          List<LectureDTO> lectures = lectureService.getMyLectures(access, status);
+			Long targetUserId = (userIdParam != null) ? Long.parseLong(userIdParam) : access.getUserId();
 
-          request.setAttribute("lectures", lectures);
-          request.setAttribute("activeMenu", "lectures");
-          request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
-          break;
-        }
+			Map<String, Object> profile = instructorService.getInstructorProfile(targetUserId);
 
-        // 강의 개설 신청 목록
-        case "/lecture/request": {
+			request.setAttribute("instructor", profile.get("instructor"));
+			request.setAttribute("user", profile.get("user"));
+			request.setAttribute("contentPage", "/WEB-INF/views/instructor/profile.jsp");
+			break;
+		}
 
-            boolean isOpen =
-                lectureRequestService.isLectureRequestPeriod();
+		case "/lectures": {
 
-            request.setAttribute(
-                "requests",
-                lectureRequestService.getMyLectureRequests(instructorId)
-            );
-            request.setAttribute("isLectureRequestOpen", isOpen);
+			String status = request.getParameter("status");
+			if (status == null || status.isBlank()) {
+				status = "ONGOING";
+			}
 
-            if (!isOpen) {
-                SchoolScheduleDTO period =
-                    lectureRequestService.getNearestLectureRequestPeriod();
+			List<LectureDTO> lectures = lectureService.getMyLectures(access, status);
 
-                if (period != null) {
-                    request.setAttribute(
-                        "errorMessage",
-                        "현재는 강의 개설 신청 기간이 아닙니다."
-                    );
-                    request.setAttribute(
-                        "requestStartDate",
-                        period.getStartDate()
-                    );
-                    request.setAttribute(
-                        "requestEndDate",
-                        period.getEndDate()
-                    );
-                }
-            }
+			request.setAttribute("lectures", lectures);
+			request.setAttribute("activeMenu", "lectures");
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/lectureList.jsp");
+			break;
+		}
 
-            request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/lecture/requestList.jsp"
-            );
-            break;
-        }
-        
+		case "/lecture/request": {
 
-     // 신규 신청 폼
-        case "/lecture/request/new": {
+			boolean isOpen = lectureRequestService.isLectureRequestPeriod();
 
-            boolean isOpen =
-                lectureRequestService.isLectureRequestPeriod();
+			request.setAttribute("requests", lectureRequestService.getMyLectureRequests(instructorId));
+			request.setAttribute("isLectureRequestOpen", isOpen);
 
-            if (!isOpen) {
-                // 직접 접근 차단
-                response.sendRedirect(
-                    ctx + "/instructor/lecture/request"
-                );
-                return;
-            }
+			if (!isOpen) {
+				SchoolScheduleDTO period = lectureRequestService.getNearestLectureRequestPeriod();
 
-            request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/lecture/requestForm.jsp"
-            );
-            break;
-        }
+				request.setAttribute("errorMessage", "현재는 강의 개설 신청 기간이 아닙니다.");
 
-        // 수정 폼
-        case "/lecture/request/edit": {
+				if (period != null) {
+					request.setAttribute("requestStartDate", period.getStartDate());
+					request.setAttribute("requestEndDate", period.getEndDate());
+				}
+			}
 
-            boolean isOpen =
-                lectureRequestService.isLectureRequestPeriod();
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
+			break;
+		}
 
-            if (!isOpen) {
-                response.sendRedirect(ctx + "/instructor/lecture/request");
-                return;
-            }
+		case "/lecture/request/new": {
 
-            Long lectureId =
-                Long.parseLong(request.getParameter("lectureId"));
+			if (!lectureRequestService.isLectureRequestPeriod()) {
 
-            request.setAttribute(
-                "lecture",
-                lectureRequestService.getLectureRequestDetail(lectureId)
-            );
-            request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/lecture/requestEditForm.jsp"
-            );
-            break;
-        }
+				SchoolScheduleDTO period = lectureRequestService.getNearestLectureRequestPeriod();
 
-        default:
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
+				request.setAttribute("errorMessage", "현재는 강의 개설 신청 기간이 아닙니다.");
 
-        request.getRequestDispatcher(
-            "/WEB-INF/views/layout/layout.jsp"
-        ).forward(request, response);
-    }
+				if (period != null) {
+					request.setAttribute("requestStartDate", period.getStartDate());
+					request.setAttribute("requestEndDate", period.getEndDate());
+				}
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
 
-        String ctx = request.getContextPath();
-        String uri = request.getRequestURI();
+				request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+				return;
+			}
 
-        HttpSession session = request.getSession(false);
-        AccessDTO access =
-            (AccessDTO) session.getAttribute("AccessInfo");
+			request.setAttribute("rooms", lectureRequestService.getAllRooms());
 
-        if (access == null || access.getRole() != Role.INSTRUCTOR) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestForm.jsp");
+			break;
+		}
 
-        Long instructorId = access.getUserId();
+		case "/lecture/request/edit": {
 
-        try {
-            // 신규 신청
-            if (uri.endsWith("/lecture/request")) {
-                lectureRequestService.createLectureRequest(
-                    instructorId, request
-                );
-                response.sendRedirect(
-                    ctx + "/instructor/lecture/request?success=created"
-                );
-                return;
-            }
+			if (!lectureRequestService.isLectureRequestPeriod()) {
 
-            // 수정
-            if (uri.endsWith("/lecture/request/edit")) {
-                Long lectureId =
-                    Long.parseLong(request.getParameter("lectureId"));
+				request.setAttribute("errorMessage", "현재는 강의 개설 신청 기간이 아닙니다.");
 
-                lectureRequestService.updateLectureRequest(
-                    lectureId, request
-                );
-                response.sendRedirect(
-                    ctx + "/instructor/lecture/request"
-                );
-                return;
-            }
+				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
 
-            // 삭제
-            if (uri.endsWith("/lecture/request/delete")) {
-                Long lectureId =
-                    Long.parseLong(request.getParameter("lectureId"));
+				request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+				return;
+			}
 
-                lectureRequestService.deleteLectureRequest(lectureId);
+			Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-                response.sendRedirect(
-                    ctx + "/instructor/lecture/request?success=deleted"
-                );
-                return;
-            }
+			request.setAttribute("rooms", lectureRequestService.getAllRooms());
 
-        } catch (IllegalArgumentException e) {
+			request.setAttribute("lecture", lectureRequestService.getLectureRequestDetail(lectureId));
 
-            request.setAttribute("errorMessage", e.getMessage());
+			request.setAttribute("scorePolicy", lectureRequestService.getScorePolicy(lectureId));
 
-            if (uri.endsWith("/lecture/request/edit")) {
-                request.setAttribute(
-                    "contentPage",
-                    "/WEB-INF/views/lecture/requestEditForm.jsp"
-                );
-            } else {
-                request.setAttribute(
-                    "contentPage",
-                    "/WEB-INF/views/lecture/requestForm.jsp"
-                );
-            }
+			request.setAttribute("schedules", lectureRequestService.getLectureSchedules(lectureId));
+			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestEditForm.jsp");
+			break;
+		}
 
-            request.getRequestDispatcher(
-                "/WEB-INF/views/layout/layout.jsp"
-            ).forward(request, response);
-        }
-    }
-    
+		default:
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
+
+		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+	}
+
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		String ctx = request.getContextPath();
+		String uri = request.getRequestURI();
+
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+
+		if (access == null || access.getRole() != Role.INSTRUCTOR) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
+		}
+
+		Long instructorId = access.getUserId();
+
+		try {
+
+			if (uri.endsWith("/lecture/request")) {
+
+				lectureRequestService.createLectureRequest(instructorId, request);
+
+				response.sendRedirect(ctx + "/instructor/lecture/request?success=created");
+				return;
+			}
+
+			if (uri.endsWith("/lecture/request/edit")) {
+
+				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+
+				lectureRequestService.updateLectureRequest(lectureId, request);
+
+				response.sendRedirect(ctx + "/instructor/lecture/request?success=updated");
+				return;
+			}
+
+			if (uri.endsWith("/lecture/request/delete")) {
+
+				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+
+				lectureRequestService.deleteLectureRequest(lectureId);
+
+				response.sendRedirect(ctx + "/instructor/lecture/request?success=deleted");
+				return;
+			}
+
+		} catch (IllegalArgumentException e) {
+
+			request.setAttribute("errorMessage", e.getMessage());
+			request.setAttribute("rooms", lectureRequestService.getAllRooms());
+
+			if (uri.endsWith("/lecture/request/edit")) {
+
+				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+
+				request.setAttribute("lecture", lectureRequestService.getLectureRequestDetail(lectureId));
+
+				request.setAttribute("scorePolicy", lectureRequestService.getScorePolicy(lectureId));
+
+				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestEditForm.jsp");
+
+			} else {
+
+				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestForm.jsp");
+			}
+
+			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+		}
+	}
 }
