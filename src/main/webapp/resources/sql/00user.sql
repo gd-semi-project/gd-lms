@@ -157,4 +157,3 @@ VALUES
 ('i0029','{bcrypt}$2a$10$dummyhash','조현수','1983-04-25','i0029@inst.test','010-7130-6602','INSTRUCTOR','ACTIVE','M','경기도 하남시 덕풍동',FALSE),
 ('i0030','{bcrypt}$2a$10$dummyhash','윤하늘','1985-10-10','i0030@inst.test','010-8802-3107','INSTRUCTOR','ACTIVE','F','인천시 중구 신흥동',FALSE);
 
-

@@ -1,16 +1,15 @@
 package service;
 
 import java.sql.Connection;
-import java.time.LocalDate;
 import java.util.List;
 
 import database.DBConnection;
 import model.dao.AttendanceDAO;
 import model.dao.ScoreDAO;
-import model.dao.SchoolScheduleDAO;
+import model.dao.ScorePolicyDAO;
 import model.dto.AttendanceSummaryDTO;
 import model.dto.ScoreDTO;
-import model.enumtype.ScheduleCode;
+import model.dto.ScorePolicyDTO;
 
 public class ScoreService {
 
@@ -18,7 +17,8 @@ public class ScoreService {
 
     private final ScoreDAO scoreDAO = ScoreDAO.getInstance();
     private final AttendanceDAO attendanceDAO = AttendanceDAO.getInstance();
-    private final SchoolScheduleDAO scheduleDAO = SchoolScheduleDAO.getInstance();
+    private final ScorePolicyDAO scorePolicyDAO =
+            ScorePolicyDAO.getInstance();
 
     private ScoreService() {}
 
@@ -27,21 +27,17 @@ public class ScoreService {
     }
 
     /* ==================================================
-     * 1. 성적 페이지 진입
-     *    - score row 자동 생성
-     *    - 출석 점수는 "조회 시 계산"
+     * 1. 성적 조회
      * ================================================== */
     public List<ScoreDTO> getScoreList(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
 
-            // score row 자동 생성
             scoreDAO.insertInitialScores(conn, lectureId);
 
             List<ScoreDTO> scores =
                     scoreDAO.selectScoresByLecture(conn, lectureId);
 
-            // 🔥 출석 점수는 여기서만 계산
             for (ScoreDTO dto : scores) {
                 AttendanceSummaryDTO summary =
                         attendanceDAO.getAttendanceSummary(
@@ -64,92 +60,109 @@ public class ScoreService {
     }
 
     /* ==================================================
-     * 2. 중간 / 기말 입력 가능 여부
-     * ================================================== */
-    public boolean isMidtermOpen() {
-        try (Connection conn = DBConnection.getConnection()) {
-            return scheduleDAO.isWithinPeriod(
-                    conn,
-                    ScheduleCode.MIDTERM_EXAM,
-                    LocalDate.now()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("중간고사 기간 조회 실패", e);
-        }
-    }
-
-    public boolean isFinalOpen() {
-        try (Connection conn = DBConnection.getConnection()) {
-            return scheduleDAO.isWithinPeriod(
-                    conn,
-                    ScheduleCode.FINAL_EXAM,
-                    LocalDate.now()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("기말고사 기간 조회 실패", e);
-        }
-    }
-
-    /* ==================================================
-     * 3. 성적 저장
-     *    - 출석은 검증용으로만 계산
-     *    - DB 저장 ❌
+     * 2. 성적 저장 (부분 저장 허용)
      * ================================================== */
     public void saveScores(
             Long lectureId,
-            List<ScoreDTO> scores,
-            boolean midtermDisabled,
-            boolean finalDisabled
+            List<ScoreDTO> scores
     ) {
-
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
 
+            boolean hasAnyAssignment = false;
+            boolean hasAnyMidterm = false;
+            boolean hasAnyFinal = false;
+
+            boolean hasEmptyAssignment = false;
+            boolean hasEmptyMidterm = false;
+            boolean hasEmptyFinal = false;
+
+            // 1️⃣ 전체 상태 스캔
             for (ScoreDTO dto : scores) {
 
-                // 🔍 출석 계산 (검증/참고용)
-                attendanceDAO.getAttendanceSummary(
-                        conn,
-                        lectureId,
-                        dto.getStudentId()
+                if (dto.getAssignmentScore() != null)
+                    hasAnyAssignment = true;
+                else
+                    hasEmptyAssignment = true;
+
+                if (dto.getMidtermScore() != null)
+                    hasAnyMidterm = true;
+                else
+                    hasEmptyMidterm = true;
+
+                if (dto.getFinalScore() != null)
+                    hasAnyFinal = true;
+                else
+                    hasEmptyFinal = true;
+            }
+
+            // 2️⃣ 컬럼 단위 검증
+            if (hasAnyAssignment && hasEmptyAssignment) {
+                throw new IllegalStateException(
+                    "과제 점수는 모든 학생에게 입력해야 저장할 수 있습니다."
                 );
+            }
 
-                // 입력 누락 검증
-                if (hasNullScore(dto, midtermDisabled, finalDisabled)) {
-                    throw new IllegalStateException(
-                            "모든 학생의 점수를 입력해주세요."
-                    );
-                }
+            if (hasAnyMidterm && hasEmptyMidterm) {
+                throw new IllegalStateException(
+                    "중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다."
+                );
+            }
 
-                dto.setCompleted(true);
+            if (hasAnyFinal && hasEmptyFinal) {
+                throw new IllegalStateException(
+                    "기말고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다."
+                );
+            }
 
-                // 🔥 출석 점수는 저장하지 않는다
+            // 3️⃣ 통과하면 저장
+            for (ScoreDTO dto : scores) {
                 scoreDAO.updateScore(conn, dto);
             }
 
             conn.commit();
 
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("성적 저장 실패", e);
         }
     }
 
+    /* ==================================================
+     * 3. 학점 계산
+     * ================================================== */
     public void calculateGrade(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
 
+            ScorePolicyDTO policy =
+                    scorePolicyDAO.findByLectureId(conn, lectureId);
+
+            if (policy == null) {
+                throw new IllegalStateException(
+                    "성적 배점이 설정되지 않았습니다."
+                );
+            }
+
             List<ScoreDTO> list =
                     scoreDAO.selectScoresByLecture(conn, lectureId);
 
+            // 🔥 1차 검증: 미입력 존재 여부
             for (ScoreDTO dto : list) {
+                if (dto.getAssignmentScore() == null
+                    || dto.getMidtermScore() == null
+                    || dto.getFinalScore() == null) {
 
-                if (!dto.isCompleted()) {
                     throw new IllegalStateException(
-                        "모든 성적이 입력되지 않았습니다."
+                        "모든 학생의 과제 / 중간 / 기말 점수를 입력해야 합니다."
                     );
                 }
+            }
 
-                // 🔥 출석 요약 다시 조회
+            // 🔥 2차 계산
+            for (ScoreDTO dto : list) {
+
                 AttendanceSummaryDTO attendance =
                         attendanceDAO.getAttendanceSummary(
                                 conn,
@@ -167,44 +180,37 @@ public class ScoreService {
                         ? attendance.getEffectiveAttendCount()
                         : 0;
 
-                // 🔥 출석률 계산
                 double attendanceRate =
                         totalSessions > 0
                         ? (double) effectiveAttend / totalSessions
                         : 0;
 
-                // 🚨 출석 70% 미만 → 자동 F
+                // 출석 미달 → F
                 if (attendanceRate < 0.8) {
-
                     scoreDAO.updateTotalAndGrade(
                             conn,
                             dto.getScoreId(),
                             0,
                             "F"
                     );
-                    continue; // 다음 학생
+                    continue;
                 }
 
-                // 정상 학생만 총점 계산
                 int attendanceScore =
                         dto.getAttendanceScore() != null
                         ? dto.getAttendanceScore() : 0;
-                int assignment =
-                        dto.getAssignmentScore() != null
-                        ? dto.getAssignmentScore() : 0;
-                int midterm =
-                        dto.getMidtermScore() != null
-                        ? dto.getMidtermScore() : 0;
-                int finals =
-                        dto.getFinalScore() != null
-                        ? dto.getFinalScore() : 0;
 
-                int total =
-                        attendanceScore
-                      + assignment
-                      + midterm
-                      + finals;
+                int assignment = dto.getAssignmentScore();
+                int midterm = dto.getMidtermScore();
+                int finals = dto.getFinalScore();
 
+                double weighted =
+                      attendanceScore * policy.getAttendanceWeight() / 100.0
+                    + assignment       * policy.getAssignmentWeight() / 100.0
+                    + midterm          * policy.getMidtermWeight() / 100.0
+                    + finals           * policy.getFinalWeight() / 100.0;
+
+                int total = (int) Math.round(weighted);
                 String grade = convertGrade(total);
 
                 scoreDAO.updateTotalAndGrade(
@@ -215,26 +221,56 @@ public class ScoreService {
                 );
             }
 
+        } catch (IllegalStateException e) {
+            throw e; // ⚠ Controller에서 잡아서 경고 처리
         } catch (Exception e) {
             throw new RuntimeException("학점 계산 실패", e);
+        }
+    }
+    
+    
+ // 학생 본인 성적 조회
+    public ScoreDTO getMyScore(
+            Long lectureId,
+            Long studentId
+    ) {
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            // 혹시 score row 없으면 생성
+            scoreDAO.insertInitialScores(conn, lectureId);
+
+            ScoreDTO dto =
+                    scoreDAO.selectScoreByLectureAndStudent(
+                            conn,
+                            lectureId,
+                            studentId
+                    );
+
+            if (dto == null) return null;
+
+            AttendanceSummaryDTO summary =
+                    attendanceDAO.getAttendanceSummary(
+                            conn,
+                            lectureId,
+                            studentId
+                    );
+
+            int attendanceScore =
+                    summary != null ? summary.getAttendanceScore() : 0;
+
+            dto.setAttendanceScore(attendanceScore);
+
+            return dto;
+
+        } catch (Exception e) {
+            throw new RuntimeException("내 성적 조회 실패", e);
         }
     }
 
     /* ==================================================
      * 내부 유틸
      * ================================================== */
-
-    private boolean hasNullScore(
-            ScoreDTO dto,
-            boolean midtermDisabled,
-            boolean finalDisabled
-    ) {
-        if (dto.getAssignmentScore() == null) return true;
-        if (!midtermDisabled && dto.getMidtermScore() == null) return true;
-        if (!finalDisabled && dto.getFinalScore() == null) return true;
-        return false;
-    }
-
     private String convertGrade(int total) {
         if (total >= 95) return "A+";
         if (total >= 90) return "A";
