@@ -12,6 +12,7 @@ import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LoginService;
 import utils.HashUtil;
+import utils.PasswordUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -51,11 +52,37 @@ public class LoginController extends HttpServlet {
 			response.sendRedirect(contextPath + "/");
 			return;
 		} else if (actionPath.equals("/login/passwordReset")) {
-			// 리셋 페이지 연결
-			// jsp를 직접 연결할건지? 포워드로?
-			// 아니면 
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/login/resetPassword.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/login/identityVerification.jsp");
 			rd.forward(request, response);
+		} else if (actionPath.equals("/login/resetPasswordForm")) {
+		    Boolean resetAuth = (session != null)
+		            ? (Boolean) session.getAttribute("resetAuth")
+		            : null;
+
+		    String resetToken = (session != null)
+		            ? (String) session.getAttribute("resetToken")
+		            : null;
+
+		    Long resetUserId = (session != null)
+		            ? (Long) session.getAttribute("resetUserId")
+		            : null;
+
+		    // 🔒 비정상 접근 차단
+		    if (session == null || resetAuth == null || !resetAuth
+		            || resetToken == null || resetUserId == null) {
+
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid access");
+		        return;
+		    }
+
+		    // 캐시 방지 (선택이지만 강력 추천)
+		    response.setHeader("Cache-Control", "no-store");
+		    response.setHeader("Pragma", "no-cache");
+		    response.setDateHeader("Expires", 0);
+
+		    RequestDispatcher rd =
+		        request.getRequestDispatcher("/WEB-INF/views/login/resetPasswordForm.jsp");
+		    rd.forward(request, response);
 		}
 		
 	}
@@ -102,7 +129,9 @@ public class LoginController extends HttpServlet {
 		    LoginService loginService = LoginService.getInstance();
 		    boolean isMatch = loginService.verifyUserInfo(email, birthDate); 
 		    // verifyUserInfo: email + birthDate 일치하면 true, 아니면 false
-
+		    
+		    session.setAttribute("tokenType", "PasswordReset");
+		    
 		    // 4. JSON 응답 설정
 		    response.setContentType("application/json");
 		    response.setCharacterEncoding("UTF-8");
@@ -122,14 +151,68 @@ public class LoginController extends HttpServlet {
 
 		    // 3. 서비스 호출
 		    LoginService loginService = LoginService.getInstance();
-		    boolean isMatch = loginService.verifyUserInfo(email, birthDate); 
-		    // verifyUserInfo: email + birthDate 일치하면 true, 아니면 false
-
+		    Long userId = loginService.getUserId(email, birthDate);
+		    
+		    if (userId == 0) {
+		        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		        response.getWriter().write("{\"error\":\"userId not found\"}");
+		        return;
+		    }
+		    
 		    // 4. JSON 응답 설정
 		    response.setContentType("application/json");
 		    response.setCharacterEncoding("UTF-8");
-		    String json = "{\"match\":" + isMatch + "}";
+		    String json = "{\"userId\":" + userId + "}";
 		    response.getWriter().write(json);
+		} else if (action.equals("/create-token")) {
+			LoginService ls = LoginService.getInstance();
+		    Long userId = Long.parseLong(request.getParameter("userId"));
+		    String token_type = (String) session.getAttribute("tokenType");
+		    if (userId == null || userId == 0) {
+		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		        return;
+		    }
+		    
+		    String token = ls.getPlainToken(userId, token_type, request.getRemoteAddr());
+		    session.setAttribute("resetAuth", true);
+		    session.setAttribute("resetUserId", userId);
+		    session.setAttribute("resetToken", token);
+		} else if (action.equals("/resetPassword")) {
+			LoginService ls = LoginService.getInstance();
+		    Long userId = (Long) session.getAttribute("resetUserId");
+		    String token = (String) session.getAttribute("resetToken");
+
+		    if (session == null || token == null) {
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        return;
+		    }
+		    
+		    // DB 검증 후 진행
+		    String hashToken = HashUtil.sha256(token);
+		    boolean valid = ls.verifyResetToken(userId, hashToken);
+		    if (!valid) {
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        return;
+		    }
+		    
+		    // 임시 비밀번호 생성
+		    String tempPassword = PasswordUtil.generateTempPassword();
+
+		    // DB 반영 (암호화 필수)
+		    ls.issueTempPassword(userId, tempPassword);
+
+		    // 🔥 재사용 방지
+		    session.removeAttribute("resetAuth");
+		    session.removeAttribute("resetUserId");
+		    session.removeAttribute("resetToken");
+		    session.removeAttribute("tokenType");
+
+		    // 사용자 전달용
+		    request.setAttribute("tempPassword", tempPassword);
+
+		    RequestDispatcher rd =
+		        request.getRequestDispatcher("/WEB-INF/views/login/resetResult.jsp");
+		    rd.forward(request, response);
 		}
 		
 	}

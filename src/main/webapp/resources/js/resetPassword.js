@@ -1,13 +1,12 @@
-import { checkUserInfo } from './UserInfoServices.js';
-import { getUserId } from './UserInfoServices.js';
 import { generateToken } from './tokenService.js';
+import { checkUserInfo, getUserId } from './UserInfoServices.js';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const email = document.getElementById("email");
+	const email = document.getElementById("email");
     const birthDate = document.getElementById("birthDate");
     const checkInfoBtn = document.getElementById("checkInfoBtn");
     const tokenOutput = document.getElementById("tokenOutput");
-
+	
     checkInfoBtn.addEventListener("click", async () => {
         const emailValue = email.value.trim();
         const birthValue = birthDate.value;
@@ -32,9 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 3. 토큰 발급
             const token = await generateToken(ctx, userId);
-            tokenOutput.value = token;
-
-            alert("토큰 발급 완료!");
+			
+			// 4. 인증완료 후 페이지 이동
+            window.location.href = `${ctx}/login/resetPasswordForm`;
 
         } catch (err) {
             console.error(err);

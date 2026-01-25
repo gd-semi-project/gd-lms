@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<script src="${pageContext.request.contextPath}/resources/js/resetPassword.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/resources/js/resetPasswordView.js"></script>
 
 <script>
   const ctx = "${pageContext.request.contextPath}";
@@ -30,5 +30,5 @@
   </c:if>
   
   <!-- 비밀번호 초기화 버튼 -->
-  <a id="passwdReset">비밀번호 초기화</a>
+  <a href="javascript:void(0);" id="resetLoginPassword">비밀번호 초기화</a>
 </div>

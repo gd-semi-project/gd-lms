@@ -1,4 +1,4 @@
-async function generateToken(ctx, userId) {
+export async function generateToken(ctx, userId) {
     try {
         const response = await fetch(`${ctx}/login/create-token`, {
             method: "POST",

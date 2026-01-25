@@ -26,10 +26,15 @@ public class AccessFilter extends HttpFilter {
 		    "/login/login.do",
 		    "/login/passwordReset",
 		    "/login/check-info",
-		    "login/get-user-id",
+		    "/login/get-user-id",
+		    "/login/create-token",
+		    "/login/resetPassword",
+		    "/login/passwordReset",
+		    "/login/resetPasswordForm",
 		    "resources",
 		    "error",
-		    "appTime.now"
+		    "appTime.now",
+		    "/keronBall"
 		);
 
 	private String encoding = "UTF-8"; // 기본 인코딩 설정

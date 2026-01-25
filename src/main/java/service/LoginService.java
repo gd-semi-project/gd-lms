@@ -1,8 +1,12 @@
 package service;
 
+import java.time.LocalDateTime;
+
 import lombok.NoArgsConstructor;
+import model.dao.TokenDAO;
 import model.dao.UserDAO;
 import model.dto.AccessDTO;
+import model.dto.ResetToken;
 import model.dto.UserDTO;
 import utils.HashUtil;
 
@@ -71,6 +75,52 @@ public class LoginService {
 	// 이메일, 생년월일로 user_id 반환(토큰 생성시 이용)
 	public Long getUserId(String email, String birthDate) {
 		UserDAO userDAO = UserDAO.getInstance();
-        return userDAO.selectUserIdByEmailAndBirthDate(email, birthDate);
+		Long userId = userDAO.selectUserIdByEmailAndBirthDate(email, birthDate);
+		System.out.println(userId);
+        return userId;
     }
+	
+	public String getPlainToken(Long userId, String token_type, String ip) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+        return tokenDAO.createToken(userId, token_type, ip);
+    }
+	
+	public void issueTempPassword(Long userId, String encryptedTempPassword) {
+		UserDAO userDAO = UserDAO.getInstance();
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("유효하지 않은 사용자 ID");
+        }
+
+        int updated = userDAO.updateTempPassword(userId, encryptedTempPassword);
+
+        if (updated != 1) {
+            throw new RuntimeException("임시 비밀번호 발급 실패");
+        }
+    }
+	
+	public boolean verifyResetToken(Long userId, String sessionToken) {
+
+	    TokenDAO tokenDAO = TokenDAO.getInstance();
+
+	    ResetToken rt = tokenDAO.findValidToken(userId, sessionToken);
+
+	    if (rt == null) {
+	        return false;
+	    }
+
+	    // 이미 사용된 토큰
+	    if (rt.getVerifiedAt() != null) {
+	        // 이미 사용됨 → null 반환
+	        return false;
+	    }
+
+	    // 만료 체크
+	    if (rt.getExpiresAt().isBefore(LocalDateTime.now())) {
+	        return false;
+	    }
+
+	    // 사용 처리 (1회성)
+	    int updated = tokenDAO.markTokenAsUsed(sessionToken);
+	    return updated == 1;
+	}
 }

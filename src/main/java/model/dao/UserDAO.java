@@ -251,7 +251,29 @@ public class UserDAO {
         	System.out.println("UserDAO selectUserIdByEmailAndBirthDate: " + e.getMessage());
             throw new RuntimeException(e);
         }
-        return null;
+        return Long.getLong("0");
 	}
+	
+	public int updateTempPassword(Long userId, String encryptedTempPassword) {
+        String sql = """
+            UPDATE user
+               SET password_hash = ?,
+                   must_change_pw = '1',
+                   updated_at = NOW()
+             WHERE user_id = ?
+        """;
+
+        try (
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setString(1, encryptedTempPassword);
+            pstmt.setLong(2, userId);
+
+            return pstmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("updateTempPassword error", e);
+        }
+    }
 	
 }

@@ -1,4 +1,4 @@
-async function checkUserInfo(ctx, email, birthDate) {
+export async function checkUserInfo(ctx, email, birthDate) {
     try {
         const res = await fetch(`${ctx}/login/check-info`, {
             method: "POST",
@@ -16,18 +16,19 @@ async function checkUserInfo(ctx, email, birthDate) {
     }
 }
 
-async function getUserId(ctx, email, birthDate) {
+export async function getUserId(ctx, email, birthDate) {
     try {
         const res = await fetch(`${ctx}/login/get-user-id`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
             body: `email=${encodeURIComponent(email)}&birthDate=${encodeURIComponent(birthDate)}`
         });
-
+		
         if (!res.ok) throw new Error("사용자 조회 실패: " + res.status);
+		
         const data = await res.json();
-
-        if (!data.userId) throw new Error("사용자 없음");
+		
+        if (data.userId === 0) throw new Error("사용자 없음");
         return data.userId;
 
     } catch (err) {

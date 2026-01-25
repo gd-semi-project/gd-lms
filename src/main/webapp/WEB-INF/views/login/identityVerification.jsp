@@ -11,7 +11,7 @@
     <script>
       const ctx = "${pageContext.request.contextPath}";
 	</script>
-	<script src="${pageContext.request.contextPath}/resources/js/resetPassword.js" defer></script>
+	<script type="module" src="${pageContext.request.contextPath}/resources/js/resetPassword.js" defer></script>
 </head>
 <body class="bg-light">
 
@@ -33,11 +33,6 @@
                        max="<%= java.time.LocalDate.now() %>">
             </div>
             <button type="button" id="checkInfoBtn" class="btn btn-primary w-100 mb-3">인증</button>
-
-            <!-- 비밀번호 초기화 버튼 -->
-            <button type="button" id="passwdReset" class="btn btn-success w-100 mt-3">
-                비밀번호 초기화
-            </button>
         </form>
     </div>
 </div>
