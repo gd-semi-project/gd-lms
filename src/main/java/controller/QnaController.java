@@ -315,7 +315,7 @@ public class QnaController extends HttpServlet {
                 return;
             }
 
-            // 알 수 없는 action
+           
             response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId);
 
         } catch (QnaService.AccessDeniedException e) {

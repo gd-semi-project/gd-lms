@@ -27,7 +27,6 @@ public class NoticeService {
         try (Connection conn = DBConnection.getConnection()){
         	return noticeDAO.countOnlyGlobalNotices(conn,items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.countAllNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -41,7 +40,6 @@ public class NoticeService {
         try (Connection conn = DBConnection.getConnection()) {
         	return noticeDAO.findPageOnlyGlobalNotices(conn,limit, offset, items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.findPageAllNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -66,7 +64,6 @@ public class NoticeService {
                 return noticeDAO.countAllLectureNotices(conn,items, text);
             }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.countAllLectureNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -88,7 +85,6 @@ public class NoticeService {
                   return noticeDAO.findPageAllLectureNotices(conn,limit, offset, items, text);
               }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.findPageAllLectureNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -112,7 +108,6 @@ public class NoticeService {
 
             return noticeDAO.countByLecture(conn,lectureId, items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			throw new RuntimeException("공지사항 count 조회 실패", e);
 		} catch (ClassNotFoundException e) {
             throw new RuntimeException("NoticeService. countByLecture DB driver error", e);
@@ -135,7 +130,6 @@ public class NoticeService {
             return noticeDAO.findPageByLecture(conn,lectureId, limit, offset, items, text);
 			
 		} catch (SQLException e) {
-			// TODO: handle exception
 			throw new RuntimeException("공지 목록 조회 실패", e);
 		}  catch (ClassNotFoundException e) {
             throw new RuntimeException("NoticeService.findPageByLecture DB driver error", e);
@@ -345,7 +339,6 @@ public class NoticeService {
             }
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.getAvailableLectures error",e);
 		}
@@ -365,7 +358,6 @@ public class NoticeService {
             }
             return List.of();
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.getUserLectures error",e);
 		}
@@ -405,7 +397,6 @@ public class NoticeService {
     		boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, lectureId);
             if (!enrolled) throw new AccessDeniedException("수강하지 않는 강의의 공지사항에 접근할 수 없습니다.");
 		} catch (SQLException e) {
-			// TODO: handle exception
 	        e.printStackTrace(); 
 	        throw new RuntimeException("수강 여부 확인 DB 오류", e);
 		}
@@ -419,7 +410,6 @@ public class NoticeService {
     	           throw new AccessDeniedException("담당하지 않는 강의의 공지사항에 접근할 수 없습니다.");
     	       }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("강의 담당 여부 확인 DB 오류", e);
 		}

@@ -29,6 +29,8 @@ public class NoticeController extends HttpServlet {
     private static final String NOTICE_VIEW = "/WEB-INF/views/notice/view.jsp";
     private static final String NOTICE_NEW  = "/WEB-INF/views/notice/new.jsp";
     private static final String NOTICE_EDIT = "/WEB-INF/views/notice/edit.jsp";
+    
+    // 에러페이지 경로 상수
     private static final String ERROR_403   = "/WEB-INF/views/error/403.jsp";
 
     @Override
@@ -58,7 +60,18 @@ public class NoticeController extends HttpServlet {
             }
         } catch (NoticeService.AccessDeniedException e) {
             req.setAttribute("errorMessage", e.getMessage());
+            // 403부분
             forwardLayout(req, resp, ERROR_403);
+        } catch (NoticeService.NotFoundException e) {
+        	e.printStackTrace();
+           // TODO: 404 부분
+           // resp.sendError();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+           // TODO: 500 에러페이지 forward
+           //resp.sendError();
+            
         }
     }
 
@@ -88,6 +101,18 @@ public class NoticeController extends HttpServlet {
         	if (resp.isCommitted()) return; // 응답 있다면 포워드 금지 
             req.setAttribute("errorMessage", e.getMessage());
             forwardLayout(req, resp, ERROR_403);
+        } catch (NoticeService.NotFoundException e) {
+            if (resp.isCommitted()) return;
+            req.setAttribute("errorMessage", e.getMessage());
+            // TODO: 404 부분
+            // forwardLayout(req, resp, ERROR_404);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (resp.isCommitted()) return;
+            req.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
+            // TODO: 500 부분
+            // forwardLayout(req, resp, ERROR_500);
         }
     }
 
