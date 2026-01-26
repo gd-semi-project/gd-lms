@@ -21,6 +21,7 @@ public class AutomationService {
 					job.run(now);
 				}
 			} catch (Exception e) {
+				//TODO sql 오류가 날 수 있습니다
 				e.printStackTrace();
 			}
 		}
