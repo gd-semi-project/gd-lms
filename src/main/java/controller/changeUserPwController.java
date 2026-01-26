@@ -44,10 +44,11 @@ public class changeUserPwController extends HttpServlet {
             return;
         }
 		// ROLE이 STUDENT인경우(학생)만 접근가능
-		if (access.getRole() != Role.STUDENT) {
+		if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
 		}
+		
         String action = request.getPathInfo();
 		if ("/change".equals(action)) {
 			
