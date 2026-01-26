@@ -29,8 +29,8 @@
 <div class="d-flex flex-wrap gap-2 mb-3">
   <span class="badge bg-secondary">전체: ${empty totalCount ? 0 : totalCount}</span>
   <span class="badge bg-warning text-dark">대기: ${empty pendingCount ? 0 : pendingCount}</span>
-  <span class="badge bg-success">승인: ${empty approvedCount ? 0 : approvedCount}</span>
-  <span class="badge bg-danger">반려: ${empty rejectedCount ? 0 : rejectedCount}</span>
+  <span class="badge bg-success">승인: ${empty confirmedCount ? 0 : confirmedCount}</span>
+  <span class="badge bg-danger">반려: ${empty canceledCount ? 0 : canceledCount}</span>
 </div>
 
 <div class="card shadow-sm">

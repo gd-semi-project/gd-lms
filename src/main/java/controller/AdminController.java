@@ -6,8 +6,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.dao.LectureDAO;
+import model.dao.LectureRequestDAO;
 import model.dao.SchoolScheduleDAO;
 import model.dto.CodeOptionDTO;
+import model.dto.LectureCountByValidationDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.ScheduleUiPolicyDTO;
@@ -135,6 +138,15 @@ public class AdminController extends HttpServlet {
 				request.setAttribute("canceledLectureList",service.getCanceledLectureList(departmentId));
 				request.setAttribute("confirmedLectureList",service.getConfirmedLectureList(departmentId));
 				request.setAttribute("departmentList", service.getDepartmentList());
+				
+				LectureCountByValidationDTO lcbvDTO = service.getLectureCountByValidation();
+				request.setAttribute("totalCount", lcbvDTO.getTotalCount());
+				request.setAttribute("confirmedCount", lcbvDTO.getConfirmedCount());
+				request.setAttribute("pendingCount", lcbvDTO.getPendingCount());
+				request.setAttribute("canceledCount", lcbvDTO.getCanceledCount());
+				
+				
+				
 			}
 			break;
 		}
@@ -292,11 +304,9 @@ public class AdminController extends HttpServlet {
 				ls.RegistUser(userDTO);
 				
 				// response.sendRedirect("/gd-lms/login.jsp");
-				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
+				String contentPage = "/admin/dashboard";
 				
-				request.setAttribute("contentPage", contentPage);
-				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
-				rd.forward(request, response);
+				response.sendRedirect(request.getContextPath() + contentPage);
 				break;
 			}
 			

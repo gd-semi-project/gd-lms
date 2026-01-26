@@ -40,35 +40,26 @@ public class LectureController extends HttpServlet {
 		String action = uri.substring(ctx.length() + "/lecture".length());
 		if (action == null || action.isBlank())
 			action = "/detail";
-
-		// 로그인 체크
+		
 		HttpSession session = request.getSession(false);
-		if (session == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
-
 		AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
-		if (accessInfo == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
 
 		long userId = accessInfo.getUserId();
-		Role role = accessInfo.getRole();
 
 		switch (action) {
-		// 강의 상세
 		case "/detail": {
 		    Long lectureId = parseLong(request.getParameter("lectureId"));
+		    
 		    if (lectureId == null) {
-		        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+		    	// TODO : 400 Bad Request
+		        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "강의 정보가 올바르지 않습니다.");
 		        return;
 		    }
 
 		    LectureDTO lecture = lectureService.getLectureDetail(lectureId);
 		    if (lecture == null) {
-		        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+		    	// TODO : 404 Not Found
+		        response.sendError(HttpServletResponse.SC_NOT_FOUND, "존재하지 않는 강의입니다.");
 		        return;
 		    }
 
@@ -104,14 +95,16 @@ public class LectureController extends HttpServlet {
 		case "/students": {
 			Long lectureId = parseLong(request.getParameter("lectureId"));
 			if (lectureId == null) {
-				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+				// TODO : 400 Bad Request
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "강의 정보가 올바르지 않습니다.");
 				return;
 			}
 			List<LectureStudentDTO> students = lectureService.getLectureStudents(lectureId);
 			
 			LectureDTO lecture = lectureService.getLectureDetail(lectureId);
 		    if (lecture == null) {
-		        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+		    	// TODO : 404 Not Found
+		        response.sendError(HttpServletResponse.SC_NOT_FOUND, "존재하지 않는 강의입니다.");
 		        return;
 		    }
 			
@@ -124,7 +117,8 @@ public class LectureController extends HttpServlet {
 		}
 
 		default:
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			// TODO : 404 Not Found
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "요청하신 페이지를 찾을 수 없습니다.");
 			return;
 		}
 		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);

@@ -1,23 +1,24 @@
 package model.enumtype;
 
 public enum IsPrivate {
-    Y("Y"), N("N");
+    Y("비공개"),
+    N("공개");
 
-    private final String dbValue;
+    private final String label;
 
-    IsPrivate(String dbValue) {
-        this.dbValue = dbValue;
+    IsPrivate(String label) {
+        this.label = label;
     }
 
-    public String toDb() {
-        return dbValue;
+    public String getLabel() {
+        return label;
     }
 
     public static IsPrivate fromDb(String db) {
-        if (db == null) return N;
-        String v = db.trim().toUpperCase();
-        if ("Y".equals(v)) return Y;
-        if ("N".equals(v)) return N;
-        throw new IllegalArgumentException("Invalid IsPrivate db value: " + db);
+        return "Y".equals(db) ? Y : N;
+    }
+
+    public String toDb() {
+        return name(); // Y / N
     }
 }

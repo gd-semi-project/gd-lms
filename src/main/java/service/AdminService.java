@@ -8,9 +8,11 @@ import model.dao.DepartmentDAO;
 import model.dao.EnrollmentDAO;
 import model.dao.InstructorDAO;
 import model.dao.LectureDAO;
+import model.dao.LectureRequestDAO;
 import model.dao.StudentDAO;
 import model.dto.DepartmentDTO;
 import model.dto.InstructorDTO;
+import model.dto.LectureCountByValidationDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.LectureScheduleDTO;
@@ -18,6 +20,7 @@ import model.dto.StudentDTO;
 
 public class AdminService {
 	private LectureDAO lectureDAO= LectureDAO.getInstance();
+	private LectureRequestDAO lectureRequestDAO = LectureRequestDAO.getInstance();
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
 	private InstructorDAO instructorDAO = InstructorDAO.getInstance();
@@ -103,6 +106,10 @@ public class AdminService {
 	
 	public ArrayList<StudentDTO> getAllStudentByDepartment(Long departmentId, String status){
 		return StudentDAO.getAllStudentByDepartment(departmentId, status);
+	}
+	
+	public LectureCountByValidationDTO getLectureCountByValidation() {
+		return lectureRequestDAO.getLectureCountByValidation();
 	}
 
 	

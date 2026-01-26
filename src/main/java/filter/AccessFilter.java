@@ -60,6 +60,16 @@ public class AccessFilter extends HttpFilter {
 		if (actionPath.split("/").length >= 2) {
 			middlePath = actionPath.split("/")[1];
 		}
+		
+		// 중복슬래시 리다이렉트
+		String cleanedUri = uri.replaceAll("/{2,}", "/");
+
+        if (!uri.equals(cleanedUri)) {
+            // 중복 슬래시가 있으면 리다이렉트
+            response.sendRedirect(request.getContextPath() + cleanedUri);
+            return;
+        }
+		
 
 		// (학생) 수강신청 기간 체크
 		boolean isEnrollRequest = actionPath.startsWith("/enroll") || actionPath.equals("/mypage/enrollmentPage");

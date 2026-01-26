@@ -25,7 +25,7 @@ public class QnaService {
      *  목록
      * ========================================================= */
 
-    public int countByLecture(long lectureId, long userId, Role role) throws ClassNotFoundException {
+    public int countByLecture(long lectureId, long userId, Role role) {
         requireLogin(userId, role);
         requirePositiveId("lectureId", lectureId);
 
@@ -39,10 +39,12 @@ public class QnaService {
 
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.countByLecture error", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("QnaService.countByLecture DB driver error", e);
         }
     }
 
-    public List<QnaPostDTO> listByLecture(long lectureId, int limit, int offset, long userId, Role role) throws ClassNotFoundException {
+    public List<QnaPostDTO> listByLecture(long lectureId, int limit, int offset, long userId, Role role) {
         requireLogin(userId, role);
         requirePositiveId("lectureId", lectureId);
 
@@ -59,6 +61,8 @@ public class QnaService {
 
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.listByLecture error", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("QnaService.listByLecture DB driver error", e);
         }
     }
 
@@ -66,7 +70,7 @@ public class QnaService {
      *  상세
      * ========================================================= */
 
-    public QnaPostDTO getPostDetail(long qnaId, long lectureId, long userId, Role role) throws ClassNotFoundException {
+    public QnaPostDTO getPostDetail(long qnaId, long lectureId, long userId, Role role) {
         requireLogin(userId, role);
         requirePositiveId("qnaId", qnaId);
         requirePositiveId("lectureId", lectureId);
@@ -84,10 +88,12 @@ public class QnaService {
 
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.getPostDetail error", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("QnaService.getPostDetail DB driver error", e);
         }
     }
 
-    public List<QnaAnswerDTO> getAnswers(long qnaId, long lectureId, long userId, Role role) throws ClassNotFoundException {
+    public List<QnaAnswerDTO> getAnswers(long qnaId, long lectureId, long userId, Role role) {
         requireLogin(userId, role);
         requirePositiveId("qnaId", qnaId);
         requirePositiveId("lectureId", lectureId);
@@ -105,6 +111,8 @@ public class QnaService {
 
         } catch (SQLException e) {
             throw new RuntimeException("QnaService.getAnswers error", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("QnaService.getAnswers DB driver error", e);
         }
     }
 

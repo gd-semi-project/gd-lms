@@ -42,9 +42,7 @@ public class LectureRequestService {
     private final LectureScheduleDAO lectureScheduleDAO =
         LectureScheduleDAO.getInstance();
 
-    /* ==================================================
-     * 1. 강의 개설 신청 기간 여부
-     * ================================================== */
+    // 강의 개설 신청 기간 여부
     public boolean isLectureRequestPeriod() {
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -64,15 +62,14 @@ public class LectureRequestService {
                 && !today.isAfter(schedule.getEndDate());
 
         } catch (Exception e) {
+        	 // TODO : 500 Internal Server Error (DB 조회 실패)
             throw new RuntimeException(
                 "강의 개설 신청 기간 확인 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 2. 가장 가까운 강의 개설 신청 기간
-     * ================================================== */
+    // 가장 가까운 강의 개설 신청 기간
     public SchoolScheduleDTO getNearestLectureRequestPeriod() {
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -82,71 +79,65 @@ public class LectureRequestService {
                 AppTime.now().toLocalDate()
             );
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 신청 기간 조회 실패", e
             );
         }
     }
-
-    /* ==================================================
-     * 3. 내 강의 개설 신청 목록
-     * ================================================== */
+    // 내 강의 개설 신청 목록
     public List<LectureRequestDTO> getMyLectureRequests(Long instructorId) {
 
         try (Connection conn = DBConnection.getConnection()) {
             return lectureDAO.selectByInstructor(conn, instructorId);
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 개설 신청 목록 조회 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 4. 강의 개설 신청 상세
-     * ================================================== */
+    // 강의 개설 신청 상세
     public LectureRequestDTO getLectureRequestDetail(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
             return lectureDAO.selectByLectureId(conn, lectureId);
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 개설 신청 상세 조회 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 5. 성적 배점 조회
-     * ================================================== */
+    // 성적 배점 조회
     public ScorePolicyDTO getScorePolicy(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
             return scorePolicyDAO.findByLectureId(conn, lectureId);
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "성적 배점 조회 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 6. 강의실 목록
-     * ================================================== */
+    // 강의실 목록
     public List<RoomDTO> getAllRooms() {
 
         try (Connection conn = DBConnection.getConnection()) {
             return lectureDAO.selectAllRooms(conn);
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의실 목록 조회 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 7. 신규 강의 개설 신청
-     * ================================================== */
+    // 신규 강의 개설 신청
     public void createLectureRequest(
             Long instructorId,
             HttpServletRequest request
@@ -170,16 +161,18 @@ public class LectureRequestService {
 
             conn.commit();
 
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // TODO : 400 Bad Request (비즈니스 규칙 위반)
+            throw e;
         } catch (Exception e) {
+            // TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 개설 신청 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 8. 강의 개설 신청 수정 
-     * ================================================== */
+    // 강의 개설 신청 수정 
     public void updateLectureRequest(
             Long lectureId,
             HttpServletRequest request
@@ -212,16 +205,18 @@ public class LectureRequestService {
 
             conn.commit();
 
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // TODO : 400 / 409 비즈니스 예외
+            throw e;
         } catch (Exception e) {
+            // TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 개설 수정 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 9. 강의 개설 신청 삭제 
-     * ================================================== */
+    // 강의 개설 신청 삭제 
     public void deleteLectureRequest(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
@@ -245,30 +240,31 @@ public class LectureRequestService {
 
             conn.commit();
 
+        } catch (IllegalStateException e) {
+            // TODO : 409 Conflict
+            throw e;
         } catch (Exception e) {
+            // TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 삭제 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 10. 강의 요일/시간 조회
-     * ================================================== */
+    // 강의 요일/시간 조회
     public List<LectureScheduleDTO> getLectureSchedules(Long lectureId) {
 
         try (Connection conn = DBConnection.getConnection()) {
             return lectureScheduleDAO.selectByLectureId(conn, lectureId);
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "강의 요일/시간 조회 실패", e
             );
         }
     }
 
-    /* ==================================================
-     * 내부 유틸 성적 배점 생성 + 검증
-     * ================================================== */
+    // 내부 유틸 성적 배점 생성 + 검증
     private ScorePolicyDTO buildScorePolicy(
             Long lectureId,
             HttpServletRequest request
