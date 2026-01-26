@@ -270,8 +270,9 @@ public class NoticeDAO {
             "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
             "AND lecture_id IN (" +
             "  SELECT lecture_id FROM lecture " +
-            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED' AND status = 'ONGOING'" +  
             ")"
+            
         );
 
         boolean hasSearch = isValidSearch(items, text);
@@ -306,7 +307,7 @@ public class NoticeDAO {
             "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
             "AND lecture_id IN (" +
             "  SELECT lecture_id FROM lecture " +
-            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED' AND status = 'ONGOING'" +  
             ")"
         );
 
