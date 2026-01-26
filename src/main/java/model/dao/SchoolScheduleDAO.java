@@ -225,4 +225,49 @@ public class SchoolScheduleDAO {
 		}
 	}
 
+	
+	// 수강신청기간?
+	public SchoolScheduleDTO findEnrollmentPeriod(Connection conn, LocalDate today) {
+
+	    String sql = """
+	        SELECT *
+	        FROM schoolSchedule
+	        WHERE schedule_code IN (
+	            'COURSE_REG_FRESHMAN',
+	            'COURSE_REG_ENROLLED',
+	            'COURSE_ADD_DROP'
+	        )
+	          AND start_date <= ?
+	          AND end_date >= ?
+	        ORDER BY start_date
+	        LIMIT 1
+	    """;
+
+	    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setDate(1, java.sql.Date.valueOf(today));
+	        pstmt.setDate(2, java.sql.Date.valueOf(today));
+
+	        try (ResultSet rs = pstmt.executeQuery()) {
+	            if (rs.next()) {
+	                SchoolScheduleDTO dto = new SchoolScheduleDTO();
+	                dto.setId(rs.getLong("id"));
+	                dto.setScheduleCode(
+	                    ScheduleCode.valueOf(rs.getString("schedule_code"))
+	                );
+	                dto.setTitle(rs.getString("title"));
+	                dto.setStartDate(rs.getDate("start_date").toLocalDate());
+	                dto.setEndDate(rs.getDate("end_date").toLocalDate());
+	                dto.setMemo(rs.getString("memo"));
+	                return dto;
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("수강신청 기간 조회 실패", e);
+	    }
+
+	    return null;
+	}
+
 }
