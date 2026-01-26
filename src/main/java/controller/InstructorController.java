@@ -34,19 +34,7 @@ public class InstructorController extends HttpServlet {
 
 		HttpSession session = request.getSession(false);
 		String ctx = request.getContextPath();
-
-		/* 로그인 체크 */
-		if (session == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
-
 		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
-
-		if (access == null || access.getRole() == Role.STUDENT) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
-		}
 
 		Long instructorId = access.getUserId();
 
@@ -137,31 +125,51 @@ public class InstructorController extends HttpServlet {
 
 		case "/lecture/request/edit": {
 
-			if (!lectureRequestService.isLectureRequestPeriod()) {
+		    if (!lectureRequestService.isLectureRequestPeriod()) {
+		        request.setAttribute("errorMessage", "현재는 강의 개설 신청 기간이 아닙니다.");
+		        request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
+		        request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+		        return;
+		    }
 
-				request.setAttribute("errorMessage", "현재는 강의 개설 신청 기간이 아닙니다.");
+		    String lectureIdParam = request.getParameter("lectureId");
+		    if (lectureIdParam == null) {
+		        // TODO : 400 Bad Request (필수 파라미터 누락)
+		        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "강의 요청 정보가 올바르지 않습니다.");
+		        return;
+		    }
 
-				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestList.jsp");
+		    Long lectureId;
+		    try {
+		        lectureId = Long.parseLong(lectureIdParam);
+		    } catch (NumberFormatException e) {
+		        // TODO : 400 Bad Request (잘못된 파라미터 타입)
+		        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "강의 요청 정보가 올바르지 않습니다.");
+		        return;
+		    }
 
-				request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
-				return;
-			}
+		    LectureRequestDTO lecture =
+		        lectureRequestService.getLectureRequestDetail(lectureId);
+		    if (lecture == null) {
+		        // TODO : 404 Not Found (존재하지 않는 강의 요청)
+		        response.sendError(HttpServletResponse.SC_NOT_FOUND, "존재하지 않는 강의 개설 요청입니다.");
+		        return;
+		    }
 
-			Long lectureId = Long.parseLong(request.getParameter("lectureId"));
-
-			request.setAttribute("rooms", lectureRequestService.getAllRooms());
-
-			request.setAttribute("lecture", lectureRequestService.getLectureRequestDetail(lectureId));
-
-			request.setAttribute("scorePolicy", lectureRequestService.getScorePolicy(lectureId));
-
-			request.setAttribute("schedules", lectureRequestService.getLectureSchedules(lectureId));
-			request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestEditForm.jsp");
-			break;
+		    request.setAttribute("rooms", lectureRequestService.getAllRooms());
+		    request.setAttribute("lecture", lecture);
+		    request.setAttribute("scorePolicy",
+		        lectureRequestService.getScorePolicy(lectureId));
+		    request.setAttribute("schedules",
+		        lectureRequestService.getLectureSchedules(lectureId));
+		    request.setAttribute("contentPage",
+		        "/WEB-INF/views/lecture/requestEditForm.jsp");
+		    break;
 		}
 
 		default:
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			// TODO : 404
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "요청하신 페이지를 찾을 수 없습니다.");
 			return;
 		}
 
@@ -177,11 +185,6 @@ public class InstructorController extends HttpServlet {
 
 		HttpSession session = request.getSession(false);
 		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
-
-		if (access == null || access.getRole() != Role.INSTRUCTOR) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
-		}
 
 		Long instructorId = access.getUserId();
 
@@ -216,26 +219,32 @@ public class InstructorController extends HttpServlet {
 			}
 
 		} catch (IllegalArgumentException e) {
+		    
+		    request.setAttribute("errorMessage", e.getMessage());
+		    request.setAttribute("rooms", lectureRequestService.getAllRooms());
 
-			request.setAttribute("errorMessage", e.getMessage());
-			request.setAttribute("rooms", lectureRequestService.getAllRooms());
+		    if (uri.endsWith("/lecture/request/edit")) {
 
-			if (uri.endsWith("/lecture/request/edit")) {
+		        Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-				Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+		        request.setAttribute("lecture",
+		            lectureRequestService.getLectureRequestDetail(lectureId));
+		        request.setAttribute("scorePolicy",
+		            lectureRequestService.getScorePolicy(lectureId));
+		        request.setAttribute("contentPage",
+		            "/WEB-INF/views/lecture/requestEditForm.jsp");
 
-				request.setAttribute("lecture", lectureRequestService.getLectureRequestDetail(lectureId));
+		    } else {
+		        request.setAttribute("contentPage",
+		            "/WEB-INF/views/lecture/requestForm.jsp");
+		    }
 
-				request.setAttribute("scorePolicy", lectureRequestService.getScorePolicy(lectureId));
+		    request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
+		           .forward(request, response);
 
-				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestEditForm.jsp");
-
-			} else {
-
-				request.setAttribute("contentPage", "/WEB-INF/views/lecture/requestForm.jsp");
-			}
-
-			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+		} catch (RuntimeException e) {
+		    // TODO : 500 Internal Server Error
+		    throw e;
 		}
 	}
 }

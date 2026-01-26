@@ -33,7 +33,7 @@
             <div class="card-body">
 
                 <p>
-                    <strong>수업 시간</strong><br/>
+                    <strong>출석 시간</strong><br/>
                     ${todaySession.startTime} ~ ${todaySession.endTime}
                 </p>
 
@@ -118,33 +118,33 @@
 
     <!-- 출석 시작 / 종료 -->
     <c:choose>
-    
-        <c:when test="${not attendanceOpen}">
+
+	    <c:when test="${empty todaySession}">
 	        <form method="post" action="${ctx}/attendance/open" class="mb-4">
 	            <input type="hidden" name="lectureId" value="${lectureId}" />
 	            <button class="btn btn-success">
 	                출석 시작
 	            </button>
 	        </form>
-    	</c:when>
-
-        <c:when test="${not attendanceOpen}">
-            <div class="alert alert-secondary mb-3">
-                출석이 종료 되었습니다.
-            </div>
-        </c:when>
-
-        <c:otherwise>
-        <form method="post" action="${ctx}/attendance/close" class="mb-4">
-            <input type="hidden" name="lectureId" value="${lectureId}" />
-            <input type="hidden" name="sessionId" value="${todaySession.sessionId}" />
-            <button class="btn btn-danger">
-                출석 종료
-            </button>
-        </form>
-    </c:otherwise>
-
-    </c:choose>
+	    </c:when>
+	
+	    <c:when test="${not empty todaySession and attendanceOpen}">
+	        <form method="post" action="${ctx}/attendance/close" class="mb-4">
+	            <input type="hidden" name="lectureId" value="${lectureId}" />
+	            <input type="hidden" name="sessionId" value="${todaySession.sessionId}" />
+	            <button class="btn btn-danger">
+	                출석 종료
+	            </button>
+	        </form>
+	    </c:when>
+	
+	    <c:otherwise>
+	        <div class="alert alert-secondary mb-3">
+	            오늘 회차의 출석은 종료되었습니다.
+	        </div>
+	    </c:otherwise>
+	
+	</c:choose>
 
     <!-- ================= 회차별 출석부 ================= -->
     <h5 class="mt-4">회차별 출석부</h5>
