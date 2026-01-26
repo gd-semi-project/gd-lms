@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.dto.AttendanceDTO;
+import model.dto.AttendanceSummaryDTO;
 import model.dto.SessionAttendanceDTO;
 import model.enumtype.AttendanceStatus;
 
@@ -16,14 +17,12 @@ public class AttendanceDAO {
     private static final AttendanceDAO instance = new AttendanceDAO();
     private AttendanceDAO() {}
 
-    public static AttendanceDAO getInstance() {
+    public static AttendanceDAO getInstance() {	// 출결 데이터 처리
         return instance;
     }
 
-    /* =================================================
-     * 교수 출석 시작 시
-     * → 해당 강의 수강생 전원 기본 ABSENT 생성
-     * ================================================= */
+    
+    // 교수 출석 시작 시 학생 전원 결석 처리로 시작
     public void insertAbsentForLecture(
             Connection conn,
             long sessionId,
@@ -46,9 +45,7 @@ public class AttendanceDAO {
         }
     }
 
-    /* =================================================
-     * 학생 출석 버튼 클릭
-     * ================================================= */
+    // 학생 출석 버튼
     public void markAttendance(
             Connection conn,
             long sessionId,
@@ -71,9 +68,7 @@ public class AttendanceDAO {
         }
     }
 
-    /* =================================================
-     * 이미 출석했는지 확인
-     * ================================================= */
+    // 이미 출석 했는지 확인
     public boolean isAlreadyChecked(
             Connection conn,
             long sessionId,
@@ -98,9 +93,7 @@ public class AttendanceDAO {
         }
     }
 
-    /* =================================================
-     * 학생: 강의별 출석 이력
-     * ================================================= */
+    // 강의 출석 이력
     public List<AttendanceDTO> findByStudent(
             Connection conn,
             long lectureId,
@@ -154,9 +147,7 @@ public class AttendanceDAO {
         return list;
     }
 
-    /* =================================================
-     * 교수: 회차별 출석부
-     * ================================================= */
+    // 회차별 출석부
     public List<SessionAttendanceDTO> findBySession(
             Connection conn,
             long sessionId
@@ -210,9 +201,7 @@ public class AttendanceDAO {
         return list;
     }
 
-    /* =================================================
-     * 교수: 출결 수동 수정
-     * ================================================= */
+    // 출결 자동 수정 : 교수
     public void updateStatusById(
             Connection conn,
             long attendanceId,
@@ -231,4 +220,85 @@ public class AttendanceDAO {
             pstmt.executeUpdate();
         }
     }
+    
+    
+    // 출석 합계
+    public AttendanceSummaryDTO getAttendanceSummary(
+            Connection conn,
+            Long lectureId,
+            Long studentId
+    ) {
+
+        String sql = """
+            SELECT
+                COUNT(ls.session_id) AS total_sessions,
+                SUM(CASE WHEN a.status = 'PRESENT' THEN 1 ELSE 0 END) AS present_count,
+                SUM(CASE WHEN a.status = 'LATE' THEN 1 ELSE 0 END) AS late_count
+            FROM lecture_session ls
+            JOIN student s
+                ON s.student_id = ?
+            LEFT JOIN attendance a
+                ON a.session_id = ls.session_id
+               AND a.student_id = s.user_id
+            WHERE ls.lecture_id = ?
+        """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, studentId);
+            pstmt.setLong(2, lectureId);
+
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                AttendanceSummaryDTO dto = new AttendanceSummaryDTO();
+                dto.setStudentId(studentId);
+
+                int total = rs.getInt("total_sessions");
+                int present = rs.getInt("present_count");
+                int late = rs.getInt("late_count");
+
+                dto.setTotalSessionCount(total);
+                dto.setPresentCount(present);
+                dto.setLateCount(late);
+
+                calculateAttendance(dto);
+                return dto;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("출석 요약 조회 실패", e);
+        }
+
+        return null;
+    }
+    
+    private void calculateAttendance(AttendanceSummaryDTO dto) {
+
+        int total = dto.getTotalSessionCount();
+        int present = dto.getPresentCount();
+        int late = dto.getLateCount();
+
+        // 지각 3회 = 결석 1회
+        int latePenalty = late / 3;
+
+        // 실제 출석 인정 횟수
+        int effectiveAttend =
+                present + late - latePenalty;
+
+        if (effectiveAttend < 0) effectiveAttend = 0;
+
+        int absent = total - effectiveAttend;
+        if (absent < 0) absent = 0;
+
+        int score = 0;
+        if (total > 0) {
+            score = (int) Math.round(
+                effectiveAttend * 100.0 / total
+            );
+        }
+
+        dto.setEffectiveAttendCount(effectiveAttend);
+        dto.setAbsentCount(absent);
+        dto.setAttendanceScore(score);
+    }
+    
+    
 }

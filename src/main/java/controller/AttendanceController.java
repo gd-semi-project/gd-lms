@@ -8,217 +8,192 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import model.dto.AccessDTO;
+import model.dto.LectureDTO;
 import model.dto.LectureSessionDTO;
 import model.enumtype.AttendanceStatus;
 import model.enumtype.Role;
 import service.AttendanceService;
-import service.LectureSessionService;
+import service.LectureService;
+import utils.AppTime;
 
 @WebServlet("/attendance/*")
 public class AttendanceController extends HttpServlet {
 
-    private final AttendanceService attendanceService =
-            AttendanceService.getInstance();
+	private final AttendanceService attendanceService = AttendanceService.getInstance();
+	private final LectureService lectureService = LectureService.getInstance();
 
-    private final LectureSessionService lectureSessionService =
-            LectureSessionService.getInstance();
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-    /* =================================================
-     * POST
-     * ================================================= */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+		String ctx = request.getContextPath();
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-        String ctx = request.getContextPath();
-        HttpSession session = request.getSession(false);
-        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+		if (access == null) {
+			response.sendRedirect(ctx + "/login");
+			return;
+		}
 
-        String action =
-                request.getRequestURI()
-                       .substring(ctx.length() + "/attendance".length());
+		String action = request.getRequestURI().substring(ctx.length() + "/attendance".length());
 
-        try {
+		try {
 
-            /* =====================================
-             * 교수: 출석 시작
-             * → 회차 생성 + 기본 ABSENT 생성
-             * POST /attendance/open
-             * ===================================== */
-            if ("/open".equals(action)) {
+			if ("/open".equals(action)) {
 
-                if (access.getRole() != Role.INSTRUCTOR) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                    return;
-                }
+				if (access.getRole() != Role.INSTRUCTOR) {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 
-                long lectureId =
-                        Long.parseLong(request.getParameter("lectureId"));
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-                // 1️⃣ 오늘 회차 생성
-                long sessionId =
-                        lectureSessionService.createTodaySession(lectureId);
+				long sessionId = attendanceService.openAttendance(lectureId);
 
-                // 2️⃣ 수강생 전원 기본 결석 생성
-                attendanceService.prepareAttendance(sessionId, lectureId);
+				// 수강생 전원 기본 결석 생성
+				attendanceService.prepareAttendance(sessionId, lectureId);
 
-                response.sendRedirect(
-                        ctx + "/attendance/view?lectureId="
-                                + lectureId
-                                + "&sessionId="
-                                + sessionId
-                );
-                return;
-            }
+				response.sendRedirect(ctx + "/attendance/view" + "?lectureId=" + lectureId + "&sessionId=" + sessionId);
+				return;
+			}
 
-            /* =====================================
-             * 학생: 출석 체크
-             * POST /attendance/check
-             * ===================================== */
-            if ("/check".equals(action)) {
+			if ("/check".equals(action)) {
 
-                if (access.getRole() != Role.STUDENT) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                    return;
-                }
+				if (access.getRole() != Role.STUDENT) {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 
-                long sessionId =
-                        Long.parseLong(request.getParameter("sessionId"));
-                long lectureId =
-                        Long.parseLong(request.getParameter("lectureId"));
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				long sessionId = Long.parseLong(request.getParameter("sessionId"));
 
-                attendanceService.checkAttendance(
-                        sessionId,
-                        access.getUserId()
-                );
+				attendanceService.checkAttendance(sessionId, access.getUserId());
 
-                response.sendRedirect(
-                        ctx + "/attendance/view?lectureId=" + lectureId
-                );
-                return;
-            }
+				response.sendRedirect(ctx + "/attendance/view?lectureId=" + lectureId);
+				return;
+			}
 
-            /* =====================================
-             * 교수: 출결 수동 수정
-             * POST /attendance/update
-             * ===================================== */
-            if ("/update".equals(action)) {
+			if ("/update".equals(action)) {
 
-                if (access.getRole() != Role.INSTRUCTOR) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                    return;
-                }
+				if (access.getRole() != Role.INSTRUCTOR) {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 
-                long attendanceId =
-                        Long.parseLong(request.getParameter("attendanceId"));
-                AttendanceStatus status =
-                        AttendanceStatus.valueOf(
-                                request.getParameter("status")
-                        );
+				long attendanceId = Long.parseLong(request.getParameter("attendanceId"));
+				AttendanceStatus status = AttendanceStatus.valueOf(request.getParameter("status"));
 
-                long lectureId =
-                        Long.parseLong(request.getParameter("lectureId"));
-                long sessionId =
-                        Long.parseLong(request.getParameter("sessionId"));
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				long sessionId = Long.parseLong(request.getParameter("sessionId"));
 
-                attendanceService.updateAttendance(attendanceId, status);
+				attendanceService.updateAttendance(attendanceId, status);
 
-                response.sendRedirect(
-                        ctx + "/attendance/view?lectureId="
-                                + lectureId
-                                + "&sessionId="
-                                + sessionId
-                );
-                return;
-            }
+				response.sendRedirect(ctx + "/attendance/view" + "?lectureId=" + lectureId + "&sessionId=" + sessionId);
+				return;
+			}
 
-        } catch (Exception e) {
-            session.setAttribute("flashMsg", e.getMessage());
-            response.sendRedirect(
-                    ctx + "/attendance/view?lectureId="
-                            + request.getParameter("lectureId")
-            );
-        }
-    }
+			if ("/close".equals(action)) {
 
-    /* =================================================
-     * GET : 출석 화면
-     * ================================================= */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+				if (access.getRole() != Role.INSTRUCTOR) {
+					response.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
 
-        String ctx = request.getContextPath();
-        HttpSession session = request.getSession(false);
-        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+				long lectureId = Long.parseLong(request.getParameter("lectureId"));
+				long sessionId = Long.parseLong(request.getParameter("sessionId"));
 
-        long lectureId =
-                Long.parseLong(request.getParameter("lectureId"));
+				attendanceService.closeAttendance(sessionId);
 
-        request.setAttribute("lectureId", lectureId);
-        request.setAttribute("activeTab", "attendance");
+				response.sendRedirect(ctx + "/attendance/view?lectureId=" + lectureId);
+				return;
+			}
 
-        /* ---------- 학생 ---------- */
-        if (access.getRole() == Role.STUDENT) {
+		} catch (Exception e) {
+			session.setAttribute("flashMsg", e.getMessage());
+			response.sendRedirect(ctx + "/attendance/view?lectureId=" + request.getParameter("lectureId"));
+		}
+	}
 
-            LectureSessionDTO today =
-                    lectureSessionService.getTodaySession(
-                            lectureId,
-                            LocalDate.now()
-                    );
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-            request.setAttribute("todaySession", today);
+		String ctx = request.getContextPath();
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-            if (today != null) {
-                request.setAttribute(
-                        "alreadyChecked",
-                        attendanceService.isAlreadyChecked(
-                                today.getSessionId(),
-                                access.getUserId()
-                        )
-                );
-            }
+		if (access == null) {
+			response.sendRedirect(ctx + "/login");
+			return;
+		}
 
-            request.setAttribute(
-                    "attendanceList",
-                    attendanceService.getStudentAttendance(
-                            lectureId,
-                            access.getUserId()
-                    )
-            );
-        }
+		long lectureId;
+		try {
+			lectureId = Long.parseLong(request.getParameter("lectureId"));
+		} catch (Exception e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId is required");
+			return;
+		}
 
-        /* ---------- 교수 ---------- */
-        if (access.getRole() == Role.INSTRUCTOR) {
+		LectureDTO lecture = lectureService.getLectureDetail(lectureId);
+		if (lecture == null) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			return;
+		}
 
-            request.setAttribute(
-                    "sessions",
-                    lectureSessionService.getSessionsByLecture(lectureId)
-            );
+		LocalDate todayDate = AppTime.now().toLocalDate();
 
-            String sessionIdParam =
-                    request.getParameter("sessionId");
+		request.setAttribute("lecture", lecture);
+		request.setAttribute("lectureId", lectureId);
+		request.setAttribute("activeTab", "attendance");
 
-            if (sessionIdParam != null && !sessionIdParam.isBlank()) {
+		if (access.getRole() == Role.STUDENT) {
 
-                long sessionId =
-                        Long.parseLong(sessionIdParam);
+			LectureSessionDTO today = attendanceService.getTodaySession(lectureId, todayDate);
 
-                request.setAttribute("selectedSessionId", sessionId);
-                request.setAttribute(
-                        "sessionAttendance",
-                        attendanceService.getSessionAttendance(sessionId)
-                );
-            }
-        }
+			request.setAttribute("todaySession", today);
 
-        request.setAttribute(
-                "contentPage",
-                "/WEB-INF/views/lecture/attendance.jsp"
-        );
+			if (today != null) {
+				request.setAttribute("alreadyChecked",
+						attendanceService.isAlreadyChecked(today.getSessionId(), access.getUserId()));
+			}
 
-        request.getRequestDispatcher(
-                "/WEB-INF/views/layout/layout.jsp"
-        ).forward(request, response);
-    }
+			request.setAttribute("attendanceList",
+					attendanceService.getStudentAttendance(lectureId, access.getUserId()));
+		}
+
+		if (access.getRole() == Role.INSTRUCTOR) {
+
+			LectureSessionDTO today = attendanceService.getTodaySession(lectureId, todayDate);
+
+			request.setAttribute("todaySession", today);
+
+			boolean attendanceOpen = false;
+			if (today != null) {
+				attendanceOpen = attendanceService.isAttendanceOpen(today.getSessionId());
+			}
+
+			boolean alreadyOpenedToday = attendanceService.hasTodaySession(lectureId);
+
+			request.setAttribute("attendanceOpen", attendanceOpen);
+
+			request.setAttribute("sessions", attendanceService.getSessionsByLecture(lectureId));
+
+			request.setAttribute("alreadyOpenedToday", alreadyOpenedToday);
+
+			String sessionIdParam = request.getParameter("sessionId");
+
+			if (sessionIdParam != null && !sessionIdParam.isBlank()) {
+
+				long sessionId = Long.parseLong(sessionIdParam);
+
+				request.setAttribute("selectedSessionId", sessionId);
+				request.setAttribute("sessionAttendance", attendanceService.getSessionAttendance(sessionId));
+			}
+		}
+
+		request.setAttribute("contentPage", "/WEB-INF/views/lecture/attendance.jsp");
+
+		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+	}
 }

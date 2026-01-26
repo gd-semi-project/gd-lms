@@ -1,166 +1,214 @@
 package service;
 
 import java.sql.Connection;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 import database.DBConnection;
 import model.dao.AttendanceDAO;
+import model.dao.LectureAttendanceStatusDAO;
 import model.dao.LectureSessionDAO;
 import model.dto.AttendanceDTO;
 import model.dto.LectureSessionDTO;
 import model.dto.SessionAttendanceDTO;
 import model.enumtype.AttendanceStatus;
+import utils.AppTime;
 
 public class AttendanceService {
 
-    private static final AttendanceService instance = new AttendanceService();
-    public static AttendanceService getInstance() {
-        return instance;
-    }
+	private static final AttendanceService instance = new AttendanceService();
 
-    private AttendanceDAO attendanceDAO = AttendanceDAO.getInstance();
-    private LectureSessionDAO lectureSessionDAO = LectureSessionDAO.getInstance();
+	public static AttendanceService getInstance() {
+		return instance;
+	}
 
-    private AttendanceService() {}
+	private final AttendanceDAO attendanceDAO = AttendanceDAO.getInstance();
+	private final LectureSessionDAO lectureSessionDAO = LectureSessionDAO.getInstance();
+	private final LectureAttendanceStatusDAO lectureAttendanceStatusDAO = LectureAttendanceStatusDAO.getInstance();
 
-    /* =================================================
-     * 교수: 출석 시작
-     * (회차 생성 + 기본 결석 생성)
-     * ================================================= */
-    public long openAttendance(long lectureId) {
+	private AttendanceService() {
+	}
 
-        try (Connection conn = DBConnection.getConnection()) {
+	// 출석 시작
+	public long openAttendance(long lectureId) {
 
-            if (lectureSessionDAO.existsTodaySession(
-                    conn, lectureId, LocalDate.now())) {
-                throw new IllegalStateException("이미 오늘 출석이 시작되었습니다.");
-            }
+		try (Connection conn = DBConnection.getConnection()) {
 
-            long sessionId = lectureSessionDAO.insertSession(
-                    conn,
-                    lectureId,
-                    LocalDate.now(),
-                    LocalTime.now(),
-                    LocalTime.now().plusHours(1)
-            );
+			LocalDate today = AppTime.now().toLocalDate();
+			LocalTime now = AppTime.now().toLocalTime();
 
-            attendanceDAO.insertAbsentForLecture(
-                    conn, sessionId, lectureId
-            );
+			// 이미 오늘 회차가 있으면 막기
+			if (lectureSessionDAO.existsTodaySession(conn, lectureId, today)) {
+				throw new IllegalStateException("이미 오늘 출석이 시작되었습니다.");
+			}
 
-            return sessionId;
-        }
-        catch (Exception e) {
-            throw new RuntimeException("출석 시작 실패", e);
-        }
-    }
+			// 회차 생성 (교수가 누른 시점 = 수업 시작)
+			LocalTime end = now.plusMinutes(10);
 
-    /* =================================================
-     * ✅ 추가 1: 출석 준비 (컨트롤러용 분리 메서드)
-     * ================================================= */
-    public void prepareAttendance(long sessionId, long lectureId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            attendanceDAO.insertAbsentForLecture(
-                    conn, sessionId, lectureId
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("출석 준비 실패", e);
-        }
-    }
+			long sessionId = lectureSessionDAO.insertSession(conn, lectureId, today, now, end);
 
-    /* =================================================
-     * 학생: 출석 체크
-     * ================================================= */
-    public void checkAttendance(long sessionId, long studentId) {
+			lectureAttendanceStatusDAO.ensureRow(conn, sessionId);
+			lectureAttendanceStatusDAO.openAttendance(conn, sessionId);
 
-        try (Connection conn = DBConnection.getConnection()) {
+			attendanceDAO.insertAbsentForLecture(conn, sessionId, lectureId);
 
-            LectureSessionDTO session =
-                    lectureSessionDAO.findById(conn, sessionId);
+			return sessionId;
 
-            if (session == null) {
-                throw new IllegalArgumentException("회차가 존재하지 않습니다.");
-            }
+		} catch (Exception e) {
+			throw new RuntimeException("출석 시작 실패", e);
+		}
+	}
 
-            if (attendanceDAO.isAlreadyChecked(conn, sessionId, studentId)) {
-                throw new IllegalStateException("이미 출석 처리되었습니다.");
-            }
+	// 출석 준비 (수강생 전원 기본 결석 생성)
+	public void prepareAttendance(long sessionId, long lectureId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			attendanceDAO.insertAbsentForLecture(conn, sessionId, lectureId);
+		} catch (Exception e) {
+			throw new RuntimeException("출석 준비 실패", e);
+		}
+	}
 
-            LocalTime now = LocalTime.now();
-            LocalTime start = session.getStartTime();
+	// 출석 종료
+	public void closeAttendance(long sessionId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			lectureAttendanceStatusDAO.ensureRow(conn, sessionId);
+			lectureAttendanceStatusDAO.closeAttendance(conn, sessionId);
+		} catch (Exception e) {
+			throw new RuntimeException("출석 종료 실패", e);
+		}
+	}
 
-            AttendanceStatus status;
-            if (now.isBefore(start.plusMinutes(10))) {
-                status = AttendanceStatus.PRESENT;
-            } else if (now.isBefore(start.plusMinutes(30))) {
-                status = AttendanceStatus.LATE;
-            } else {
-                throw new IllegalStateException("출석 가능 시간이 지났습니다.");
-            }
+	// 오늘 회차 조회
+	public LectureSessionDTO getTodaySession(long lectureId, LocalDate date) {
+		try (Connection conn = DBConnection.getConnection()) {
+			return lectureSessionDAO.findToday(conn, lectureId, date);
+		} catch (Exception e) {
+			throw new RuntimeException("오늘 회차 조회 실패", e);
+		}
+	}
 
-            attendanceDAO.markAttendance(
-                    conn, sessionId, studentId, status
-            );
-        }
-        catch (Exception e) {
-            throw new RuntimeException("출석 처리 실패", e);
-        }
-    }
+	// 강의 전체 회차 조회
+	public List<LectureSessionDTO> getSessionsByLecture(long lectureId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			return lectureSessionDAO.findByLecture(conn, lectureId);
+		} catch (Exception e) {
+			throw new RuntimeException("회차 목록 조회 실패", e);
+		}
+	}
 
-    /* =================================================
-     * ✅ 추가 2: 이미 출석했는지 여부
-     * ================================================= */
-    public boolean isAlreadyChecked(long sessionId, long studentId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return attendanceDAO.isAlreadyChecked(
-                    conn, sessionId, studentId
-            );
-        } catch (Exception e) {
-            return false;
-        }
-    }
+	// 풀석 체크
+	public void checkAttendance(long sessionId, long studentId) {
 
-    /* =================================================
-     * 교수: 회차별 출석부
-     * ================================================= */
-    public List<SessionAttendanceDTO> getSessionAttendance(long sessionId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return attendanceDAO.findBySession(conn, sessionId);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("출석부 조회 실패", e);
-        }
-    }
+		try (Connection conn = DBConnection.getConnection()) {
 
-    /* =================================================
-     * 교수: 출결 수정
-     * ================================================= */
-    public void updateAttendance(
-            long attendanceId,
-            AttendanceStatus status
-    ) {
-        try (Connection conn = DBConnection.getConnection()) {
-            attendanceDAO.updateStatusById(conn, attendanceId, status);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("출결 수정 실패", e);
-        }
-    }
+			LectureSessionDTO session = lectureSessionDAO.findById(conn, sessionId);
 
-    /* =================================================
-     * 학생: 출석 이력
-     * ================================================= */
-    public List<AttendanceDTO> getStudentAttendance(
-            long lectureId,
-            long studentId
-    ) {
-        try (Connection conn = DBConnection.getConnection()) {
-            return attendanceDAO.findByStudent(conn, lectureId, studentId);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("출석 이력 조회 실패", e);
-        }
-    }
+			if (session == null) {
+				throw new IllegalArgumentException("회차가 존재하지 않습니다.");
+			}
+
+			if (!lectureAttendanceStatusDAO.isOpen(conn, sessionId)) {
+				throw new IllegalStateException("출석 시간이 아닙니다.");
+			}
+
+			LocalTime now = AppTime.now().toLocalTime();
+			LocalTime start = session.getStartTime();
+
+			if (now.isAfter(start.plusMinutes(10))) {
+				lectureAttendanceStatusDAO.closeAttendance(conn, sessionId);
+				throw new IllegalStateException("출석 시간이 종료되었습니다.");
+			}
+
+			if (attendanceDAO.isAlreadyChecked(conn, sessionId, studentId)) {
+				throw new IllegalStateException("이미 출석 처리되었습니다.");
+			}
+
+			AttendanceStatus status;
+
+			if (now.isBefore(start.plusMinutes(10))) {
+				status = AttendanceStatus.PRESENT;
+			} else {
+				status = AttendanceStatus.LATE;
+			}
+
+			attendanceDAO.markAttendance(conn, sessionId, studentId, status);
+
+		} catch (Exception e) {
+			throw new RuntimeException("출석 처리 실패", e);
+		}
+	}
+
+	// 이미 출석했는지?
+	public boolean isAlreadyChecked(long sessionId, long studentId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			return attendanceDAO.isAlreadyChecked(conn, sessionId, studentId);
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// 출석부
+	public List<SessionAttendanceDTO> getSessionAttendance(long sessionId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			return attendanceDAO.findBySession(conn, sessionId);
+		} catch (Exception e) {
+			throw new RuntimeException("출석부 조회 실패", e);
+		}
+	}
+
+	// 출결 수정
+	public void updateAttendance(long attendanceId, AttendanceStatus status) {
+		try (Connection conn = DBConnection.getConnection()) {
+			attendanceDAO.updateStatusById(conn, attendanceId, status);
+		} catch (Exception e) {
+			throw new RuntimeException("출결 수정 실패", e);
+		}
+	}
+
+	// 학생 출석 이력
+	public List<AttendanceDTO> getStudentAttendance(long lectureId, long studentId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			return attendanceDAO.findByStudent(conn, lectureId, studentId);
+		} catch (Exception e) {
+			throw new RuntimeException("출석 이력 조회 실패", e);
+		}
+	}
+
+	// 출석 열람 여부
+	public boolean isAttendanceOpen(long sessionId) {
+		try (Connection conn = DBConnection.getConnection()) {
+
+			LectureSessionDTO session = lectureSessionDAO.findById(conn, sessionId);
+
+			if (session == null)
+				return false;
+
+			LocalTime now = AppTime.now().toLocalTime();
+			LocalTime start = session.getStartTime();
+
+			// ⏱ 10분 초과 → 자동 종료
+			if (now.isAfter(start.plusMinutes(10))) {
+				lectureAttendanceStatusDAO.closeAttendance(conn, sessionId);
+				return false;
+			}
+
+			return lectureAttendanceStatusDAO.isOpen(conn, sessionId);
+
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	// 이미 출석 했는지(교수
+	public boolean hasTodaySession(long lectureId) {
+		try (Connection conn = DBConnection.getConnection()) {
+			LocalDate today = AppTime.now().toLocalDate();
+			return lectureSessionDAO.existsTodaySession(conn, lectureId, today);
+		} catch (Exception e) {
+			return false;
+		}
+	}
 }

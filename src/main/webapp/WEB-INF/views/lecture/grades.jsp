@@ -2,113 +2,199 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 <jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
 
-<h3 class="mb-4">📝 성적</h3>
+<h3 class="mb-4">📝 성적 관리</h3>
 
 <!-- =========================
-     👩‍🎓 학생 화면
-========================= -->
-<c:if test="${role eq 'STUDENT'}">
-
-    <div class="card w-50">
-        <div class="card-body">
-
-            <table class="table table-bordered text-center">
-                <tr>
-                    <th>중간고사</th>
-                    <td>85</td>
-                </tr>
-                <tr>
-                    <th>기말고사</th>
-                    <td>90</td>
-                </tr>
-                <tr>
-                    <th>과제</th>
-                    <td>95</td>
-                </tr>
-                <tr>
-                    <th>출석</th>
-                    <td>100</td>
-                </tr>
-                <tr class="table-light fw-bold">
-                    <th>총점</th>
-                    <td>92</td>
-                </tr>
-                <tr>
-                    <th>등급</th>
-                    <td>
-                        <span class="badge bg-success fs-6">A</span>
-                    </td>
-                </tr>
-            </table>
-
-        </div>
-    </div>
-
+     ⚠ 경고 메시지 (교수만)
+     ========================= -->
+<c:if test="${role == 'INSTRUCTOR' && not empty warningMessage}">
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    ⚠ ${warningMessage}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
 </c:if>
 
-<!-- =========================
+<!-- =========================================================
      👨‍🏫 교수 화면
-========================= -->
-<c:if test="${role eq 'INSTRUCTOR'}">
+     ========================================================= -->
+<c:if test="${role == 'INSTRUCTOR'}">
 
-    <table class="table table-bordered text-center align-middle">
+    <div class="alert alert-info">
+        ✔ 출석 점수는 자동 계산됩니다.<br/>
+        ✔ 과제는 부분 저장이 가능합니다.<br/>
+        ✔ 학점 계산 시 과제 / 중간 / 기말 점수가 모두 필요합니다.
+    </div>
+
+    <!-- 탭 버튼 -->
+    <div class="mb-3">
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('attendance')">출석</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('assignment')">과제</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('midterm')">중간</button>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('final')">기말</button>
+    </div>
+
+    <form id="scoreForm" method="post" action="${ctx}/score/grades/save">
+        <input type="hidden" name="lectureId" value="${lectureId}">
+        <input type="hidden" id="actionType" name="actionType" value="">
+
+        <table class="table table-bordered align-middle">
+            <thead class="table-light text-center">
+                <tr>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th class="tab-attendance">출석</th>
+                    <th class="tab-assignment d-none">과제</th>
+                    <th class="tab-midterm d-none">중간</th>
+                    <th class="tab-final d-none">기말</th>
+                    <th>총점</th>
+                    <th>학점</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            <c:forEach var="s" items="${scores}">
+                <tr class="text-center score-row">
+                    <td>${s.studentNumber}</td>
+                    <td>${s.studentName}</td>
+
+                    <td class="tab-attendance">${s.attendanceScore}</td>
+
+                    <td class="tab-assignment d-none">
+                        <input type="number"
+                               name="assignmentScore_${s.studentId}"
+                               value="${s.assignmentScore}"
+                               class="form-control form-control-sm assignment-input">
+                    </td>
+
+                    <td class="tab-midterm d-none">
+                        <input type="number"
+                               name="midtermScore_${s.studentId}"
+                               value="${s.midtermScore}"
+                               class="form-control form-control-sm midterm-input">
+                    </td>
+
+                    <td class="tab-final d-none">
+                        <input type="number"
+                               name="finalScore_${s.studentId}"
+                               value="${s.finalScore}"
+                               class="form-control form-control-sm final-input">
+                    </td>
+
+                    <td>${s.totalScore != null ? s.totalScore : '-'}</td>
+                    <td>${s.gradeLetter != null ? s.gradeLetter : '-'}</td>
+
+                    <input type="hidden" name="studentId" value="${s.studentId}">
+                    <input type="hidden" name="scoreId_${s.studentId}" value="${s.scoreId}">
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+
+        <div class="text-end mt-3">
+            <button type="submit"
+                    class="btn btn-primary"
+                    onclick="setAction('save')">
+                💾 저장
+            </button>
+            <button type="submit"
+                    formaction="${ctx}/score/grades/calculate"
+                    class="btn btn-success"
+                    onclick="setAction('calculate')">
+                📊 학점 계산
+            </button>
+        </div>
+    </form>
+</c:if>
+
+<!-- =========================================================
+     🎓 학생 화면 (본인 성적만)
+     ========================================================= -->
+<c:if test="${role == 'STUDENT'}">
+
+    <div class="alert alert-info">
+        ✔ 현재 입력된 성적만 표시됩니다.<br/>
+        ✔ 총점 및 학점은 추후 공지됩니다.
+    </div>
+
+    <table class="table table-bordered text-center">
         <thead class="table-light">
             <tr>
-                <th>학번</th>
-                <th>이름</th>
+                <th>출석</th>
+                <th>과제</th>
                 <th>중간</th>
                 <th>기말</th>
-                <th>과제</th>
-                <th>출석</th>
-                <th>총점</th>
-                <th>등급</th>
-                <th>비고</th>
             </tr>
         </thead>
         <tbody>
-
-            <!-- 하드코딩 데이터 -->
             <tr>
-                <td>20260001</td>
-                <td>김철수</td>
-                <td>80</td>
-                <td>85</td>
-                <td>90</td>
-                <td>100</td>
-                <td>88</td>
-                <td><span class="badge bg-primary">B+</span></td>
-                <td>-</td>
+                <td>${myScore.attendanceScore}</td>
+                <td>${myScore.assignmentScore != null ? myScore.assignmentScore : '-'}</td>
+                <td>${myScore.midtermScore != null ? myScore.midtermScore : '-'}</td>
+                <td>${myScore.finalScore != null ? myScore.finalScore : '-'}</td>
             </tr>
-
-            <tr>
-                <td>20260002</td>
-                <td>이영희</td>
-                <td>90</td>
-                <td>95</td>
-                <td>92</td>
-                <td>100</td>
-                <td>94</td>
-                <td><span class="badge bg-success">A</span></td>
-                <td>우수</td>
-            </tr>
-
-            <tr>
-                <td>20260003</td>
-                <td>이지훈</td>
-                <td>70</td>
-                <td>75</td>
-                <td>80</td>
-                <td>90</td>
-                <td>79</td>
-                <td><span class="badge bg-warning text-dark">C+</span></td>
-                <td>-</td>
-            </tr>
-
         </tbody>
     </table>
-
 </c:if>
+
+<script>
+function setAction(type) {
+    document.getElementById('actionType').value = type;
+}
+
+function showTab(type) {
+    ['attendance','assignment','midterm','final'].forEach(t => {
+        document.querySelectorAll('.tab-' + t)
+            .forEach(el => el.classList.add('d-none'));
+    });
+    document.querySelectorAll('.tab-' + type)
+        .forEach(el => el.classList.remove('d-none'));
+}
+
+/**
+ * 🔥 저장 / 학점 계산 공통 검증
+ * 규칙:
+ * - 과제 / 중간 / 기말 중
+ *   하나라도 입력이 시작되면 → 해당 항목 전원 입력 필수
+ */
+document.getElementById('scoreForm').addEventListener('submit', function (e) {
+
+    const actionType = document.getElementById('actionType').value;
+    const rows = document.querySelectorAll('.score-row');
+
+    const assignmentInputs = document.querySelectorAll('.assignment-input');
+    const midtermInputs = document.querySelectorAll('.midterm-input');
+    const finalInputs = document.querySelectorAll('.final-input');
+
+    let hasError = false;
+
+    function checkAllOrNothing(inputs) {
+        const filled = [...inputs].filter(i => i.value !== '');
+        if (filled.length === 0) return false; // 아무도 안 입력 → OK
+        return filled.length !== inputs.length; // 일부만 입력 → ❌
+    }
+
+    const assignmentError = checkAllOrNothing(assignmentInputs);
+    const midtermError = checkAllOrNothing(midtermInputs);
+    const finalError = checkAllOrNothing(finalInputs);
+
+    if (assignmentError || midtermError || finalError) {
+        hasError = true;
+    }
+
+    if (hasError) {
+        e.preventDefault();
+
+        rows.forEach(row => row.classList.add('table-danger'));
+
+        alert(
+            '⚠ 저장 규칙 위반\n\n' +
+            '과제 / 중간 / 기말 중\n' +
+            '하나라도 입력을 시작했다면\n' +
+            '해당 항목은 모든 학생이 전부 입력해야 합니다.'
+        );
+    }
+});
+</script>

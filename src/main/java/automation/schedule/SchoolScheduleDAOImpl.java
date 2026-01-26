@@ -113,7 +113,7 @@ public class SchoolScheduleDAOImpl implements SchoolScheduleDAO {
 		final String sql = """
 				
 				SELECT schedule_code, title, start_date, end_date, memo
-				FROM SchoolSchedule
+				FROM schoolSchedule
 				WHERE schedule_code = ?
 				AND start_date <= ?
 				AND end_date >= ?
