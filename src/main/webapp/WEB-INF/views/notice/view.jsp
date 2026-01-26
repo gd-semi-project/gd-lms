@@ -104,13 +104,14 @@
                                 </c:url>
                                 <a href="${editUrl}" class="btn btn-warning">✏️ 수정</a>
                                 
-                                <form action="${ctx}/notice/delete" method="post" class="d-inline">
-                                    <input type="hidden" name="noticeId" value="${notice.noticeId}">
-                                    <c:if test="${not empty notice.lectureId}">
-                                        <input type="hidden" name="lectureId" value="${notice.lectureId}">
-                                    </c:if>
-                                    <button type="submit" class="btn btn-danger">🗑️ 삭제</button>
-                                </form>
+								<form action="${ctx}/notice/delete" method="post" class="d-inline"
+								      onsubmit="return confirm('정말 삭제하시겠습니까?');">
+								    <input type="hidden" name="noticeId" value="${notice.noticeId}">
+								    <c:if test="${not empty notice.lectureId}">
+								        <input type="hidden" name="lectureId" value="${notice.lectureId}">
+								    </c:if>
+								    <button type="submit" class="btn btn-danger">🗑️ 삭제</button>
+								</form>
                             </div>
                         </c:if>
                     </div>

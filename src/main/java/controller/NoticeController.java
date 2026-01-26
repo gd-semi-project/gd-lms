@@ -294,23 +294,9 @@ public class NoticeController extends HttpServlet {
         }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
-        Long lectureId = parseLongNullable(req.getParameter("lectureId"));
         if (noticeId == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "noticeId is required.");
             return;
-        }
-
-        NoticeType noticeType = parseNoticeType(req, resp);
-        if (noticeType == null) return; // 400 already sent
-
-        // 업데이트 시에도 정합성 유지: LECTURE면 lectureId 필수, ANNOUNCEMENT면 lectureId는 null이 자연스럽다.
-        if (noticeType == NoticeType.LECTURE && lectureId == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "lectureId is required for LECTURE notice.");
-            return;
-        }
-        if (noticeType == NoticeType.ANNOUNCEMENT) {
-            // 전체공지는 lectureId가 들어오더라도 혼선을 줄이기 위해 null로 정규화(선택)
-            lectureId = null;
         }
 
         String title = trimToNull(req.getParameter("title"));
@@ -318,22 +304,26 @@ public class NoticeController extends HttpServlet {
 
         NoticeDTO dto = new NoticeDTO();
         dto.setNoticeId(noticeId);
-        dto.setLectureId(lectureId);
         dto.setAuthorId(userId);
-        dto.setNoticeType(noticeType);
         dto.setTitle(title);
         dto.setContent(content);
 
         noticeService.updateNotice(dto, userId, role);
+        
+        // 파라미터 값이 아닌 DB 값으로 처리
+        NoticeDTO updated = noticeService.getNoticeDetail(noticeId, null, userId, role);
+        if (updated == null) {
+            resp.sendRedirect(req.getContextPath() + "/notice/list");
+            return;
+        }
+        Long actualLectureId = updated.getLectureId();
 
         resp.sendRedirect(buildRedirectUrl(req, "/notice/view",
                 "noticeId", String.valueOf(noticeId),
-                "lectureId", lectureId == null ? null : String.valueOf(lectureId)));
+                "lectureId", actualLectureId == null ? null : String.valueOf(actualLectureId)));
     }
 
-    private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    private void handleDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
         Long userId = getLoginUserId(session);
         Role role = getLoginRole(session);
@@ -344,17 +334,17 @@ public class NoticeController extends HttpServlet {
         }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
-        Long lectureId = parseLongNullable(req.getParameter("lectureId"));
-
         if (noticeId == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "noticeId is required.");
             return;
         }
 
-        noticeService.deleteNotice(noticeId, lectureId, userId, role);
+        Long actualLectureId = noticeService.deleteNotice(noticeId, userId, role);
 
         resp.sendRedirect(buildRedirectUrl(req, "/notice/list",
-                "lectureId", lectureId == null ? null : String.valueOf(lectureId)));
+        	    "tabType", (actualLectureId == null ? "all" : "lecture"),
+        	    "lectureId", actualLectureId == null ? null : String.valueOf(actualLectureId)
+        	));
     }
 
     // ========== Helpers ==========

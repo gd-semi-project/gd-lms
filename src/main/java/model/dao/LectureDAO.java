@@ -324,50 +324,42 @@ public class LectureDAO {
 	// ======================================================
 	// 공지사항 화면에서 쓰는 “단순 조회” 래퍼들
 	// ======================================================
-	public List<LectureDTO> findAll() {
+	public List<LectureDTO> findAll(Connection conn) throws SQLException {
 		String sql = "SELECT lecture_id, user_id, lecture_title, lecture_round, section, "
 				+ "       start_date, end_date, room, capacity, status, validation, created_at, updated_at "
 				+ "FROM lecture " + "WHERE validation = 'CONFIRMED' " + "ORDER BY lecture_title, lecture_round";
 
 		List<LectureDTO> list = new ArrayList<>();
 
-		try (Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql);
-				ResultSet rs = pstmt.executeQuery()) {
+		try (PreparedStatement pstmt = conn.prepareStatement(sql);
+			 ResultSet rs = pstmt.executeQuery()) {
 
 			while (rs.next())
 				list.add(mapLecture(rs));
 			return list;
 
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findAll error", e);
 		}
 	}
 
-	public List<LectureDTO> findByInstructor(long instructorId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			String status = "ONGOING";
-			return selectLecturesByInstructor(conn, instructorId, status);
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findByInstructor error", e);
-		}
+	public List<LectureDTO> findByInstructor(Connection conn,long instructorId) throws SQLException{
+		
+		String status = "ONGOING";
+		return selectLecturesByInstructor(conn, instructorId, status);
+		
 	}
 
 	// ★ 중요: studentId가 아니라 “userId”를 받는 걸로 통일하는 게 맞음
-	public List<LectureDTO> findByStudent(long userId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			return selectLecturesByStudent(conn, userId);
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findByStudent error", e);
-		}
+	public List<LectureDTO> findByStudent(Connection conn,long userId) throws SQLException {
+		
+		return selectLecturesByStudent(conn, userId);
+		
 	}
 
-	public LectureDTO findById(long lectureId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			return selectLectureById(conn, lectureId);
-		} catch (Exception e) {
-			throw new RuntimeException("LectureDAO.findById error", e);
-		}
+	public LectureDTO findById(Connection conn, long lectureId) throws SQLException{
+
+		return selectLectureById(conn, lectureId);
+		
+		
 	}
 
 	// ======================================================

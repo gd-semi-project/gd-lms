@@ -1,6 +1,7 @@
 package service;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import database.DBConnection;
@@ -22,129 +23,185 @@ public class NoticeService {
 
     public int countAllNotices(String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
-        return noticeDAO.countOnlyGlobalNotices(items, text);
+        
+        try (Connection conn = DBConnection.getConnection()){
+        	return noticeDAO.countOnlyGlobalNotices(conn,items, text);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.countAllNotices error",e);
+		} catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService.countAllNotices DB driver error", e);
+        }
+        
     }
 
     public List<NoticeDTO> findPageAllNotices(int limit, int offset, String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
-        return noticeDAO.findPageOnlyGlobalNotices(limit, offset, items, text);
+        try (Connection conn = DBConnection.getConnection()) {
+        	return noticeDAO.findPageOnlyGlobalNotices(conn,limit, offset, items, text);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.findPageAllNotices error",e);
+		} catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService.findPageAllNotices DB driver error", e);
+        }
+        
     }
 
     // ========== 강의 공지사항만 (lecture_id IS NOT NULL) ==========
 
     public int countAllLectureNotices(String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
-
-        if (role == Role.STUDENT) {
-            return noticeDAO.countAllLectureNoticesForStudent(userId, items, text);
-        } else if (role == Role.INSTRUCTOR) {
-            return noticeDAO.countAllLectureNoticesForInstructor(userId, items, text);
-        } else {
-            // ADMIN
-            return noticeDAO.countAllLectureNotices(items, text);
+        
+        
+        try (Connection conn = DBConnection.getConnection()) {
+            if (role == Role.STUDENT) {
+                return noticeDAO.countAllLectureNoticesForStudent(conn,userId, items, text);
+            } else if (role == Role.INSTRUCTOR) {
+                return noticeDAO.countAllLectureNoticesForInstructor(conn,userId, items, text);
+            } else {
+                // ADMIN
+                return noticeDAO.countAllLectureNotices(conn,items, text);
+            }
+		} catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.countAllLectureNotices error",e);
+		} catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService.countAllLectureNotices DB driver error", e);
         }
+
     }
 
     public List<NoticeDTO> findPageAllLectureNotices(int limit, int offset, String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
 
-        if (role == Role.STUDENT) {
-            return noticeDAO.findPageAllLectureNoticesForStudent(userId, limit, offset, items, text);
-        } else if (role == Role.INSTRUCTOR) {
-            return noticeDAO.findPageAllLectureNoticesForInstructor(userId, limit, offset, items, text);
-        } else {
-            // ADMIN
-            return noticeDAO.findPageAllLectureNotices(limit, offset, items, text);
+        try (Connection conn = DBConnection.getConnection()) {
+        	  if (role == Role.STUDENT) {
+                  return noticeDAO.findPageAllLectureNoticesForStudent(conn,userId, limit, offset, items, text);
+              } else if (role == Role.INSTRUCTOR) {
+                  return noticeDAO.findPageAllLectureNoticesForInstructor(conn,userId, limit, offset, items, text);
+              } else {
+                  // ADMIN
+                  return noticeDAO.findPageAllLectureNotices(conn,limit, offset, items, text);
+              }
+		} catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.findPageAllLectureNotices error",e);
+		} catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService.findPageAllLectureNotices DB driver error", e);
         }
+      
     }
 
     // ========== 특정 강의 공지사항 ==========
 
     public int countByLecture(long lectureId, String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
 
-        if (role == Role.STUDENT) {
-            requireStudentEnrolled(userId, lectureId);
-        } else if (role == Role.INSTRUCTOR) {
-            requireInstructorOwnsLecture(userId, lectureId);
+        try (Connection conn = DBConnection.getConnection()){
+            if (role == Role.STUDENT) {
+                requireStudentEnrolled(conn,userId, lectureId);
+            } else if (role == Role.INSTRUCTOR) {
+                requireInstructorOwnsLecture(conn,userId, lectureId);
+            }
+            // ADMIN은 제한 없음
+
+            return noticeDAO.countByLecture(conn,lectureId, items, text);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			throw new RuntimeException("공지사항 count 조회 실패", e);
+		} catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService. countByLecture DB driver error", e);
         }
-        // ADMIN은 제한 없음
 
-        return noticeDAO.countByLecture(lectureId, items, text);
     }
 
     public List<NoticeDTO> findPageByLecture(long lectureId, int limit, int offset, String items, String text, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
 
-        if (role == Role.STUDENT) {
-            requireStudentEnrolled(userId, lectureId);
-        } else if (role == Role.INSTRUCTOR) {
-            requireInstructorOwnsLecture(userId, lectureId);
+
+        try (Connection conn = DBConnection.getConnection()) {
+            if (role == Role.STUDENT) {
+                requireStudentEnrolled(conn,userId, lectureId);
+            } else if (role == Role.INSTRUCTOR) {
+                requireInstructorOwnsLecture(conn,userId, lectureId);
+            }
+            // ADMIN은 제한 없음
+
+            return noticeDAO.findPageByLecture(conn,lectureId, limit, offset, items, text);
+			
+		} catch (SQLException e) {
+			// TODO: handle exception
+			throw new RuntimeException("공지 목록 조회 실패", e);
+		}  catch (ClassNotFoundException e) {
+            throw new RuntimeException("NoticeService.findPageByLecture DB driver error", e);
         }
-        // ADMIN은 제한 없음
 
-        return noticeDAO.findPageByLecture(lectureId, limit, offset, items, text);
     }
 
     // ========== Detail ==========
 
     public NoticeDTO getNoticeDetail(long noticeId, Long lectureId, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            noticeDAO.increaseViewCount(conn, noticeId);
+            try {
+                noticeDAO.increaseViewCount(conn, noticeId);
 
-            NoticeDTO notice = (lectureId == null)
-                    ? noticeDAO.findById(conn, noticeId)
-                    : noticeDAO.findByIdAndLecture(conn, noticeId, lectureId);
+                NoticeDTO notice = (lectureId == null)
+                        ? noticeDAO.findById(conn, noticeId)
+                        : noticeDAO.findByIdAndLecture(conn, noticeId, lectureId);
 
-            if (notice == null) {
-                conn.rollback();
-                return null;
-            }
-
-            // 학생: 수강 중인 강의만
-            if (role == Role.STUDENT && notice.getLectureId() != null) {
-                boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, notice.getLectureId());
-                if (!enrolled) {
+                if (notice == null) {
                     conn.rollback();
-                    throw new AccessDeniedException("수강하지 않는 강의의 공지사항입니다.");
+                    return null;
                 }
+
+                // 학생: 수강 중인 강의만
+                if (role == Role.STUDENT && notice.getLectureId() != null) {
+                    boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, notice.getLectureId());
+                    if (!enrolled) {
+                        conn.rollback();
+                        throw new AccessDeniedException("수강하지 않는 강의의 공지사항입니다.");
+                    }
+                }
+
+                // 교수: 본인 강의만
+                if (role == Role.INSTRUCTOR && notice.getLectureId() != null) {
+                    LectureDTO lecture = lectureDAO.selectLectureById(conn, notice.getLectureId());
+                    if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
+                        conn.rollback();
+                        throw new AccessDeniedException("담당하지 않는 강의의 공지사항입니다.");
+                    }
+                }
+                // ADMIN: 제한 없음
+                conn.commit();
+                return notice;
+
+            } catch (RuntimeException e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw e;
+            } catch (Exception e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw new RuntimeException("NoticeService.getNoticeDetail error", e);
             }
 
-            // 교수: 본인 강의만
-            if (role == Role.INSTRUCTOR && notice.getLectureId() != null) {
-                LectureDTO lecture = lectureDAO.selectLectureById(conn, notice.getLectureId()); // ✅ conn A 사용
-                if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
-                    conn.rollback();
-                    throw new AccessDeniedException("담당하지 않는 강의의 공지사항입니다.");
-                }
-            }
-
-            // ADMIN: 제한 없음
-
-            conn.commit();
-            return notice;
-
-        } catch (AccessDeniedException e) {
+        } catch (RuntimeException e) {
             throw e;
-        } catch (Exception e) {
+        }  catch (Exception e) {
             throw new RuntimeException("NoticeService.getNoticeDetail error", e);
         }
     }
 
     public NoticeDTO getNoticeForEdit(Long noticeId, Long lectureId, Long userId, Role role) {
         requireLogin(userId, role);
-        requireReadable(role);
+
 
         try (Connection conn = DBConnection.getConnection()) {
             long nid = requirePositive(noticeId, "noticeId");
@@ -171,25 +228,32 @@ public class NoticeService {
     public long createNotice(NoticeDTO dto, Long userId, Role role) {
         requireLogin(userId, role);
         requireCreatable(role);
-
-        // ✅ enum 도입 이후 정합성 체크
         normalizeAndValidateType(dto);
-
-        // INSTRUCTOR: 본인 강의인지 확인 (LECTURE 공지일 때만 의미 있음)
-        if (role == Role.INSTRUCTOR && dto.getLectureId() != null) {
-            LectureDTO lecture = lectureDAO.findById(dto.getLectureId());
-            if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
-                throw new AccessDeniedException("본인이 담당하는 강의에만 공지를 작성할 수 있습니다.");
-            }
-        }
-
-        dto.setAuthorId(userId);
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            long newId = noticeDAO.insert(conn, dto);
-            conn.commit();
-            return newId;
+
+            try {
+                if (role == Role.INSTRUCTOR && dto.getLectureId() != null) {
+                    LectureDTO lecture = lectureDAO.selectLectureById(conn, dto.getLectureId());
+                    if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
+                        throw new AccessDeniedException("본인이 담당하는 강의에만 공지를 작성할 수 있습니다.");
+                    }
+                }
+
+                dto.setAuthorId(userId);
+                long newId = noticeDAO.insert(conn, dto);
+
+                conn.commit();
+                return newId;
+
+            } catch (RuntimeException e) {
+                try { conn.rollback(); } catch (SQLException ignore) {}
+                throw e;
+            } catch (Exception e) {
+                try { conn.rollback(); } catch (SQLException ignore) {}
+                throw new RuntimeException("NoticeService.createNotice error", e);
+            }
         } catch (Exception e) {
             throw new RuntimeException("NoticeService.createNotice error", e);
         }
@@ -201,33 +265,34 @@ public class NoticeService {
 
         long noticeId = requirePositive(dto.getNoticeId(), "noticeId");
 
-        // ✅ enum 도입 이후 정합성 체크
-        normalizeAndValidateType(dto);
-
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            NoticeDTO existing = (dto.getLectureId() == null)
-                    ? noticeDAO.findById(conn, noticeId)
-                    : noticeDAO.findByIdAndLecture(conn, noticeId, dto.getLectureId());
+            try {
+                // 1) 기존 공지 로드 (요청 값 절대 사용 X)
+                NoticeDTO existing = noticeDAO.findById(conn, noticeId);
+                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (!canWrite(role, userId, existing))
+                    throw new AccessDeniedException("수정 권한이 없습니다.");
 
-            if (existing == null) {
-                conn.rollback();
-                throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                // 2) 변경 불가 항목은 서버에서 강제 고정
+                dto.setNoticeType(existing.getNoticeType());
+                dto.setLectureId(existing.getLectureId());
+
+                // 3) 정합성 강제
+                normalizeAndValidateType(dto);
+
+                int updated = noticeDAO.update(conn, dto);
+                if (updated == 0) throw new RuntimeException("공지사항 수정 실패.");
+
+                conn.commit();
+            } catch (RuntimeException e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw e;
+            } catch (Exception e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw new RuntimeException("NoticeService.updateNotice error", e);
             }
-
-            if (!canWrite(role, userId, existing)) {
-                conn.rollback();
-                throw new AccessDeniedException("수정 권한이 없습니다.");
-            }
-
-            int updated = noticeDAO.update(conn, dto);
-            if (updated == 0) {
-                conn.rollback();
-                throw new RuntimeException("공지사항 수정 실패.");
-            }
-
-            conn.commit();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -235,36 +300,31 @@ public class NoticeService {
         }
     }
 
-    public void deleteNotice(long noticeId, Long lectureId, Long userId, Role role) {
+    public Long deleteNotice(long noticeId, Long userId, Role role) {
         requireLogin(userId, role);
         requireDeletable(role);
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
+            try {
+                NoticeDTO existing = noticeDAO.findById(conn, noticeId);
+                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (!canWrite(role, userId, existing)) throw new AccessDeniedException("삭제 권한이 없습니다.");
 
-            NoticeDTO existing = (lectureId == null)
-                    ? noticeDAO.findById(conn, noticeId)
-                    : noticeDAO.findByIdAndLecture(conn, noticeId, lectureId);
+                Long actualLectureId = existing.getLectureId();
 
-            if (existing == null) {
-                conn.rollback();
-                throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                int deleted = noticeDAO.softDelete(conn, noticeId, null);
+                if (deleted == 0) throw new RuntimeException("공지사항 삭제 실패.");
+
+                conn.commit();
+                return actualLectureId;
+            } catch (RuntimeException e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw e;
+            } catch (Exception e) {
+                try { conn.rollback(); } catch (Exception ignore) {}
+                throw new RuntimeException("NoticeService.deleteNotice error", e);
             }
-
-            if (!canWrite(role, userId, existing)) {
-                conn.rollback();
-                throw new AccessDeniedException("삭제 권한이 없습니다.");
-            }
-
-            int deleted = noticeDAO.softDelete(conn, noticeId, lectureId);
-            if (deleted == 0) {
-                conn.rollback();
-                throw new RuntimeException("공지사항 삭제 실패.");
-            }
-
-            conn.commit();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
             throw new RuntimeException("NoticeService.deleteNotice error", e);
         }
@@ -275,26 +335,41 @@ public class NoticeService {
     public List<LectureDTO> getAvailableLectures(Long userId, Role role) {
         requireLogin(userId, role);
 
-        if (role == Role.ADMIN) {
-            return lectureDAO.findAll();
-        } else if (role == Role.INSTRUCTOR) {
-            return lectureDAO.findByInstructor(userId);
-        } else {
-            throw new AccessDeniedException("강의 목록 조회 권한이 없습니다.");
-        }
+        try (Connection conn = DBConnection.getConnection()) {
+            if (role == Role.ADMIN) {
+                return lectureDAO.findAll(conn);
+            } else if (role == Role.INSTRUCTOR) {
+                return lectureDAO.findByInstructor(conn,userId);
+            } else {
+                throw new AccessDeniedException("강의 목록 조회 권한이 없습니다.");
+            }
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.getAvailableLectures error",e);
+		}
+  
     }
 
     public List<LectureDTO> getUserLectures(Long userId, Role role) {
         requireLogin(userId, role);
 
-        if (role == Role.ADMIN) {
-            return lectureDAO.findAll();
-        } else if (role == Role.INSTRUCTOR) {
-            return lectureDAO.findByInstructor(userId);
-        } else if (role == Role.STUDENT) {
-            return lectureDAO.findByStudent(userId);
-        }
-        return List.of();
+        try (Connection conn = DBConnection.getConnection()) {
+            if (role == Role.ADMIN) {
+                return lectureDAO.findAll(conn);
+            } else if (role == Role.INSTRUCTOR) {
+                return lectureDAO.findByInstructor(conn,userId);
+            } else if (role == Role.STUDENT) {
+                return lectureDAO.findByStudent(conn,userId);
+            }
+            return List.of();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("NoticeService.getUserLectures error",e);
+		}
+
     }
 
     // ========== 권한/검증 로직 ==========
@@ -305,11 +380,7 @@ public class NoticeService {
         }
     }
 
-    private void requireReadable(Role role) {
-        if (role == null) {
-            throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
-        }
-    }
+
 
     private void requireCreatable(Role role) {
         if (role == null) throw new AccessDeniedException("권한 정보가 올바르지 않습니다.");
@@ -329,24 +400,30 @@ public class NoticeService {
         // ADMIN/INSTRUCTOR 가능(단, canWrite에서 최종 판단)
     }
 
-    private void requireStudentEnrolled(Long userId, Long lectureId) {
-        try (Connection conn = DBConnection.getConnection()) {
-            boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, lectureId);
-            if (!enrolled) {
-                throw new AccessDeniedException("수강하지 않는 강의의 공지사항에 접근할 수 없습니다.");
-            }
-        } catch (AccessDeniedException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("수강 여부 확인 중 오류", e);
-        }
+    private void requireStudentEnrolled(Connection conn, Long userId, Long lectureId) {
+    	try {
+    		boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, lectureId);
+            if (!enrolled) throw new AccessDeniedException("수강하지 않는 강의의 공지사항에 접근할 수 없습니다.");
+		} catch (SQLException e) {
+			// TODO: handle exception
+	        e.printStackTrace(); 
+	        throw new RuntimeException("수강 여부 확인 DB 오류", e);
+		}
+        
     }
 
-    private void requireInstructorOwnsLecture(Long userId, Long lectureId) {
-        LectureDTO lecture = lectureDAO.findById(lectureId);
-        if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
-            throw new AccessDeniedException("담당하지 않는 강의의 공지사항에 접근할 수 없습니다.");
-        }
+    private void requireInstructorOwnsLecture(Connection conn,Long userId, Long lectureId) {
+    	try {
+    		 LectureDTO lecture = lectureDAO.findById(conn,lectureId);
+    	       if (lecture == null || lecture.getUserId() == null || !lecture.getUserId().equals(userId)) {
+    	           throw new AccessDeniedException("담당하지 않는 강의의 공지사항에 접근할 수 없습니다.");
+    	       }
+		} catch (SQLException e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			throw new RuntimeException("강의 담당 여부 확인 DB 오류", e);
+		}
+      
     }
 
     private boolean canWrite(Role role, Long userId, NoticeDTO existing) {

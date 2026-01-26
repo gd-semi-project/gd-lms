@@ -26,21 +26,22 @@
                                 </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="lectureId" class="form-label">강의 선택 (강의 공지 시 필수)</label>
-                                <select class="form-select" id="lectureId" name="lectureId">
-                                    <option value="">-- 전체 공지 (강의 선택 안함) --</option>
-                                    <c:forEach var="lec" items="${lectureList}">
-                                        <option value="${lec.lectureId}">
-                                            ${lec.lectureTitle} (${lec.lectureRound}차)
-                                            <c:if test="${not empty lec.section}"> - ${lec.section}분반</c:if>
-                                        </option>
-                                    </c:forEach>
-                                </select>
-                                <small class="form-text text-muted">
-                                    강의 공지 선택 시 반드시 강의를 선택해주세요.
-                                </small>
-                            </div>
+							 <div class="mb-3">
+							  <label for="lectureId" class="form-label">강의 선택 (강의 공지 시 필수)</label>
+							  <select class="form-select" id="lectureId" name="lectureId">
+							      <option value="">-- 전체 공지 (강의 선택 안함) --</option>
+							      <c:forEach var="lec" items="${lectureList}">
+							          <option value="${lec.lectureId}">
+							              ${lec.lectureTitle} (${lec.lectureRound}차)
+							              <c:if test="${not empty lec.section}"> - ${lec.section}분반</c:if>
+							          </option>
+							      </c:forEach>
+							  </select>
+							
+							  <small id="lectureHelp" class="form-text text-muted">
+							      강의 공지 선택 시 반드시 강의를 선택해주세요.
+							  </small>
+							</div>
                         </c:if>
 
                         <%-- ========== 교수: 본인 강의만 선택 가능 ========== --%>

@@ -15,6 +15,7 @@ public class NoticeDTO {
     private Long lectureId;         
     private Long authorId;       
     private NoticeType noticeType;     
+    private String lectureTitle;
     private String title;          
     private String content;        
     private int viewCount;         
