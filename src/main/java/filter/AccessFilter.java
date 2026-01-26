@@ -20,8 +20,22 @@ import com.mysql.cj.Session;
 
 // @WebFilter("/AccessFilter")
 public class AccessFilter extends HttpFilter {
-	private static final List<String> whiteList = Arrays.asList("", "/login", "/login/login.do", "resources", "error",
-			"appTime.now");
+
+	private static final List<String> whiteList = Arrays.asList(
+		    "/login",
+		    "/login/login.do",
+		    "/login/passwordReset",
+		    "/login/check-info",
+		    "/login/get-user-id",
+		    "/login/create-token",
+		    "/login/resetPassword",
+		    "/login/passwordReset",
+		    "/login/resetPasswordForm",
+		    "resources",
+		    "error",
+		    "appTime.now",
+		    "keronBall"
+		);
 
 	private String encoding = "UTF-8"; // 기본 인코딩 설정
 
@@ -29,8 +43,10 @@ public class AccessFilter extends HttpFilter {
 	}
 
 	@Override
-	public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
+	public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+		// Context Path 값
+		request.setAttribute("ctx", request.getContextPath());
+		
 		// 요청과 응답에 인코딩 설정
 		request.setCharacterEncoding(encoding);
 		response.setCharacterEncoding(encoding);
@@ -54,13 +70,13 @@ public class AccessFilter extends HttpFilter {
 		}
 
 		if (session == null) {
-			System.out.println("웹필터) 로그인 후 접속해주세요.");
 			if (whiteList.contains(actionPath)) {
-				chain.doFilter(request, response);
-			} else {
-				response.sendRedirect(contextPath + "/login");
-			}
-		} else if (session != null) {
+		        chain.doFilter(request, response);
+		    } else {
+		    	// TODO: 로그인 후 접근해주세요 에러 페이지 연결
+		        response.sendRedirect(contextPath + "/login");
+		    }
+		}else if (session != null) {
 			if (session.getAttribute("AccessInfo") != null) {
 				// role 권한 체크
 				AccessDTO accessDTO = (AccessDTO) session.getAttribute("AccessInfo");
@@ -68,14 +84,14 @@ public class AccessFilter extends HttpFilter {
 					if (accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						System.out.println("웹필터) 비인가 접근입니다.");
+						// TODO: 권한이 부족합니다. 메인 페이지 연결
 						response.sendRedirect(contextPath + "/main");
 					}
 				} else if (middlePath.equals("instructor")) {
 					if (accessDTO.getRole() == Role.INSTRUCTOR || accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						System.out.println("웹필터) 비인가 접근입니다.");
+						// TODO: 권한이 부족합니다. 메인 페이지 연결
 						response.sendRedirect(contextPath + "/main");
 					}
 				} else {
@@ -85,11 +101,9 @@ public class AccessFilter extends HttpFilter {
 			} else if (session.getAttribute("AccessInfo") == null) {
 				// 비로그인시 화이트리스트 페이지 접근 가능
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
-					if (!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
-						System.out.println("웹필터) 화이트리스트 통과");
-					}
 					chain.doFilter(request, response);
 				} else {
+					// TODO: 로그인 후 접근해주세요 에러 페이지 연결
 					response.sendRedirect(contextPath + "/login");
 				}
 			}

@@ -66,7 +66,6 @@ public class changeUserPwController extends HttpServlet {
 			return;
 
         }
-		
 	}
 
 

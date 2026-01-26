@@ -2,9 +2,14 @@
 <!DOCTYPE html>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<script type="module" src="${pageContext.request.contextPath}/resources/js/resetPasswordView.js"></script>
+
+<script>
+  const ctx = "${pageContext.request.contextPath}";
+</script>
 <div class="login-container">
   <h3 class="text-center mb-4">LMS 로그인</h3>
-  <form action="/gd-lms/login/login.do" method="post">
+  <form action="${pageContext.request.contextPath}/login/login.do" method="post">
     <div class="mb-3">
       <label for="userId" class="form-label">아이디</label>
       <input type="text" class="form-control" id="userId" name="id" required />
@@ -23,4 +28,7 @@
       <c:remove var="LoginErrorMsg" />
     </div>
   </c:if>
+  
+  <!-- 비밀번호 초기화 버튼 -->
+  <a href="javascript:void(0);" id="resetLoginPassword">비밀번호 초기화</a>
 </div>

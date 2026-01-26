@@ -1,6 +1,7 @@
 package service;
 
 import lombok.NoArgsConstructor;
+import model.dao.TokenDAO;
 import model.dao.UserDAO;
 import model.dto.AccessDTO;
 import model.dto.UserDTO;
@@ -51,7 +52,7 @@ public class LoginService {
 		}
 	}
 	
-	// 중복확인용 서비스로직
+	// 중복확인용 서비스로직(회원등록)
 	public boolean DuplicateEmail(String email) {
 		UserDAO userDAO = UserDAO.getInstance();
 		return userDAO.selectLoginIdByLoginId(email);
@@ -60,5 +61,58 @@ public class LoginService {
 	public boolean DuplicateLoginId(String loginId) {
 		UserDAO userDAO = UserDAO.getInstance();
 		return userDAO.selectLoginIdByLoginId(loginId);
+	}
+	
+	// 이메일, 생년월일이 일치하는 user 있는지 확인 로직(비밀번호 초기화)
+	public boolean verifyUserInfo(String email, String birthDate) {
+		UserDAO userDAO = UserDAO.getInstance();
+        return userDAO.existsByEmailAndBirth(email, birthDate);
+    }
+	
+	// 이메일, 생년월일로 user_id 반환(토큰 생성시 이용)
+	public Long getUserId(String email, String birthDate) {
+		UserDAO userDAO = UserDAO.getInstance();
+		Long userId = userDAO.selectUserIdByEmailAndBirthDate(email, birthDate);
+		System.out.println(userId);
+        return userId;
+    }
+	
+	public String getPlainToken(Long userId, String token_type, String ip) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+        return tokenDAO.createToken(userId, token_type, ip);
+    }
+	
+	public void issueTempPassword(Long userId, String encryptedTempPassword) {
+		UserDAO userDAO = UserDAO.getInstance();
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("유효하지 않은 사용자 ID");
+        }
+
+        int updated = userDAO.updateTempPassword(userId, encryptedTempPassword);
+
+        if (updated != 1) {
+            throw new RuntimeException("임시 비밀번호 발급 실패");
+        }
+    }
+	
+	public Long verifyResetToken(String sessionToken) {
+	    TokenDAO tokenDAO = TokenDAO.getInstance();
+
+	    Long userId = tokenDAO.getUserIdByToken(sessionToken);
+
+	    if (userId == null) {
+	        return null;
+	    }
+	    return userId;
+	}
+	
+	public Long getUserIdByToken (String token) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+		return tokenDAO.getUserIdByToken(token);
+	}
+	
+	public void markTokenAsUsed (String token) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+		tokenDAO.markTokenAsUsed(token);
 	}
 }

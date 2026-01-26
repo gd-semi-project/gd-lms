@@ -218,5 +218,62 @@ public class UserDAO {
         return false;
 	}
 	
+	// 비밀번호 초기화시 이메일 + 생년월일 맞는지 확인하는 로직
+	public boolean existsByEmailAndBirth(String email, String birthDate) {
+        String sql = "SELECT 1 FROM user WHERE email = ? AND birth_date = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, email);
+            pstmt.setString(2, birthDate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+        	System.out.println("UserDAO selectLoginIdByUserId: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+	public Long selectUserIdByEmailAndBirthDate(String email, String birthDate) {
+		String sql = "SELECT user_id FROM user WHERE email = ? AND birth_date = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, email);
+            pstmt.setString(2, birthDate);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("user_id");
+            }
+        } catch (Exception e) {
+        	System.out.println("UserDAO selectUserIdByEmailAndBirthDate: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return Long.getLong("0");
+	}
+	
+	public int updateTempPassword(Long userId, String encryptedTempPassword) {
+        String sql = """
+            UPDATE user
+               SET password_hash = ?,
+                   must_change_pw = '1',
+                   updated_at = NOW()
+             WHERE user_id = ?
+        """;
+
+        try (
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)
+        ) {
+            pstmt.setString(1, encryptedTempPassword);
+            pstmt.setLong(2, userId);
+
+            return pstmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("updateTempPassword error", e);
+        }
+    }
 	
 }

@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+		if (!isValidEmail(emailValue)) {
+		    alert("올바른 이메일 형식으로 입력해주세요.");
+		    email.focus();
+		    return;
+		}
+
         // 2. AJAX 중복확인 요청
         fetch(ctx + "/admin/check-email", {
             method: "POST",
