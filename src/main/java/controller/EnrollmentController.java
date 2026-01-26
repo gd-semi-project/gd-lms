@@ -15,8 +15,8 @@ import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.DepartmentService;
 import service.EnrollmentService;
-import service.EnrollmentService.DepartmentService;
 import service.MyPageService;
+import utils.EnrollmentPeriod;
 
 import java.io.IOException;
 import java.util.List;
@@ -106,6 +106,20 @@ public class EnrollmentController extends HttpServlet {
 			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
 			return;
+		} else if ("/closed".equals(action)) {
+
+			request.setAttribute("startDate", EnrollmentPeriod.START);
+	        request.setAttribute("endDate", EnrollmentPeriod.END);
+			
+		    request.setAttribute(
+		        "contentPage",
+		        "/WEB-INF/views/student/enrollmentClose.jsp"
+		    );
+
+		    request.getRequestDispatcher(
+		        "/WEB-INF/views/layout/layout.jsp"
+		    ).forward(request, response);
+		    return;
 		}
 
 	}
