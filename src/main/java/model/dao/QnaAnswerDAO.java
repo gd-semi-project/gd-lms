@@ -52,6 +52,9 @@ public class QnaAnswerDAO {
     }
 
     // ====== insert ======
+    
+   
+    // 답변 등록
     public long insert(Connection conn, QnaAnswerDTO dto) throws SQLException {
         String sql =
             "INSERT INTO qna_answers (qna_id, instructor_id, content, is_deleted) " +
@@ -71,6 +74,7 @@ public class QnaAnswerDAO {
 
 
 
+    // 답변 수정
     public int update(Connection conn, QnaAnswerDTO dto) throws SQLException {
         String sql =
             "UPDATE qna_answers SET content = ?, updated_at = NOW() " +
@@ -83,6 +87,7 @@ public class QnaAnswerDAO {
         }
     }
 
+    // 답변 삭제
     public int softDelete(Connection conn, long answerId) throws SQLException {
         String sql = "UPDATE qna_answers SET is_deleted = 'Y', updated_at = NOW() WHERE answer_id = ? AND is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -91,6 +96,7 @@ public class QnaAnswerDAO {
         }
     }
 
+    // 답변 개수 (삭제 제외)
     public int countActiveAnswers(Connection conn, long qnaId) throws SQLException {
         String sql = "SELECT COUNT(*) cnt FROM qna_answers WHERE qna_id = ? AND is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

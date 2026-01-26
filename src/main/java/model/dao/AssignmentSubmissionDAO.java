@@ -91,7 +91,8 @@ public class AssignmentSubmissionDAO {
             VALUES (?, ?, ?)
             """;
         
-        // _GENERATED_KEYS => 생성됐으면 생성키 반환
+        // _GENERATED_KEYS => DB가 생성한 키 값(Generated Key)을 ResultSet으로 반환
+        // =>AUTO_INCREMENT 컬럼 값 submission_id
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, dto.getAssignmentId());
             ps.setLong(2, dto.getStudentId());
