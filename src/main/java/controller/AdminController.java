@@ -212,7 +212,6 @@ public class AdminController extends HttpServlet {
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
-						//TODO 여긴 에러가 나도 DAO 에서 날 겁니다
 						System.out.println("calendarEdit doGet 에러남");
 					}
 					
@@ -359,7 +358,6 @@ public class AdminController extends HttpServlet {
             long id = Long.parseLong(request.getParameter("id"));
             SchoolScheduleDAO.getInstance().scheduleDelete(id);
           } catch (Exception e) {
-        	//TODO 만약 에러가 난다면 DAO 쪽에서 날 겁니다.
             e.printStackTrace();
             System.out.println("calendarEdit doPost delete 에러남");
           }
