@@ -21,7 +21,6 @@ import com.mysql.cj.Session;
 // @WebFilter("/AccessFilter")
 public class AccessFilter extends HttpFilter {
 	private static final List<String> whiteList = Arrays.asList(
-			"",
 		    "/login",
 		    "/login/login.do",
 		    "/login/passwordReset",
@@ -34,7 +33,7 @@ public class AccessFilter extends HttpFilter {
 		    "resources",
 		    "error",
 		    "appTime.now",
-		    "/keronBall"
+		    "keronBall"
 		);
 
 	private String encoding = "UTF-8"; // 기본 인코딩 설정
@@ -62,10 +61,10 @@ public class AccessFilter extends HttpFilter {
 		}
 		
 		if (session == null) {
-			System.out.println("웹필터) 로그인 후 접속해주세요.");
 			if (whiteList.contains(actionPath)) {
 		        chain.doFilter(request, response);
 		    } else {
+		    	// TODO: 로그인 후 접근해주세요 에러 페이지 연결
 		        response.sendRedirect(contextPath + "/login");
 		    }
 		}else if (session != null) {
@@ -76,14 +75,14 @@ public class AccessFilter extends HttpFilter {
 					if (accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						System.out.println("웹필터) 비인가 접근입니다.");
+						// TODO: 권한이 부족합니다. 메인 페이지 연결
 						response.sendRedirect(contextPath + "/main");
 					}
 				}else if (middlePath.equals("instructor")) {
 					if (accessDTO.getRole() == Role.INSTRUCTOR||accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						System.out.println("웹필터) 비인가 접근입니다.");
+						// TODO: 권한이 부족합니다. 메인 페이지 연결
 						response.sendRedirect(contextPath + "/main");
 					}
 				} else {
@@ -93,12 +92,9 @@ public class AccessFilter extends HttpFilter {
 			} else if (session.getAttribute("AccessInfo") == null) {
 				// 비로그인시 화이트리스트 페이지 접근 가능
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
-					if(!middlePath.contains("appTime") && !actionPath.contains("appTime")) {
-						System.out.println("웹필터) 화이트리스트 통과");
-						System.out.println(middlePath);
-					}
 					chain.doFilter(request, response);
 				} else {
+					// TODO: 로그인 후 접근해주세요 에러 페이지 연결
 					response.sendRedirect(contextPath + "/login");
 				}
 			}

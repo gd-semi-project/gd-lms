@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const email = document.getElementById("email");
     const birthDate = document.getElementById("birthDate");
     const checkInfoBtn = document.getElementById("checkInfoBtn");
-    const tokenOutput = document.getElementById("tokenOutput");
 	
     checkInfoBtn.addEventListener("click", async () => {
         const emailValue = email.value.trim();
@@ -21,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		
         if (!birthValue) return alert("생년월일 입력 필요");
 
+		// fetch 문 실행 중 버튼 비활성화
+		// 최종 alert창 클릭시 window창 close
         try {
             // 1. 이메일 + 생년월일 검증
             const isMatch = await checkUserInfo(ctx, emailValue, birthValue);
@@ -29,16 +30,27 @@ document.addEventListener("DOMContentLoaded", () => {
             // 2. userId 조회
             const userId = await getUserId(ctx, emailValue, birthValue);
 
+			checkInfoBtn.disabled = true;
             // 3. 토큰 발급
             const token = await generateToken(ctx, userId);
-			
-			// 4. 인증완료 후 페이지 이동
-            window.location.href = `${ctx}/login/resetPasswordForm`;
 
+			// 4. 반환값 확인
+			if (token.status === true) {
+	            alert("메일 전송 완료");
+	        } else if (token.status === false) {
+	            alert("메일 전송 실패: " + token.status);
+	        } else {
+	            alert("서버 오류 발생" + token.status);
+	        }
+	        // 창 닫기
+	        window.close();
+			
         } catch (err) {
             console.error(err);
             alert("오류 발생: " + err.message);
-        }
+        } finally {
+			if (!window.closed) checkInfoBtn.disabled = false;
+		}
     });
 });
 function isValidEmail(email) {

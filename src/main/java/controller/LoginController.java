@@ -7,15 +7,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.dao.TokenDAO;
 import model.dto.AccessDTO;
-import model.dto.UserDTO;
-import model.enumtype.Role;
 import service.LoginService;
 import utils.HashUtil;
+import utils.MailSender;
 import utils.PasswordUtil;
-
 import java.io.IOException;
-import java.time.LocalDate;
 
 @WebServlet(
 		urlPatterns = {"/main", "/login/*", "/index.jsp"}
@@ -30,7 +28,6 @@ public class LoginController extends HttpServlet {
 		String actionPath = requestURI.substring(contextPath.length());
 		
 		HttpSession session = request.getSession(false);
-		System.out.println("actionPath: " + actionPath);
 		if (actionPath.equals("/")) {
 			if (session == null) {
 				response.sendRedirect(contextPath + "/login");
@@ -49,39 +46,47 @@ public class LoginController extends HttpServlet {
 			if (session != null) {
 				session.invalidate();
 			}
-			response.sendRedirect(contextPath + "/");
+			response.sendRedirect(contextPath + "/login");
 			return;
 		} else if (actionPath.equals("/login/passwordReset")) {
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/login/identityVerification.jsp");
 			rd.forward(request, response);
-		} else if (actionPath.equals("/login/resetPasswordForm")) {
-		    Boolean resetAuth = (session != null)
-		            ? (Boolean) session.getAttribute("resetAuth")
-		            : null;
+		} else if (actionPath.equals("/login/resetPassword")) {
+			LoginService ls = LoginService.getInstance();
+		    String token = (String) request.getParameter("token");
 
-		    String resetToken = (session != null)
-		            ? (String) session.getAttribute("resetToken")
-		            : null;
-
-		    Long resetUserId = (session != null)
-		            ? (Long) session.getAttribute("resetUserId")
-		            : null;
-
-		    // 🔒 비정상 접근 차단
-		    if (session == null || resetAuth == null || !resetAuth
-		            || resetToken == null || resetUserId == null) {
-
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid access");
+		    if (token == null || token.length() != 36) {
+		    	// TODO: 403, 비인가접근입니다.
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        System.out.println("token없이 접근하면 안됩니다.");
 		        return;
 		    }
 
-		    // 캐시 방지 (선택이지만 강력 추천)
-		    response.setHeader("Cache-Control", "no-store");
-		    response.setHeader("Pragma", "no-cache");
-		    response.setDateHeader("Expires", 0);
+		    // DB 검증 후 진행
+		    String hashToken = HashUtil.sha256(token);
+		    Long userId = ls.getUserIdByToken(hashToken);
+		    
+		    if (userId == null) {
+		    	// TODO: 403, 유효하지 않은 토큰입니다.? 비인가접근입니다.
+		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        System.out.println("token: " + hashToken);
+		        return;
+		    }
+		    
+		    // 임시 비밀번호 생성
+		    String tempPassword = PasswordUtil.generateTempPassword();
 
+		    // 임시 비밀번호 DB 반영
+		    ls.issueTempPassword(userId, HashUtil.sha256(tempPassword));
+		    
+		    // 토큰 사용만료 처리
+		    ls.markTokenAsUsed(hashToken);
+		    
+		    // 사용자 전달용
+		    request.setAttribute("tempPassword", tempPassword);
+		    
 		    RequestDispatcher rd =
-		        request.getRequestDispatcher("/WEB-INF/views/login/resetPasswordForm.jsp");
+		        request.getRequestDispatcher("/WEB-INF/views/login/resetResultPassword.jsp");
 		    rd.forward(request, response);
 		}
 		
@@ -128,9 +133,10 @@ public class LoginController extends HttpServlet {
 		    // 3. 서비스 호출
 		    LoginService loginService = LoginService.getInstance();
 		    boolean isMatch = loginService.verifyUserInfo(email, birthDate); 
-		    // verifyUserInfo: email + birthDate 일치하면 true, 아니면 false
 		    
+		    // 세션 저장(최종적으로 세션에서 제거해야함)
 		    session.setAttribute("tokenType", "PasswordReset");
+		    session.setAttribute("email", email);
 		    
 		    // 4. JSON 응답 설정
 		    response.setContentType("application/json");
@@ -166,6 +172,7 @@ public class LoginController extends HttpServlet {
 		    response.getWriter().write(json);
 		} else if (action.equals("/create-token")) {
 			LoginService ls = LoginService.getInstance();
+			String email = (String) session.getAttribute("email");
 		    Long userId = Long.parseLong(request.getParameter("userId"));
 		    String token_type = (String) session.getAttribute("tokenType");
 		    if (userId == null || userId == 0) {
@@ -174,47 +181,48 @@ public class LoginController extends HttpServlet {
 		    }
 		    
 		    String token = ls.getPlainToken(userId, token_type, request.getRemoteAddr());
-		    session.setAttribute("resetAuth", true);
-		    session.setAttribute("resetUserId", userId);
-		    session.setAttribute("resetToken", token);
-		} else if (action.equals("/resetPassword")) {
-			LoginService ls = LoginService.getInstance();
-		    Long userId = (Long) session.getAttribute("resetUserId");
-		    String token = (String) session.getAttribute("resetToken");
-
-		    if (session == null || token == null) {
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		        return;
-		    }
 		    
-		    // DB 검증 후 진행
-		    String hashToken = HashUtil.sha256(token);
-		    boolean valid = ls.verifyResetToken(userId, hashToken);
-		    if (!valid) {
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		        return;
-		    }
-		    
-		    // 임시 비밀번호 생성
-		    String tempPassword = PasswordUtil.generateTempPassword();
+		    // 토큰 생성하고 메일전송
+		    String resetLink =
+	                request.getScheme() + "://" +
+	                request.getServerName() + ":" +
+	                request.getServerPort() +
+	                request.getContextPath() +
+	                "/login/resetPassword?token=" + token;
 
-		    // DB 반영 (암호화 필수)
-		    ls.issueTempPassword(userId, tempPassword);
-
-		    // 🔥 재사용 방지
-		    session.removeAttribute("resetAuth");
-		    session.removeAttribute("resetUserId");
-		    session.removeAttribute("resetToken");
-		    session.removeAttribute("tokenType");
-
-		    // 사용자 전달용
-		    request.setAttribute("tempPassword", tempPassword);
-
-		    RequestDispatcher rd =
-		        request.getRequestDispatcher("/WEB-INF/views/login/resetResultPassword.jsp");
-		    rd.forward(request, response);
-		}
-		
+	        // 5️. HTML 메일 내용
+	        String subject = "비밀번호 재설정 안내";
+	        String content =
+	        		"<html><body>" +
+    			    "<h2>비밀번호 재설정</h2>" +
+    			    "<p>아래 버튼을 클릭하여 비밀번호를 재설정하세요.</p>" +
+    			    "<p style='margin-top:20px;'>" +  // 버튼 위에 여백 추가
+    			    "<a href='" + resetLink + "' " +
+    			    "style='display:inline-block;padding:10px 20px;background:#0d6efd;color:white;" +
+    			    "text-decoration:none;border-radius:5px;'>비밀번호 재설정</a>" +
+    			    "</p>" +
+    			    "<p style='margin-top:20px;'>이 링크는 10분 동안만 유효합니다.</p>" +
+    			    "</body></html>";
+	        
+	        MailSender.sendMail(email, subject, content);
+	        
+	        // 세션 속성 제거
+	        session.removeAttribute("email");
+	        session.removeAttribute("tokenType");
+	        
+	        // 6. JSON 응답 설정
+	        boolean generateTokenCheck;
+	        if (token == null) {
+	        	generateTokenCheck = false;
+	        } else {
+	        	generateTokenCheck = true;
+	        }
+	        
+		    response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+		    String json = "{\"status\":" + generateTokenCheck + "}";
+		    response.getWriter().write(json);
+		} 
 	}
 
 }

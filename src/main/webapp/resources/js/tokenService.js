@@ -12,7 +12,7 @@ export async function generateToken(ctx, userId) {
             throw new Error(`토큰 발급 실패: HTTP ${response.status}`);
         }
 
-        const token = await response.text(); // 평문 토큰 반환
+        const token = await response.json(); // 토큰 발급여부 반환
         return token;
 
     } catch (err) {

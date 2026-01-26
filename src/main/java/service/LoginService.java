@@ -1,12 +1,9 @@
 package service;
 
-import java.time.LocalDateTime;
-
 import lombok.NoArgsConstructor;
 import model.dao.TokenDAO;
 import model.dao.UserDAO;
 import model.dto.AccessDTO;
-import model.dto.ResetToken;
 import model.dto.UserDTO;
 import utils.HashUtil;
 
@@ -98,29 +95,24 @@ public class LoginService {
         }
     }
 	
-	public boolean verifyResetToken(Long userId, String sessionToken) {
-
+	public Long verifyResetToken(String sessionToken) {
 	    TokenDAO tokenDAO = TokenDAO.getInstance();
 
-	    ResetToken rt = tokenDAO.findValidToken(userId, sessionToken);
+	    Long userId = tokenDAO.getUserIdByToken(sessionToken);
 
-	    if (rt == null) {
-	        return false;
+	    if (userId == null) {
+	        return null;
 	    }
-
-	    // 이미 사용된 토큰
-	    if (rt.getVerifiedAt() != null) {
-	        // 이미 사용됨 → null 반환
-	        return false;
-	    }
-
-	    // 만료 체크
-	    if (rt.getExpiresAt().isBefore(LocalDateTime.now())) {
-	        return false;
-	    }
-
-	    // 사용 처리 (1회성)
-	    int updated = tokenDAO.markTokenAsUsed(sessionToken);
-	    return updated == 1;
+	    return userId;
+	}
+	
+	public Long getUserIdByToken (String token) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+		return tokenDAO.getUserIdByToken(token);
+	}
+	
+	public void markTokenAsUsed (String token) {
+		TokenDAO tokenDAO = TokenDAO.getInstance();
+		tokenDAO.markTokenAsUsed(token);
 	}
 }

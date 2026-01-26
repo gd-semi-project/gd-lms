@@ -65,37 +65,40 @@ public class TokenDAO {
         return plainToken;
     }
     
-    public ResetToken findValidToken(Long userId, String token) {
-        String sql = """
-            SELECT token_value, expires_at, verified_at
-              FROM auth_token
-             WHERE user_id = ?
-               AND token_value = ?
-        """;
+    public Long getUserIdByToken(String token) {
+        String sql = "SELECT user_id, expires_at, verified_at FROM auth_token WHERE token_value = ?";
 
-        try (
-            Connection conn = DBConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)
-        ) {
-            pstmt.setLong(1, userId);
-            pstmt.setString(2, token);
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                ResetToken rt = new ResetToken();
-                rt.setToken(rs.getString("token_value"));
-                rt.setExpiresAt(rs.getTimestamp("expires_at").toLocalDateTime());
-                // TODO: used_yn 컬럼없어서 만들어서 넣어줘야함.
-                if (rs.getTimestamp("verified_at") != null) {
-                	LocalDateTime verifiedAt = rs.getTimestamp("verified_at").toLocalDateTime();
-                	rt.setVerifiedAt(verifiedAt);
+            pstmt.setString(1, token);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                	Timestamp verifiedAt = rs.getTimestamp("verified_at");
+                    Timestamp expiresAt = rs.getTimestamp("expires_at");
+                    LocalDateTime now = LocalDateTime.now();
+
+                    if (verifiedAt != null) {
+                        System.out.println("토큰 이미 사용됨");
+                        return null;
+                    }
+
+                    if (expiresAt.toLocalDateTime().isBefore(now)) {
+                        System.out.println("토큰 만료됨");
+                        return null;
+                    }
+
+                    return rs.getLong("user_id");
+                } else {
+                    System.out.println("토큰 없음");
+                    return null;
                 }
-                return rt;
             }
-            return null;
-        } catch (Exception e) {
+
+        } catch (SQLException | ClassNotFoundException e) {
+        	// TODO: 예외처리
             e.printStackTrace();
-            throw new RuntimeException("findValidToken error", e);
+            return null;
         }
     }
 
