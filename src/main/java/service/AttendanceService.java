@@ -40,12 +40,10 @@ public class AttendanceService {
 			LocalDate today = AppTime.now().toLocalDate();
 			LocalTime now = AppTime.now().toLocalTime();
 
-			// 이미 오늘 회차가 있으면 막기
 			if (lectureSessionDAO.existsTodaySession(conn, lectureId, today)) {
 				throw new IllegalStateException("이미 오늘 출석이 시작되었습니다.");
 			}
 
-			// 회차 생성 (교수가 누른 시점 = 수업 시작)
 			LocalTime end = now.plusMinutes(10);
 
 			long sessionId = lectureSessionDAO.insertSession(conn, lectureId, today, now, end);
@@ -57,8 +55,12 @@ public class AttendanceService {
 
 			return sessionId;
 
+		} catch (IllegalArgumentException | IllegalStateException e) {
+			// TODO : 409 Conflict (출석 시작 불가 상태)
+		    throw e;
 		} catch (Exception e) {
-			throw new RuntimeException("출석 시작 실패", e);
+		    // TODO: 500 출석 시작 중 서버 오류
+		    throw new RuntimeException("출석 시작 실패", e);
 		}
 	}
 
@@ -67,6 +69,7 @@ public class AttendanceService {
 		try (Connection conn = DBConnection.getConnection()) {
 			attendanceDAO.insertAbsentForLecture(conn, sessionId, lectureId);
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			throw new RuntimeException("출석 준비 실패", e);
 		}
 	}
@@ -77,6 +80,7 @@ public class AttendanceService {
 			lectureAttendanceStatusDAO.ensureRow(conn, sessionId);
 			lectureAttendanceStatusDAO.closeAttendance(conn, sessionId);
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			throw new RuntimeException("출석 종료 실패", e);
 		}
 	}
@@ -86,6 +90,7 @@ public class AttendanceService {
 		try (Connection conn = DBConnection.getConnection()) {
 			return lectureSessionDAO.findToday(conn, lectureId, date);
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			throw new RuntimeException("오늘 회차 조회 실패", e);
 		}
 	}
@@ -95,6 +100,7 @@ public class AttendanceService {
 		try (Connection conn = DBConnection.getConnection()) {
 			return lectureSessionDAO.findByLecture(conn, lectureId);
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			throw new RuntimeException("회차 목록 조회 실패", e);
 		}
 	}
@@ -107,11 +113,12 @@ public class AttendanceService {
 			LectureSessionDTO session = lectureSessionDAO.findById(conn, sessionId);
 
 			if (session == null) {
+				// TODO : 404 Not Found
 				throw new IllegalArgumentException("회차가 존재하지 않습니다.");
 			}
 
 			if (!lectureAttendanceStatusDAO.isOpen(conn, sessionId)) {
-				throw new IllegalStateException("출석 시간이 아닙니다.");
+				throw new IllegalStateException("출석 시간이 종료되었습니다.");
 			}
 
 			LocalTime now = AppTime.now().toLocalTime();
@@ -136,8 +143,15 @@ public class AttendanceService {
 
 			attendanceDAO.markAttendance(conn, sessionId, studentId, status);
 
+		} catch (IllegalArgumentException e) {
+		    // TODO : 400 Bad Request (잘못된 요청 값)
+		    throw e;
+		} catch (IllegalStateException e) {
+		    // TODO : 409 Conflict (상태 충돌)
+		    throw e;
 		} catch (Exception e) {
-			throw new RuntimeException("출석 처리 실패", e);
+		    // TODO: 500 출석 체크 중 서버 오류
+		    throw new RuntimeException("출석 처리 실패", e);
 		}
 	}
 
@@ -184,6 +198,7 @@ public class AttendanceService {
 			LectureSessionDTO session = lectureSessionDAO.findById(conn, sessionId);
 
 			if (session == null)
+				// TODO : 404 Not Found
 				return false;
 
 			LocalTime now = AppTime.now().toLocalTime();
@@ -198,6 +213,7 @@ public class AttendanceService {
 			return lectureAttendanceStatusDAO.isOpen(conn, sessionId);
 
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			return false;
 		}
 	}
@@ -208,6 +224,7 @@ public class AttendanceService {
 			LocalDate today = AppTime.now().toLocalDate();
 			return lectureSessionDAO.existsTodaySession(conn, lectureId, today);
 		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
 			return false;
 		}
 	}

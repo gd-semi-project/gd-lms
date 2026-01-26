@@ -58,9 +58,10 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	            );
 	        }
 
-	        return List.of(); // ADMIN 등
+	        return List.of();
 
 	    } catch (Exception e) {
+	    	// TODO : 500 Internal Server Error
 	        throw new RuntimeException("내 강의 목록 조회 실패", e);
 	    }
 	}
@@ -78,7 +79,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
 		}
 	}
 
-	// 수강생 조회
+	// 수강생 목록 조회
 	public List<LectureStudentDTO> getLectureStudents(Long lectureId) {
 		try (Connection conn = DBConnection.getConnection()) {
 			return lectureDAO.selectLectureStudents(conn, lectureId);
@@ -87,19 +88,19 @@ public class LectureService {	// 이미 개설된 강의에 기준
 		}
 	}
 	
-	// 강의 개설 요청 종료 후 PENDING 상태인 요청 일괄 CANCELD 처리
-	
+	// 강의 개설 요청 기간 종료 후 PENDING → CANCELED
 	public int cancelExpiredLectureRequest() {
 		return lectureDAO.cancelExpiredLectureRequest();
 	}
 
-	
+	// 강의 상태 동기화 (PLANNED → ONGOING → ENDED)
 	public int[] syncLectureStatusByDate(LocalDate today) {
 		int ongoingCount = lectureDAO.markOnGoing(today);
 		int endedCount = lectureDAO.markEnded(today);
 		return new int[] {ongoingCount, endedCount};
 	}
 
+	// 학과별 강의 조회
 	public List<LectureDTO> getAllLectureByDepartment(long departmentId, String lectureStatus) {
 	  	if (lectureStatus == null || lectureStatus.isBlank()) lectureStatus = "ALL";
 	  	
@@ -144,6 +145,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
         return lectureList;
 	}
 
+	// 강의별 수강 인원 수
 	public Map<Long, Integer> getEnrollCountByLectureId(List<LectureDTO> lectureList) {
 	    if (lectureList == null || lectureList.isEmpty()) {
 	        return Collections.emptyMap();
@@ -164,6 +166,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	    
 	}
 
+	// 전체 강의 조회 (관리자용)
 	public List<LectureDTO> getAllLecture() {
 		return lectureDAO.getAllLecture();
 	}

@@ -84,7 +84,6 @@ public class LectureScheduleDAO {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, schedule.getLectureId());
 
-            // 🔥 Week enum → String
             pstmt.setString(2, schedule.getWeekDay().name());
 
             pstmt.setTime(3, java.sql.Time.valueOf(schedule.getStartTime()));

@@ -20,9 +20,7 @@ public class ScorePolicyService {
         return instance;
     }
 
-    /* =========================
-     * 배점 등록
-     * ========================= */
+    // 배점 등록
     public void createPolicy(ScorePolicyDTO dto) {
 
         validate(dto);
@@ -33,14 +31,13 @@ public class ScorePolicyService {
             dao.insert(conn, dto);
 
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "성적 배점 등록 실패", e);
         }
     }
 
-    /* =========================
-     * 배점 조회
-     * ========================= */
+    // 배점 조회
     public ScorePolicyDTO getPolicy(Long lectureId) {
 
         try (Connection conn =
@@ -49,14 +46,13 @@ public class ScorePolicyService {
             return dao.findByLectureId(conn, lectureId);
 
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "성적 배점 조회 실패", e);
         }
     }
 
-    /* =========================
-     * 배점 수정
-     * ========================= */
+    // 배점 수정
     public void updatePolicy(ScorePolicyDTO dto) {
 
         validate(dto);
@@ -67,14 +63,13 @@ public class ScorePolicyService {
             dao.update(conn, dto);
 
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "성적 배점 수정 실패", e);
         }
     }
 
-    /* =========================
-     * 배점 확정
-     * ========================= */
+    // 배점 확정
     public void confirmPolicy(Long lectureId) {
 
         try (Connection conn =
@@ -83,11 +78,13 @@ public class ScorePolicyService {
             dao.confirm(conn, lectureId);
 
         } catch (Exception e) {
+        	// TODO : 500 Internal Server Error
             throw new RuntimeException(
                 "성적 배점 확정 실패", e);
         }
     }
 
+    // 검증 로직
     private void validate(ScorePolicyDTO dto) {
 
         if (dto.getTotalWeight() != 100) {
