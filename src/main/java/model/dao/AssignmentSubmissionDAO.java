@@ -84,13 +84,14 @@ public class AssignmentSubmissionDAO {
         return null;
     }
 
-    // 제출 등록
+    // 과제 제출 등록
     public long insert(Connection conn, AssignmentSubmissionDTO dto) throws SQLException {
         String sql = """
             INSERT INTO assignment_submission (assignment_id, student_id, content)
             VALUES (?, ?, ?)
             """;
         
+        // _GENERATED_KEYS => 생성됐으면 생성키 반환
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, dto.getAssignmentId());
             ps.setLong(2, dto.getStudentId());
