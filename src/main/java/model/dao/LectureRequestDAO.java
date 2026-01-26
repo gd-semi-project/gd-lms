@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import database.DBConnection;
 import jakarta.servlet.http.HttpServletRequest;
+import model.dto.LectureCountByValidationDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.RoomDTO;
 import model.enumtype.LectureStatus;
@@ -406,4 +408,42 @@ public class LectureRequestDAO {
         }
         return list;
     }
+    
+    
+    public LectureCountByValidationDTO getLectureCountByValidation() {
+        String sql = """
+                SELECT
+                    COUNT(*) AS totalCount,
+                    SUM(CASE WHEN validation = 'PENDING'   THEN 1 ELSE 0 END) AS pendingCount,
+                    SUM(CASE WHEN validation = 'CONFIRMED' THEN 1 ELSE 0 END) AS confirmedCount,
+                    SUM(CASE WHEN validation = 'CANCELED'  THEN 1 ELSE 0 END) AS canceledCount
+                FROM lecture
+                WHERE status = 'PLANNED'
+            """;
+    	
+        try (	Connection conn = DBConnection.getConnection();
+        		PreparedStatement pstmt = conn.prepareStatement(sql);
+        		) {
+			
+        	try(ResultSet rs = pstmt.executeQuery()){
+        		if (rs.next()) {
+        			return new LectureCountByValidationDTO(
+        					rs.getInt("totalCount"), 
+        					rs.getInt("pendingCount"), 
+        					rs.getInt("confirmedCount"), 
+        					rs.getInt("canceledCount"));
+        		}
+        	}
+        	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+        
+        return new LectureCountByValidationDTO(0, 0, 0, 0);
+        
+    }
+    
+    
+    
+    
 }
