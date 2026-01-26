@@ -11,7 +11,7 @@ public class AssignmentDAO {
     private AssignmentDAO() {}
     public static AssignmentDAO getInstance() { return instance; }
 
-    // 과제 목록
+    // 강의별 과제 목록
     public List<AssignmentDTO> selectByLecture(Connection conn, long lectureId) throws SQLException {
         String sql = """
             SELECT assignment_id, lecture_id, title, content, due_date, 
@@ -45,7 +45,7 @@ public class AssignmentDAO {
         return list;
     }
 
-    // 과제 상세
+    // 과제 단건 상세 조회
     public AssignmentDTO selectById(Connection conn, long assignmentId, long lectureId) throws SQLException {
         String sql = """
             SELECT assignment_id, lecture_id, title, content, due_date,

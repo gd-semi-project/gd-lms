@@ -1,8 +1,10 @@
 package utils;
 
+import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.Properties;
 
+import com.mysql.cj.Session;
 import com.mysql.cj.protocol.Message;
 
 import jakarta.mail.*;
