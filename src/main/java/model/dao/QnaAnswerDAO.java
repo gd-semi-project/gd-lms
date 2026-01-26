@@ -12,6 +12,26 @@ public class QnaAnswerDAO {
     private QnaAnswerDAO() {}
     public static QnaAnswerDAO getInstance() { return instance; }
 
+    
+    
+    
+    // 답변 ID 기준 단건 조회
+    public QnaAnswerDTO findById(Connection conn, long answerId) throws SQLException {
+    	String sql =
+    			  "SELECT a.answer_id, a.qna_id, a.instructor_id, u.name AS instructor_name, " +
+    			  "       a.content, a.is_deleted, a.created_at, a.updated_at " +
+    			  "FROM qna_answers a " +
+    			  "JOIN user u ON u.user_id = a.instructor_id " +
+    			  "WHERE a.answer_id = ? AND a.is_deleted = 'N'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, answerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+    
+    // QnaId 기준 답변 목록 조회
     public List<QnaAnswerDTO> findByQnaId(Connection conn, long qnaId) throws SQLException {
     	String sql =
     			  "SELECT a.answer_id, a.qna_id, a.instructor_id, u.name AS instructor_name, " +
@@ -99,18 +119,5 @@ public class QnaAnswerDAO {
         return d;
     }
     
-    public QnaAnswerDTO findById(Connection conn, long answerId) throws SQLException {
-    	String sql =
-    			  "SELECT a.answer_id, a.qna_id, a.instructor_id, u.name AS instructor_name, " +
-    			  "       a.content, a.is_deleted, a.created_at, a.updated_at " +
-    			  "FROM qna_answers a " +
-    			  "JOIN user u ON u.user_id = a.instructor_id " +
-    			  "WHERE a.answer_id = ? AND a.is_deleted = 'N'";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, answerId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? map(rs) : null;
-            }
-        }
-    }
+
 }

@@ -323,6 +323,9 @@ public class LectureDAO {
 	// ======================================================
 	// 공지사항 화면에서 쓰는 “단순 조회” 래퍼들
 	// ======================================================
+	
+	
+	// 전체 강의 조회(확정된)
 	public List<LectureDTO> findAll(Connection conn) throws SQLException {
 		String sql = "SELECT lecture_id, user_id, lecture_title, lecture_round, section, "
 				+ "       start_date, end_date, room, capacity, status, validation, created_at, updated_at "
@@ -340,6 +343,7 @@ public class LectureDAO {
 		}
 	}
 
+	// 교수 기준 강의 조회
 	public List<LectureDTO> findByInstructor(Connection conn,long instructorId) throws SQLException{
 		
 		String status = "ONGOING";
@@ -347,13 +351,14 @@ public class LectureDAO {
 		
 	}
 
-	// ★ 중요: studentId가 아니라 “userId”를 받는 걸로 통일하는 게 맞음
+	// 학생 기준 강의 조회
 	public List<LectureDTO> findByStudent(Connection conn,long userId) throws SQLException {
 		
 		return selectLecturesByStudent(conn, userId);
 		
 	}
 
+	// 강의 단건 조회
 	public LectureDTO findById(Connection conn, long lectureId) throws SQLException{
 
 		return selectLectureById(conn, lectureId);
