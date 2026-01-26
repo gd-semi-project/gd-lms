@@ -104,7 +104,7 @@ public class ScoreService {
 
 		} catch (IllegalStateException e) {
 			// TODO : 409 Conflict
-            // → Controller에서 redirect + warning 메시지
+			// → Controller에서 redirect + warning 메시지
 			throw e;
 		} catch (Exception e) {
 			// TODO : 500
@@ -166,14 +166,14 @@ public class ScoreService {
 
 				scoreDAO.updateTotalAndGrade(conn, dto.getScoreId(), total, grade);
 			}
-        } catch (IllegalStateException e) {
-            // TODO : 409 Conflict
-            // → Controller에서 redirect + 경고 메시지
-            throw e;
-        } catch (Exception e) {
-            // TODO : 500 Internal Server Error
-            throw new RuntimeException("학점 계산 실패", e);
-        }
+		} catch (IllegalStateException e) {
+			// TODO : 409 Conflict
+			// → Controller에서 redirect + 경고 메시지
+			throw e;
+		} catch (Exception e) {
+			// TODO : 500 Internal Server Error
+			throw new RuntimeException("학점 계산 실패", e);
+		}
 	}
 
 	// 학생 본인 성적 조회
@@ -221,4 +221,19 @@ public class ScoreService {
 			return "D";
 		return "F";
 	}
+
+	// 학생 본인의 전체성적 조회
+	public List<ScoreDTO> getMytotScore(Long userId) {
+		try {
+			Connection conn = DBConnection.getConnection();
+			List<ScoreDTO> list = scoreDAO.selectMytotScore(conn, userId);
+			return list;
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			throw new RuntimeException("학생 전체 성적 조회 실패", e);
+		}
+
+	}
+
 }

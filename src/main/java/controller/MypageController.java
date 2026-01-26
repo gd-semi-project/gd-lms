@@ -109,7 +109,7 @@ public class MypageController extends HttpServlet {
 
 			request.setAttribute(
 			        "contentPage",
-			        "/WEB-INF/views/student/totScore.jsp"
+			        "/WEB-INF/views/student/totScoreNotice.jsp"
 			    );
 
 			    request.getRequestDispatcher(
@@ -118,36 +118,7 @@ public class MypageController extends HttpServlet {
 
 			    return;
 		}
-		case "/mySubjectPage": {	// 내가 수강한과목(학생) 안씀 나중에 지울예정
-			// ROLE이 STUDENT인경우(학생)만 접근가능
-			if (access.getRole() != Role.STUDENT) {
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-				return;
-			}
-			
-			 MypageDTO mypage = myPageService.getMypageDTO(loginId);
-	            if (mypage == null) {
-	                response.sendRedirect(request.getContextPath() + "/login");
-	                return;
-	            }
-	            request.setAttribute("mypage", mypage);
-	            
-	         // 내가 수강중인 강의 목록 불러오기
-	         long userId = access.getUserId();
-	         List<MyLectureDTO> myLecture = lectureDAO.selectMyEnrollmentedLecture(userId);
-	         request.setAttribute("myLecture", myLecture);
-	         
-			request.setAttribute(
-			        "contentPage",
-			        "/WEB-INF/views/student/mySubjectPage.jsp"
-			    );
-
-			    request.getRequestDispatcher(
-			        "/WEB-INF/views/layout/layout.jsp"
-			    ).forward(request, response);
-
-			    return;
-		}
+	
 		case "/enrollmentPage": {	// 수강신청(학생)
 			// ROLE이 STUDENT인경우(학생)만 접근가능
 			if (access.getRole() != Role.STUDENT) {

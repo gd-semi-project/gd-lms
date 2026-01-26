@@ -45,8 +45,8 @@ public class editUserInfoController extends HttpServlet {
         }
         String action = request.getPathInfo();
         if ("/edit".equals(action)) {	
-			// ROLE이 STUDENT인경우(학생)만 접근가능
-			if (access.getRole() != Role.STUDENT) {
+			// ROLE이 STUDENT인경우(학생), ADMIN인경우만 접근가능
+			if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return;
 			}

@@ -76,7 +76,22 @@ public class ScoreController extends HttpServlet {
 			request.setAttribute("contentPage", "/WEB-INF/views/lecture/grades.jsp");
 			break;
 		}
-
+		case "/totscore" : {
+        	if(role != Role.STUDENT) {
+        		response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        return;
+        	}
+        	Long studentId = access.getUserId();
+        	List<ScoreDTO> myScores = scoreService.getMytotScore(studentId);
+        	
+        	request.setAttribute("myScores", myScores);
+        	request.setAttribute("activeTab", "myScore");
+            request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/student/totScore.jsp"
+            );
+            break;
+        }
 		default:
 			// TODO : 404 Not Found
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, "요청하신 페이지를 찾을 수 없습니다.");
@@ -85,10 +100,11 @@ public class ScoreController extends HttpServlet {
 
 		request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 	}
-
+   
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
 
 		String ctx = request.getContextPath();
 		String uri = request.getRequestURI();
