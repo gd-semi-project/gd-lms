@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 @WebServlet(
-		urlPatterns = {"/main", "/login/*", "/index.jsp"}
+		urlPatterns = {"/main", "/login/*", "/index.jsp", "/about"}
 		)
 
 public class LoginController extends HttpServlet {
@@ -50,6 +50,11 @@ public class LoginController extends HttpServlet {
 			}
 			response.sendRedirect(contextPath + "/");
 			return;
+		} else if (actionPath.equals("/about")) {
+			request.setAttribute("contentPage", "/WEB-INF/views/about/about.jsp");
+			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
+			rd.forward(request, response);
+			
 		}
 		
 	}
