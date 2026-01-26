@@ -53,7 +53,7 @@ public class LectureScheduleDAO {
                     LectureScheduleDTO schedule = new LectureScheduleDTO();
 
                     schedule.setScheduleId(rs.getLong("schedule_id"));
-                    schedule.setLectureId(rs.getLong("lecture_id")); // DTO가 int라 OK
+                    schedule.setLectureId(rs.getLong("lecture_id"));
                     schedule.setWeekDay(Week.valueOf(rs.getString("week_day")));
                     schedule.setStartTime(rs.getTime("start_time").toLocalTime());
                     schedule.setEndTime(rs.getTime("end_time").toLocalTime());

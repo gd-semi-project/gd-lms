@@ -80,11 +80,11 @@ public class LectureDAO {
 				return 0;
 
 			return (curSum * 100) / capSum;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
+            } catch (Exception e) {
+            	//TODO sql 문법 오류나 DB 가 없는 경우 에러가 날 수 있습니다
+                e.printStackTrace();
+                return 0;
+            }
 	}
 
 	public int getLowFillRateLecture() { // 정원/인원이 50% 미만인 모든 강의 수

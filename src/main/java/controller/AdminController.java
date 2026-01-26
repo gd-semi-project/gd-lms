@@ -105,6 +105,7 @@ public class AdminController extends HttpServlet {
 						
 						
 					} catch (NumberFormatException ignore) {
+						//TODO 이거 에러날 일 없어요
 						System.out.println("이게 에러나면 진짜 신기할듯");
 						return;
 					}
@@ -179,7 +180,7 @@ public class AdminController extends HttpServlet {
 					
 					
 				} catch (NumberFormatException ignore) {
-					System.out.println("이게 에러나면 진짜 신기할듯");
+					//TODO 숫자만 있는 셀렉트 문에서 값 받는 거라 int외의 변수가 들어올 일 없어서 이것도 괜찮습니다
 				}
 			}
 
@@ -344,6 +345,7 @@ public class AdminController extends HttpServlet {
 	                break;
 					
 				} catch (Exception e) {
+					//TODO 잘못된 값이 들어오면 에러날 수 있긴 한데 셀렉트로 받아오는 거라 그럴 일은 없을 겁니다
 					e.printStackTrace();
 					System.out.println("calendarEdit doPost에서 에러남");
 					break;

@@ -100,6 +100,7 @@ public class EnrollmentDAO {
 				}
 			}
 		} catch (Exception e) {
+			//TODO 에러가 난다면 sql 문법이나 틀린 값을 받았을 경우입니다.
 			System.out.println("getLectureList() 예외 발생");
 			e.printStackTrace();
 		}
