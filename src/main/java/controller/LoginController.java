@@ -15,7 +15,7 @@ import utils.PasswordUtil;
 import java.io.IOException;
 
 @WebServlet(
-		urlPatterns = {"/main", "/login/*", "/index.jsp", "/about"}
+		urlPatterns = {"/main", "/login/*", "/about", "/"}
 		)
 
 public class LoginController extends HttpServlet {
@@ -37,8 +37,8 @@ public class LoginController extends HttpServlet {
 			request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 			rd.forward(request, response);
-		}  else if (actionPath.equals("/main")) {
-			request.setAttribute("contentPage", "/WEB-INF/main.jsp");
+		} else if (actionPath.equals("/main")) {
+			request.setAttribute("contentPage", "/WEB-INF/views/about/about.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
 			rd.forward(request, response);
 		} else if (actionPath.equals("/login/logout")) {
