@@ -35,9 +35,6 @@
     </div>
   </div>
 
-  <div class="d-flex gap-2">
-    <button class="btn btn-sm btn-outline-primary" type="button">학과 수정</button>
-  </div>
 </div>
 
 <hr class="my-3"/>
