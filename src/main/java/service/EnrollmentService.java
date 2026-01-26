@@ -4,8 +4,10 @@ import java.sql.Connection;
 import java.util.List;
 
 import database.DBConnection;
+import model.dao.DepartmentDAO;
 import model.dao.EnrollmentDAO;
 import model.dao.LectureDAO;
+import model.dto.DepartmentDTO;
 import model.dto.EnrollmentDTO;
 import model.dto.LectureForEnrollDTO;
 
@@ -15,8 +17,8 @@ public class EnrollmentService {
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
 
 	// 수강신청 가능한 강의목록 조회
-	public List<LectureForEnrollDTO> getAvailableLecturesForEnroll() {
-		return lectureDAO.findAvailableLecturesForEnroll();
+	public List<LectureForEnrollDTO> getAvailableLecturesForEnroll(Long departmentId, String keyword) {
+		return lectureDAO.findAvailableLecturesForEnroll(departmentId, keyword);
 	}
 
 	// 내가 신청한 수강신청 내역 조회

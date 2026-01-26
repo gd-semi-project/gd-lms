@@ -72,24 +72,28 @@ button {
 }
 </style>
 
-<!-- ===================== -->
-<!-- 수강신청 검색 영역 -->
-<!-- ===================== -->
-<div class="box">
-	<form method="get" action="">
-		학과 <select name="type">
-			<option value="">전체</option>
-		</select> 반 <select name="dept">
-			<option value="">전체</option>
-		</select> 과목명 <input type="text" name="subjectName" />
 
-		<button type="button">검색</button>
+<!-- 수강신청 검색 영역 -->
+<div class="box">
+	<form method="get" action="<%=ctx %>/enroll/enrollment">
+		학과 <select name="departmentId">
+			<option value="">전체</option>
+			<c:forEach var="dept" items="${departmentList}">
+				<option value="${dept.departmentId}"
+					<c:if test="${param.departmentId == dept.departmentId}">
+                    selected
+                </c:if>>
+					${dept.departmentName}</option>
+			</c:forEach>
+		</select> 과목명 <input type="text" name="keyword" value="${param.keyword}" />
+
+		<button type="submit">검색</button>
 	</form>
+
 </div>
 
-<!-- ===================== -->
 <!-- 개설 강좌 목록 -->
-<!-- ===================== -->
+
 <div class="box">
 	<h4>개설강좌</h4>
 
@@ -125,18 +129,15 @@ button {
 						<td>${lecture.instructorName}</td>
 						<td>${lecture.room}</td>
 						<td>${lecture.schedule}</td>
-						<td>
-						<c:choose>
-       					 <c:when test="${lecture.currentCount >= lecture.capacity}">
-           					 <span style="color:red;font-weight:bold;">
-              					  ${lecture.currentCount} / ${lecture.capacity} (마감)
-           					 </span>
-       					 </c:when>
-        				<c:otherwise>
+						<td><c:choose>
+								<c:when test="${lecture.currentCount >= lecture.capacity}">
+									<span style="color: red; font-weight: bold;">
+										${lecture.currentCount} / ${lecture.capacity} (마감) </span>
+								</c:when>
+								<c:otherwise>
           				  ${lecture.currentCount} / ${lecture.capacity}
        					 </c:otherwise>
-    					</c:choose>
-    					</td>
+							</c:choose></td>
 					</tr>
 				</c:if>
 			</c:forEach>
@@ -158,9 +159,9 @@ button {
 
 </div>
 
-<!-- ===================== -->
+
 <!-- 수강신청 내역 -->
-<!-- ===================== -->
+
 <div class="box">
 	<h4>수강신청내역</h4>
 
@@ -181,30 +182,27 @@ button {
 		<tbody>
 			<c:forEach var="enroll" items="${enrollList}" varStatus="status">
 				<tr>
-				<td>${status.index + 1}</td>
-				<td>
-					<form method="post" action="<%=ctx%>/enroll/cancel">
-						<input type="hidden" name="lectureId" value="${enroll.lectureId}">
-						<button type="submit" class="btn-cancel">취소</button>
-					</form>
+					<td>${status.index + 1}</td>
+					<td>
+						<form method="post" action="<%=ctx%>/enroll/cancel">
+							<input type="hidden" name="lectureId" value="${enroll.lectureId}">
+							<button type="submit" class="btn-cancel">취소</button>
+						</form>
 					</td>
 					<td>${enroll.departmentName}</td>
 					<td>${enroll.lectureTitle}</td>
 					<td>${enroll.instructorName}</td>
 					<td>${enroll.room}</td>
 					<td>${enroll.schedule}</td>
-					<td>
-					<c:choose>
-       					 <c:when test="${enroll.currentCount >= enroll.capacity}">
-           					 <span style="color:red;font-weight:bold;">
-              					  ${enroll.currentCount} / ${enroll.capacity} (마감)
-           					 </span>
-       					 </c:when>
-        				<c:otherwise>
+					<td><c:choose>
+							<c:when test="${enroll.currentCount >= enroll.capacity}">
+								<span style="color: red; font-weight: bold;">
+									${enroll.currentCount} / ${enroll.capacity} (마감) </span>
+							</c:when>
+							<c:otherwise>
           				  ${enroll.currentCount} / ${enroll.capacity}
        					 </c:otherwise>
-    					</c:choose>
-					</td>
+						</c:choose></td>
 				</tr>
 			</c:forEach>
 

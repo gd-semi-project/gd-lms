@@ -7,13 +7,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
+import model.dto.DepartmentDTO;
 import model.dto.EnrollmentDTO;
 import model.dto.LectureForEnrollDTO;
 import model.dto.MypageDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
+import service.DepartmentService;
 import service.EnrollmentService;
 import service.MyPageService;
+import utils.EnrollmentPeriod;
 
 import java.io.IOException;
 import java.util.List;
@@ -68,8 +71,23 @@ public class EnrollmentController extends HttpServlet {
 				response.sendRedirect(request.getContextPath() + "/login");
 				return;
 			}
+			// 수강신청 가능 강의목록(검색기능 부분)
+			String departmentIdParam = request.getParameter("departmentId");
+			String keyword = request.getParameter("keyword");
+			
+			Long departmentId = null;
+			if(departmentIdParam != null && !departmentIdParam.isBlank()) {
+				departmentId = Long.parseLong(departmentIdParam);
+			}
+			
+			// 강의 검색(과 리스트출력 구분)
+			DepartmentService departmentService = new DepartmentService();
+			
+			List<DepartmentDTO> departmentList = departmentService.getAllDepartments();
+			
+
 			// 수강신청 가능한 강의목록
-			List<LectureForEnrollDTO> lectureList = enrollmentService.getAvailableLecturesForEnroll();
+			List<LectureForEnrollDTO> lectureList = enrollmentService.getAvailableLecturesForEnroll(departmentId, keyword);
 
 			// 내가 신청한 강의(수강신청 내역)
 			List<EnrollmentDTO> enrollList = enrollmentService.getMyEnrollments(studentId);
@@ -79,7 +97,8 @@ public class EnrollmentController extends HttpServlet {
 			request.setAttribute("lectureList", lectureList);
 			request.setAttribute("enrollList", enrollList);
 			request.setAttribute("myLectureId", myLectureId);
-
+			request.setAttribute("departmentList", departmentList);
+			
 			request.setAttribute("mypage", mypage);
 
 			request.setAttribute("contentPage", "/WEB-INF/views/student/enrollmentPage.jsp");
@@ -87,6 +106,20 @@ public class EnrollmentController extends HttpServlet {
 			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
 			return;
+		} else if ("/closed".equals(action)) {
+
+			request.setAttribute("startDate", EnrollmentPeriod.START);
+	        request.setAttribute("endDate", EnrollmentPeriod.END);
+			
+		    request.setAttribute(
+		        "contentPage",
+		        "/WEB-INF/views/student/enrollmentClose.jsp"
+		    );
+
+		    request.getRequestDispatcher(
+		        "/WEB-INF/views/layout/layout.jsp"
+		    ).forward(request, response);
+		    return;
 		}
 
 	}
@@ -118,7 +151,7 @@ public class EnrollmentController extends HttpServlet {
 			session.setAttribute("alertMsg", e.getMessage());
 		}
 
-		// ⭐ 무조건 목록 화면으로 복귀
+		// 무조건 목록 화면으로 복귀
 		response.sendRedirect(request.getContextPath() + "/enroll/enrollment");
 	}
 
