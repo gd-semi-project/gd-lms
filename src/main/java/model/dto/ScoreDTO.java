@@ -1,5 +1,6 @@
 package model.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -29,4 +30,9 @@ public class ScoreDTO {
     private Long studentNumber;
     private Integer studentGrade;
     
+    // 과목 정보 (학생 성적 전체 조회용)
+    private String lectureTitle;
+    private Integer lectureRound;
+    private String section;
+    private LocalDate startDate;
 }

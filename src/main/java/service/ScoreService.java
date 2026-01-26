@@ -281,4 +281,24 @@ public class ScoreService {
         if (total >= 60) return "D";
         return "F";
     }
+    
+    // 학생 본인의 전체성적 조회
+    public List<ScoreDTO> getMytotScore(Long userId){
+    	try {
+			Connection conn = DBConnection.getConnection();
+				List<ScoreDTO> list = scoreDAO.selectMytotScore(conn, userId);
+				return list;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			throw new RuntimeException("학생 전체 성적 조회 실패", e);
+		}
+    	
+    }
+    
 }
+
+
+
+
+

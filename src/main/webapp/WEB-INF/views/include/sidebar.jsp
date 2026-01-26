@@ -42,7 +42,7 @@
        
        <c:when test="${AccessInfo.role == 'INSTRUCTOR'}">
        <li class="nav-item">
-         <a class="nav-link text-white" href="${ctx}//"> 📝 성적 	
+         <a class="nav-link text-white" href="<%=ctx%>//"> 📝 성적 	
          </a>
        </li>
        </c:when>

@@ -109,6 +109,22 @@ public class ScoreController extends HttpServlet {
             );
             break;
         }
+        case "/totscore" : {
+        	if(role != Role.STUDENT) {
+        		response.sendError(HttpServletResponse.SC_FORBIDDEN);
+		        return;
+        	}
+        	Long studentId = access.getUserId();
+        	List<ScoreDTO> myScores = scoreService.getMytotScore(studentId);
+        	
+        	request.setAttribute("myScores", myScores);
+        	request.setAttribute("activeTab", "myScore");
+            request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/student/totScore.jsp"
+            );
+            break;
+        }
 
         default:
             response.sendError(
