@@ -211,7 +211,7 @@ public class LoginController extends HttpServlet {
 		    request.setAttribute("tempPassword", tempPassword);
 
 		    RequestDispatcher rd =
-		        request.getRequestDispatcher("/WEB-INF/views/login/resetResult.jsp");
+		        request.getRequestDispatcher("/WEB-INF/views/login/resetResultPassword.jsp");
 		    rd.forward(request, response);
 		}
 		
