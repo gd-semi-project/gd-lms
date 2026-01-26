@@ -1,5 +1,5 @@
 import { generateToken } from './tokenService.js';
-import { checkUserInfo, getUserId } from './UserInfoServices.js';
+import { checkUserInfo } from './UserInfoServices.js';
 
 document.addEventListener("DOMContentLoaded", () => {
 	const email = document.getElementById("email");
@@ -27,12 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const isMatch = await checkUserInfo(ctx, emailValue, birthValue);
             if (!isMatch) return alert("이메일 또는 생년월일 불일치");
 
-            // 2. userId 조회
-            const userId = await getUserId(ctx, emailValue, birthValue);
-
 			checkInfoBtn.disabled = true;
-            // 3. 토큰 발급
-            const token = await generateToken(ctx, userId);
+            // 3. 서버측 userId 조회해서 유효성 검증 후 토큰 발급
+            const token = await generateToken(ctx, emailValue, birthValue);
 
 			// 4. 반환값 확인
 			if (token.status === true) {

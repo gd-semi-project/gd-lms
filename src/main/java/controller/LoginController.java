@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.dao.TokenDAO;
 import model.dto.AccessDTO;
 import service.LoginService;
 import utils.HashUtil;
@@ -55,7 +54,7 @@ public class LoginController extends HttpServlet {
 			LoginService ls = LoginService.getInstance();
 		    String token = (String) request.getParameter("token");
 
-		    if (token == null || token.length() != 36) {
+		    if (token == null || token.length() != 32) {
 		    	// TODO: 403, 비인가접근입니다.
 		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
 		        System.out.println("token없이 접근하면 안됩니다.");
@@ -136,44 +135,17 @@ public class LoginController extends HttpServlet {
 		    
 		    // 세션 저장(최종적으로 세션에서 제거해야함)
 		    session.setAttribute("tokenType", "PasswordReset");
-		    session.setAttribute("email", email);
 		    
 		    // 4. JSON 응답 설정
 		    response.setContentType("application/json");
 		    response.setCharacterEncoding("UTF-8");
 		    String json = "{\"match\":" + isMatch + "}";
 		    response.getWriter().write(json);
-		} else if (action.equals("/get-user-id")) {
-			// 1. 요청 파라미터
-		    String email = request.getParameter("email");
-		    String birthDate = request.getParameter("birthDate"); // "yyyy-MM-dd" 형식
-
-		    // 2. 입력 검증
-		    if (email == null || email.trim().isEmpty() || birthDate == null || birthDate.trim().isEmpty()) {
-		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-		        response.getWriter().write("{\"error\":\"email and birthDate are required\"}");
-		        return;
-		    }
-
-		    // 3. 서비스 호출
-		    LoginService loginService = LoginService.getInstance();
-		    Long userId = loginService.getUserId(email, birthDate);
-		    
-		    if (userId == 0) {
-		        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-		        response.getWriter().write("{\"error\":\"userId not found\"}");
-		        return;
-		    }
-		    
-		    // 4. JSON 응답 설정
-		    response.setContentType("application/json");
-		    response.setCharacterEncoding("UTF-8");
-		    String json = "{\"userId\":" + userId + "}";
-		    response.getWriter().write(json);
 		} else if (action.equals("/create-token")) {
 			LoginService ls = LoginService.getInstance();
-			String email = (String) session.getAttribute("email");
-		    Long userId = Long.parseLong(request.getParameter("userId"));
+			String email = request.getParameter("email");
+			String birthDate = request.getParameter("birthDate");
+		    Long userId = ls.getUserId(email, birthDate);
 		    String token_type = (String) session.getAttribute("tokenType");
 		    if (userId == null || userId == 0) {
 		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -207,7 +179,6 @@ public class LoginController extends HttpServlet {
 	        MailSender.sendMail(email, subject, content);
 	        
 	        // 세션 속성 제거
-	        session.removeAttribute("email");
 	        session.removeAttribute("tokenType");
 	        
 	        // 6. JSON 응답 설정

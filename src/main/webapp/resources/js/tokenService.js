@@ -1,11 +1,11 @@
-export async function generateToken(ctx, userId) {
+export async function generateToken(ctx, email, birthDate) {
     try {
         const response = await fetch(`${ctx}/login/create-token`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             },
-            body: `userId=${encodeURIComponent(userId)}`
+            body: `birthDate=${encodeURIComponent(birthDate)}&email=${encodeURIComponent(email)}`
         });
 
         if (!response.ok) {
