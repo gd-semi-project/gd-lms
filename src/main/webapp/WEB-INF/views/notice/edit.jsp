@@ -16,23 +16,23 @@
                         
                         <!-- Hidden Fields -->
                         <input type="hidden" name="noticeId" value="${notice.noticeId}">
-                        <c:if test="${not empty notice.lectureId}">
+                        <c:if test="${notice.noticeType == 'LECTURE'}">
                             <input type="hidden" name="lectureId" value="${notice.lectureId}">
                         </c:if>
 
-                        <!-- 공지 타입 선택 -->
-                        <div class="mb-3">
-                            <label for="noticeType" class="form-label">공지 분류 <span class="text-danger">*</span></label>
-                            <select class="form-select" id="noticeType" name="noticeType" required>
-                                <option value="">-- 선택하세요 --</option>
-                                <option value="ANNOUNCEMENT" ${notice.noticeType == 'ANNOUNCEMENT' ? 'selected' : ''}>
-                                    📢 전체 공지
-                                </option>
-                                <option value="LECTURE" ${notice.noticeType == 'LECTURE' ? 'selected' : ''}>
-                                    📚 강의 공지
-                                </option>
-                            </select>
-                        </div>
+                        <!-- 공지 타입 -->
+							<div class="mb-3">
+							    <label class="form-label">공지 분류</label>
+							    <div class="form-control-plaintext">
+							        <c:choose>
+							            <c:when test="${notice.noticeType == 'ANNOUNCEMENT'}">📢 전체 공지</c:when>
+							            <c:when test="${notice.noticeType == 'LECTURE'}">📚 강의 공지</c:when>
+							        </c:choose>
+							    </div>
+							
+							    <!-- 서버 전송용 (변경 불가 값) -->
+							    <input type="hidden" name="noticeType" value="${notice.noticeType}" />
+							</div>
 
                         <!-- 공지 대상 표시 (읽기 전용) -->
                         <div class="mb-3">
@@ -43,12 +43,12 @@
                                         <span class="badge bg-danger">전체 공지 (모든 사용자)</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="badge bg-info">강의 공지 (강의 ID: ${notice.lectureId})</span>
+                                        <span class="badge bg-info">강의 공지: ${notice.lectureTitle} (강의 ID: ${notice.lectureId})</span>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
                             <small class="form-text text-muted">
-                                공지 대상은 수정할 수 없습니다. 변경이 필요한 경우 새로 작성해주세요.
+                                공지 분류 및 공지 대상은 변경 불가합니다. 새로 작성해주세요.
                             </small>
                         </div>
 
@@ -124,12 +124,6 @@
 function validateForm() {
     const title = document.getElementById('title').value.trim();
     const content = document.getElementById('content').value.trim();
-    const noticeType = document.getElementById('noticeType').value;
-
-    if (!noticeType) {
-        alert('공지 분류를 선택해주세요.');
-        return false;
-    }
 
     if (title.length < 2) {
         alert('제목은 최소 2자 이상 입력해주세요.');
