@@ -14,6 +14,9 @@ import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LectureService;
 import service.QnaService;
+import exception.AccessDeniedException;
+import exception.UnauthorizedException;
+import exception.ResourceNotFoundException;
 
 @WebServlet("/lecture/qna")
 public class QnaController extends HttpServlet {
@@ -92,7 +95,7 @@ public class QnaController extends HttpServlet {
 
                 QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
                 if (post == null) {
-                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                    throw new ResourceNotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
                 }
 
                 List<QnaAnswerDTO> answers = qnaService.getAnswers(qnaId, lectureId, userId, role);
@@ -123,12 +126,12 @@ public class QnaController extends HttpServlet {
                 
                 QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
                 if (post == null) {
-                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                    throw new ResourceNotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
                 }
 
                 // 권한 체크: 학생은 본인 글만 수정 가능
                 if (role == Role.STUDENT && post.getAuthorId() != userId) {
-                    throw new QnaService.AccessDeniedException("수정 권한이 없습니다.");
+                    throw new AccessDeniedException("수정 권한이 없습니다.");
                 }
 
                 request.setAttribute("post", post);
@@ -146,7 +149,7 @@ public class QnaController extends HttpServlet {
 
                 // 학생만 질문 작성 가능
                 if (role != Role.STUDENT) {
-                    throw new QnaService.AccessDeniedException("질문 작성은 학생만 가능합니다.");
+                    throw new AccessDeniedException("질문 작성은 학생만 가능합니다.");
                 }
                 // 작성중 입력 오류값 에러 메세지
                 String err = request.getParameter("error");
@@ -195,19 +198,19 @@ public class QnaController extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
                    .forward(request, response);
 
-        } catch (QnaService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
         	// 401 로그인 오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=401");
             return;
 
-        } catch (QnaService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
         	// 403 권한오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=403");
             return;
 
-        } catch (QnaService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
         	// 404 경로,리소스 오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=404");
@@ -393,19 +396,19 @@ public class QnaController extends HttpServlet {
 
             response.sendRedirect(url);
             return;
-        } catch (QnaService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
         	// 401 로그인 오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=401");
             return;
 
-        } catch (QnaService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
         	// 403 권한 오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=403");
             return;
 
-        } catch (QnaService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
         	// 404 경로,리소스 오류
             session.setAttribute("errorMessage", e.getMessage());
             response.sendRedirect(ctx + "/error?errorCode=404");

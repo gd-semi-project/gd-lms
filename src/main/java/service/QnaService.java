@@ -14,6 +14,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
+import exception.UnauthorizedException;
 
 public class QnaService {
 
@@ -172,7 +175,7 @@ public class QnaService {
             // ★ 수정: lectureId로 조회
             QnaPostDTO existing = postDAO.findById(conn, dto.getQnaId(), dto.getLectureId());
             if (existing == null) {
-                throw new NotFoundException("Q&A가 존재하지 않습니다.");
+                throw new ResourceNotFoundException("Q&A가 존재하지 않습니다.");
             }
 
             // 학생: 본인 글만 수정 가능
@@ -213,7 +216,7 @@ public class QnaService {
             // ★ 수정: lectureId로 조회
             QnaPostDTO existing = postDAO.findById(conn, qnaId, lectureId);
             if (existing == null) {
-                throw new NotFoundException("Q&A가 존재하지 않습니다.");
+                throw new ResourceNotFoundException("Q&A가 존재하지 않습니다.");
             }
 
             // 학생: 본인 글만 삭제 가능
@@ -267,7 +270,7 @@ public class QnaService {
             // ★ 수정: lectureId로 조회
             QnaPostDTO post = postDAO.findById(conn, dto.getQnaId(), lectureId);
             if (post == null) {
-                throw new NotFoundException("질문글이 존재하지 않습니다.");
+                throw new ResourceNotFoundException("질문글이 존재하지 않습니다.");
             }
 
             long id = answerDAO.insert(conn, dto);
@@ -326,7 +329,7 @@ public class QnaService {
      */
     private void assertCanAccessLecture(Connection conn, long userId, Role role, long lectureId) throws SQLException {
         if (!accessDAO.lectureExists(conn, lectureId)) {
-            throw new NotFoundException("존재하지 않는 강의입니다.");
+            throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
         }
 
         switch (role) {
@@ -361,11 +364,5 @@ public class QnaService {
      *  예외
      * ========================================================= */
 
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String msg) { super(msg); }
-    }
 
-    public static class NotFoundException extends RuntimeException {
-        public NotFoundException(String msg) { super(msg); }
-    }
 }

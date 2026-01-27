@@ -18,6 +18,9 @@ import model.dto.NoticeDTO;
 import model.enumtype.NoticeType;
 import model.enumtype.Role;
 import service.NoticeService;
+import exception.UnauthorizedException;
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
 
 @WebServlet("/notice/*")
 public class NoticeController extends HttpServlet {
@@ -61,19 +64,19 @@ public class NoticeController extends HttpServlet {
                     showEditForm(req, resp);
                     break;
                 default:
-                	throw new NoticeService.NotFoundException("잘못된 경로 요청입니다.");
+                	throw new ResourceNotFoundException("잘못된 경로 요청입니다.");
             }
-        } catch (NoticeService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=401");
             return;
 
-        } catch (NoticeService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=403");
             return;
 
-        } catch (NoticeService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=404");
             return;
@@ -106,19 +109,19 @@ public class NoticeController extends HttpServlet {
                     handleDelete(req, resp);
                     return;
                 default:
-                	throw new NoticeService.NotFoundException("잘못된 경로 요청입니다.");
+                	throw new ResourceNotFoundException("잘못된 경로 요청입니다.");
             }
-        } catch (NoticeService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=401");
             return;
 
-        } catch (NoticeService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=403");
             return;
 
-        } catch (NoticeService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             if (session != null) session.setAttribute("errorMessage", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/error?errorCode=404");
             return;
@@ -218,7 +221,7 @@ public class NoticeController extends HttpServlet {
 
         NoticeDTO notice = noticeService.getNoticeDetail(noticeId, lectureId, userId, role);
         if (notice == null) {
-        	throw new NoticeService.NotFoundException("공지사항을 찾을 수 없습니다.");
+        	throw new ResourceNotFoundException("공지사항을 찾을 수 없습니다.");
         }
 
         req.setAttribute("notice", notice);
@@ -235,7 +238,7 @@ public class NoticeController extends HttpServlet {
         requireLogin(userId, role);
 
         if (role == Role.STUDENT) {
-            throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
+            throw new AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
         }
 
         List<LectureDTO> lectureList = noticeService.getAvailableLectures(userId, role);
@@ -255,7 +258,7 @@ public class NoticeController extends HttpServlet {
         requireLogin(userId, role);
 
         if (role == Role.STUDENT) {
-            throw new NoticeService.AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
+            throw new AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
         }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
@@ -268,7 +271,7 @@ public class NoticeController extends HttpServlet {
 
         NoticeDTO notice = noticeService.getNoticeForEdit(noticeId, lectureId, userId, role);
         if (notice == null) {
-        	throw new NoticeService.NotFoundException("공지사항을 찾을 수 없습니다.");
+        	throw new ResourceNotFoundException("공지사항을 찾을 수 없습니다.");
         }
 
         req.setAttribute("notice", notice);
@@ -287,7 +290,7 @@ public class NoticeController extends HttpServlet {
         requireLogin(userId, role);
 
         if (role == Role.STUDENT) {
-            throw new NoticeService.AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
+            throw new AccessDeniedException("학생은 공지사항을 작성할 수 없습니다.");
         }
 
         NoticeType noticeType = parseNoticeType(req, resp);
@@ -328,7 +331,7 @@ public class NoticeController extends HttpServlet {
         requireLogin(userId, role);
 
         if (role == Role.STUDENT) {
-            throw new NoticeService.AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
+            throw new AccessDeniedException("학생은 공지사항을 수정할 수 없습니다.");
         }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
@@ -368,7 +371,7 @@ public class NoticeController extends HttpServlet {
         requireLogin(userId, role);
 
         if (role == Role.STUDENT) {
-            throw new NoticeService.AccessDeniedException("학생은 공지사항을 삭제할 수 없습니다.");
+            throw new AccessDeniedException("학생은 공지사항을 삭제할 수 없습니다.");
         }
 
         Long noticeId = parseLongNullable(req.getParameter("noticeId"));
@@ -454,7 +457,7 @@ public class NoticeController extends HttpServlet {
 
     private void requireLogin(Long userId, Role role) {
         if (userId == null || role == null) {
-            throw new NoticeService.UnauthorizedException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 
