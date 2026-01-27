@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 
 import model.dto.AccessDTO;
 import model.dto.LectureDTO;
+import model.dto.MyLectureDTO;
 import model.enumtype.Role;
 import service.LectureService;
 
@@ -65,6 +66,7 @@ public class StudentController extends HttpServlet {
                 lectureService.getMyLectures(access, null);
 
             request.setAttribute("lectures", lectures);
+            request.setAttribute("status", "ONGOING");
             request.setAttribute("activeMenu", "lectures");
             request.setAttribute(
                 "contentPage",
@@ -72,8 +74,21 @@ public class StudentController extends HttpServlet {
             );
             break;
         }
-
-
+        // 학생 내 종강한 강의 목록 
+        case "/lectures/ended" : {
+        	List<MyLectureDTO> lectures =
+        	        lectureService.getMyEndedLectures(
+        	            access.getUserId()
+        	        );
+        		request.setAttribute("status", "ENDED");
+        	    request.setAttribute("lectures", lectures);
+        	    request.setAttribute("activeMenu", "lectures");
+        	    request.setAttribute(
+        	        "contentPage",
+        	        "/WEB-INF/views/lecture/lectureList.jsp"
+        	    );
+        	    break;
+        }
         default:
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
