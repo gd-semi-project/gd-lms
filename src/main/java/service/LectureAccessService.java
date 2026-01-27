@@ -1,10 +1,18 @@
 package service;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 
 import database.DBConnection;
 import model.dao.LectureAccessDAO;
+import model.dao.SchoolScheduleDAO;
+import model.dto.LectureDTO;
+import model.dto.SchoolScheduleDTO;
+import model.enumtype.LectureStatus;
+import model.enumtype.LectureValidation;
 import model.enumtype.Role;
+import model.enumtype.ScheduleCode;
+import utils.AppTime;
 import exception.AccessDeniedException;
 
 public class LectureAccessService {
@@ -56,7 +64,19 @@ public class LectureAccessService {
             throw new RuntimeException("LectureAccessService.assertCanAccessLecture error", e);
         }
     }
+    
+    public void assertLectureIsOpen(LectureDTO lecture) {
 
-
+        if (lecture == null) {
+            throw new AccessDeniedException("강의 정보가 존재하지 않습니다.");
+        }
+        if (lecture.getValidation() != LectureValidation.CONFIRMED) {
+            throw new AccessDeniedException("승인되지 않은 강의입니다.");
+        }
+        if (lecture.getStatus() != LectureStatus.ONGOING) {
+            throw new AccessDeniedException("현재 진행 중인 강의가 아닙니다.");
+        }
+    }
+    
 }
 

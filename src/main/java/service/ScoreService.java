@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.util.List;
 
 import database.DBConnection;
+import exception.BadRequestException;
+import exception.InternalServerException;
+import exception.ResourceNotFoundException;
 import model.dao.AttendanceDAO;
 import model.dao.ScoreDAO;
 import model.dao.ScorePolicyDAO;
@@ -46,9 +49,8 @@ public class ScoreService {
 			return scores;
 
 		} catch (Exception e) {
-			// TODO : 500
-			throw new RuntimeException("성적 목록 조회 실패", e);
-		}
+            throw new InternalServerException("성적 목록 조회 실패", e);
+        }
 	}
 
 	// 성적 저장
@@ -82,18 +84,18 @@ public class ScoreService {
 					hasEmptyFinal = true;
 			}
 
-			// 컬럼 단위 검증
 			if (hasAnyAssignment && hasEmptyAssignment) {
-				throw new IllegalStateException("과제 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-			}
+                throw new BadRequestException("과제 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
+            }
 
-			if (hasAnyMidterm && hasEmptyMidterm) {
-				throw new IllegalStateException("중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-			}
+            if (hasAnyMidterm && hasEmptyMidterm) {
+                throw new BadRequestException("중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
+            }
 
-			if (hasAnyFinal && hasEmptyFinal) {
-				throw new IllegalStateException("기말고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-			}
+            if (hasAnyFinal && hasEmptyFinal) {
+                throw new BadRequestException("기말고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
+            }
+
 
 			// 통과하면 저장
 			for (ScoreDTO dto : scores) {
@@ -102,14 +104,11 @@ public class ScoreService {
 
 			conn.commit();
 
-		} catch (IllegalStateException e) {
-			// TODO : 409 Conflict
-			// → Controller에서 redirect + warning 메시지
-			throw e;
-		} catch (Exception e) {
-			// TODO : 500
-			throw new RuntimeException("성적 저장 실패", e);
-		}
+		} catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InternalServerException("성적 저장 실패", e);
+        }
 	}
 
 	// 학점 계산
@@ -120,8 +119,8 @@ public class ScoreService {
 			ScorePolicyDTO policy = scorePolicyDAO.findByLectureId(conn, lectureId);
 
 			if (policy == null) {
-				throw new IllegalStateException("성적 배점이 설정되지 않았습니다.");
-			}
+                throw new ResourceNotFoundException("성적 배점이 설정되지 않았습니다.");
+            }
 
 			List<ScoreDTO> list = scoreDAO.selectScoresByLecture(conn, lectureId);
 
@@ -129,51 +128,50 @@ public class ScoreService {
 			for (ScoreDTO dto : list) {
 				if (dto.getAssignmentScore() == null || dto.getMidtermScore() == null || dto.getFinalScore() == null) {
 
-					throw new IllegalStateException("모든 학생의 과제 / 중간 / 기말 점수를 입력해야 합니다.");
+					throw new BadRequestException("모든 학생의 점수를 입력해야 학점 계산이 가능합니다.");
 				}
 			}
 
 			// 2차 계산
 			for (ScoreDTO dto : list) {
 
-				AttendanceSummaryDTO attendance = attendanceDAO.getAttendanceSummary(conn, lectureId,
-						dto.getStudentId());
+			    AttendanceSummaryDTO attendance =
+			        attendanceDAO.getAttendanceSummary(conn, lectureId, dto.getStudentId());
 
-				int totalSessions = attendance != null ? attendance.getTotalSessionCount() : 0;
+			    int totalSessions = attendance != null ? attendance.getTotalSessionCount() : 0;
+			    int effectiveAttend = attendance != null ? attendance.getEffectiveAttendCount() : 0;
 
-				int effectiveAttend = attendance != null ? attendance.getEffectiveAttendCount() : 0;
+			    double attendanceRate = totalSessions > 0 ? (double) effectiveAttend / totalSessions : 0;
 
-				double attendanceRate = totalSessions > 0 ? (double) effectiveAttend / totalSessions : 0;
+			    // 출석 미달 → F
+			    if (attendanceRate < 0.8) {
+			        scoreDAO.updateTotalAndGrade(conn, dto.getScoreId(), 0, "F");
+			        continue;
+			    }
 
-				// 출석 미달 → F
-				if (attendanceRate < 0.8) {
-					scoreDAO.updateTotalAndGrade(conn, dto.getScoreId(), 0, "F");
-					continue;
-				}
+			    int attendanceScore = attendance != null ? attendance.getAttendanceScore() : 0;
 
-				int attendanceScore = dto.getAttendanceScore() != null ? dto.getAttendanceScore() : 0;
+			    int assignment = dto.getAssignmentScore();
+			    int midterm = dto.getMidtermScore();
+			    int finals = dto.getFinalScore();
 
-				int assignment = dto.getAssignmentScore();
-				int midterm = dto.getMidtermScore();
-				int finals = dto.getFinalScore();
+			    double weighted =
+			          attendanceScore * policy.getAttendanceWeight() / 100.0
+			        + assignment * policy.getAssignmentWeight() / 100.0
+			        + midterm * policy.getMidtermWeight() / 100.0
+			        + finals * policy.getFinalWeight() / 100.0;
 
-				double weighted = attendanceScore * policy.getAttendanceWeight() / 100.0
-						+ assignment * policy.getAssignmentWeight() / 100.0
-						+ midterm * policy.getMidtermWeight() / 100.0 + finals * policy.getFinalWeight() / 100.0;
+			    int total = (int) Math.round(weighted);
+			    String grade = convertGrade(total);
 
-				int total = (int) Math.round(weighted);
-				String grade = convertGrade(total);
-
-				scoreDAO.updateTotalAndGrade(conn, dto.getScoreId(), total, grade);
+			    scoreDAO.updateTotalAndGrade(conn, dto.getScoreId(), total, grade);
 			}
-		} catch (IllegalStateException e) {
-			// TODO : 409 Conflict
-			// → Controller에서 redirect + 경고 메시지
-			throw e;
-		} catch (Exception e) {
-			// TODO : 500 Internal Server Error
-			throw new RuntimeException("학점 계산 실패", e);
-		}
+
+        } catch (BadRequestException | ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InternalServerException("학점 계산 실패", e);
+        }
 	}
 
 	// 학생 본인 성적 조회
@@ -197,10 +195,11 @@ public class ScoreService {
 
 			return dto;
 
-		} catch (Exception e) {
-			// TODO : 500
-			throw new RuntimeException("내 성적 조회 실패", e);
-		}
+		} catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InternalServerException("내 성적 조회 실패", e);
+        }
 	}
 
 	// 내부 유틸
