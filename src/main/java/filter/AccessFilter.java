@@ -86,7 +86,6 @@ public class AccessFilter extends HttpFilter {
 			if (whiteList.contains(actionPath)) {
 		        chain.doFilter(request, response);
 		    } else {
-		    	// TODO: 로그인 후 접근해주세요 에러 페이지 연결
 		        response.sendRedirect(contextPath + "/login");
 		    }
 		}else if (session != null) {
@@ -97,15 +96,15 @@ public class AccessFilter extends HttpFilter {
 					if (accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						// TODO: 권한이 부족합니다. 메인 페이지 연결
-						response.sendRedirect(contextPath + "/main");
+						session.setAttribute("errorMessage", "관리자만 접근 가능한 페이지입니다.");
+						response.sendRedirect(contextPath + "/error?errorCode=403");
 					}
 				} else if (middlePath.equals("instructor")) {
 					if (accessDTO.getRole() == Role.INSTRUCTOR || accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
 					} else {
-						// TODO: 권한이 부족합니다. 메인 페이지 연결
-						response.sendRedirect(contextPath + "/main");
+						session.setAttribute("errorMessage", "교수만 접근 가능한 페이지입니다.");
+						response.sendRedirect(contextPath + "/error?errorCode=403");
 					}
 				} else {
 					// 그외 페이지는 허용
@@ -116,8 +115,8 @@ public class AccessFilter extends HttpFilter {
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
 					chain.doFilter(request, response);
 				} else {
-					// TODO: 로그인 후 접근해주세요 에러 페이지 연결
-					response.sendRedirect(contextPath + "/login");
+					session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
+					response.sendRedirect(contextPath + "/error?errorCode=401");
 				}
 			}
 		}
