@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import database.DBConnection;
+import exception.InternalServerException;
 import lombok.NoArgsConstructor;
 import model.dto.FileDTO;
 
@@ -39,13 +40,11 @@ public class FileDAO {
 			}
 			return fileList;
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO selectFileListById: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
-		return null;
 	}
 	
-	public void isnertFileUpload (FileDTO fileDTO) {
+	public void insertFileUpload (FileDTO fileDTO) {
 		String sql = "INSERT INTO file_upload (board_type, ref_id, uuid, original_filename)"
 				+ " values (?, ?, ?, ?)";
 		
@@ -57,13 +56,11 @@ public class FileDAO {
 			pstmt.setString(4, fileDTO.getOriginalFilename());
 			pstmt.executeUpdate();
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO isnertFileById: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
 	}
 
-	public int deleteFileByBoardTypeAndRefId(Connection conn, String boardType, Long refId)
-	        throws SQLException {
+	public int deleteFileByBoardTypeAndRefId(Connection conn, String boardType, Long refId) {
 
 		String sql = """
 			    UPDATE file_upload
@@ -76,7 +73,9 @@ public class FileDAO {
 	        ps.setString(1, boardType);
 	        ps.setLong(2, refId);
 	        return ps.executeUpdate(); // 삭제된 파일 수
-	    }
+	    } catch (SQLException e) {
+			throw new InternalServerException(e);
+		}
 	}
 	
 	public String selectFileNameByUUID(UUID uuid) {
@@ -92,10 +91,8 @@ public class FileDAO {
 			}
 			return originalFileName;
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO selectFileNameByUUID: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
-		return null;
 	}
 
 

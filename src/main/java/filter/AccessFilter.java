@@ -105,12 +105,15 @@ public class AccessFilter extends HttpFilter {
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
 					chain.doFilter(request, response);
 				} else {
-					session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
-					response.sendRedirect(contextPath + "/error?errorCode=401");
+					if (uri.equals(contextPath) || uri.equals(contextPath+"/")) {
+						response.sendRedirect(contextPath + "/login");
+					} else {
+						session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
+						response.sendRedirect(contextPath + "/error?errorCode=401");
+					}
 				}
 			}
 		}
-
 	}
 
 	public void init(FilterConfig fConfig) throws ServletException {

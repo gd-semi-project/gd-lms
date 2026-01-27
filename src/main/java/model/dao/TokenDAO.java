@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import database.DBConnection;
+import exception.InternalServerException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import model.dto.ResetToken;
@@ -57,8 +58,7 @@ public class TokenDAO {
             }
 
         } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("TokenDAO createToken: " + e.getMessage());
+            throw new InternalServerException(e);
         }
 
         // 4. 평문 토큰 반환 (사용자에게 전달용)
@@ -96,9 +96,7 @@ public class TokenDAO {
             }
 
         } catch (SQLException | ClassNotFoundException e) {
-        	// TODO: 예외처리
-            e.printStackTrace();
-            return null;
+        	throw new InternalServerException(e);
         }
     }
 
@@ -118,9 +116,8 @@ public class TokenDAO {
         ) {
             pstmt.setString(1, token);
             return pstmt.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("markTokenAsUsed error", e);
+        }  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
         }
     }
     

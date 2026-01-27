@@ -1,13 +1,21 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>400 Bad Request</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-<div class="container mt-4">
-  <div class="alert alert-danger">
-    <h4 class="alert-heading">잘못된 접근 방식입니다. (400)</h4>
-    <p class="mb-0">
-      <c:out value="${requestScope.errorMessage}" />
-    </p>
-  </div>
-
-  <a class="btn btn-secondary" href="${pageContext.request.contextPath}/main">메인화면으로</a>
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="card shadow-sm text-center p-4" style="max-width: 480px;">
+        <h1 class="display-5 text-danger fw-bold">400</h1>
+        <h5>${errorMessage}</h5>
+        <p class="text-muted">요청 정보가 올바르지 않습니다.</p>
+        <a href="${pageContext.request.contextPath}/main" class="btn btn-secondary">메인으로</a>
+    </div>
 </div>
+
+</body>
+</html>

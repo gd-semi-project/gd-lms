@@ -25,6 +25,7 @@ public class ErrorController extends HttpServlet {
 			if (errorMessage == null) {
 				session.setAttribute("errorMessage", "비인가 접근입니다.");
 				response.sendRedirect(contextPath + "/error?errorCode=403");
+				return;
 			}
 		}
 		

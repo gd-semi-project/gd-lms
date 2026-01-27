@@ -1,13 +1,28 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.4)),
+                        url('${pageContext.request.contextPath}/resources/images/campus_image01.png')
+                        center/cover no-repeat;
+        }
+    </style>
+</head>
+<body>
 
-<div class="container mt-4">
-  <div class="alert alert-danger">
-    <h4 class="alert-heading">경로가 없는 페이지입니다. (404)</h4>
-    <p class="mb-0">
-      <c:out value="${requestScope.errorMessage}" />
-    </p>
-  </div>
-
-  <a class="btn btn-secondary" href="${pageContext.request.contextPath}/main">메인화면으로</a>
+<div class="container vh-100 d-flex align-items-center justify-content-center">
+    <div class="card shadow text-center p-4" style="max-width: 520px;">
+        <h1 class="display-4 fw-bold">404</h1>
+        <h5>${errorMessage}</h5>
+        <p class="text-muted">주소를 다시 확인해주세요.</p>
+        <a href="${pageContext.request.contextPath}/main" class="btn btn-dark">메인으로</a>
+    </div>
 </div>
+
+</body>
+</html>
