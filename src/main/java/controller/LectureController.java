@@ -44,7 +44,14 @@ public class LectureController extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		AccessDTO accessInfo = (AccessDTO) session.getAttribute("AccessInfo");
 
-		long userId = accessInfo.getUserId();
+		Long userId = accessInfo.getUserId();
+		if (userId == null) {
+		    session.invalidate();
+		    session = request.getSession();
+		    session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+		    response.sendRedirect(ctx + "/error?errorCode=401");
+		    return;
+		}
 
 		switch (action) {
 		case "/detail": {
@@ -52,7 +59,8 @@ public class LectureController extends HttpServlet {
 		    
 		    if (lectureId == null) {
 		    	// TODO : 400 Bad Request
-		        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "강의 정보가 올바르지 않습니다.");
+		    	session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+		        response.sendRedirect(ctx + "/error?errorCode=403");
 		        return;
 		    }
 

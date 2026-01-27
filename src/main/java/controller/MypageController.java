@@ -171,7 +171,14 @@ public class MypageController extends HttpServlet {
 					request.setAttribute("mypage", mypage);
 
 					// 내가 스케줄 불러오기
-					long userId = access.getUserId();
+					Long userId = access.getUserId();
+					if (userId == null) {
+					    session.invalidate();
+					    session = request.getSession();
+					    session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+					    response.sendRedirect(ctx + "/error?errorCode=401");
+					    return;
+					}
 					List<MyLectureDTO> myLecture = lectureDAO.selectMyEnrollmentedLecture(userId);
 					List<MyscheduleDTO> mySchedule = lectureDAO.selectMySchedule(userId);
 
@@ -201,6 +208,7 @@ public class MypageController extends HttpServlet {
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
+				e.printStackTrace();
 				session.setAttribute("errorMessage", "페이지 처리 중 서버 오류가 발생했습니다.");
 				response.sendRedirect(ctx + "/error?errorCode=500");
 				return;

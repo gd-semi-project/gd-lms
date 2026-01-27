@@ -59,14 +59,17 @@ public class EnrollmentController extends HttpServlet {
 		}
 		// ROLE이 STUDENT인경우(학생)만 접근가능
 		if (access.getRole() != Role.STUDENT) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
+			session.setAttribute("errorMessage", "학생만 접근 가능합니다.");
+		    response.sendRedirect(request.getContextPath() + "/error?errorCode=403");
+		    return;
 		}
 
 		Long studentId = (Long) session.getAttribute("userId");
 		if (studentId == null) {
 			session.invalidate();
-			response.sendRedirect(request.getContextPath() + "/login");
+			session = request.getSession();
+			session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+			response.sendRedirect(request.getContextPath() + "/error?errorCode=401");
 			return;
 		}
 
@@ -137,6 +140,13 @@ public class EnrollmentController extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/login");
 			return;
 		}
+		
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+		if (access == null || access.getRole() != Role.STUDENT) {
+		    session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+		    response.sendRedirect(request.getContextPath() + "/error?errorCode=403");
+		    return;
+		}
 
 		String action = request.getPathInfo();
 
@@ -154,7 +164,6 @@ public class EnrollmentController extends HttpServlet {
 				enrollmentService.apply(studentId, lectureId);
 				session.setAttribute("alertMsg", "수강신청이 완료되었습니다.");
 			}
-
 			else if ("/cancel".equals(action)) {
 				long lectureId;
 				try {
@@ -167,6 +176,8 @@ public class EnrollmentController extends HttpServlet {
 
 				enrollmentService.cancel(studentId, lectureId);
 				session.setAttribute("alertMsg", "수강취소가 완료되었습니다.");
+			}else {
+				session.setAttribute("alertMsg", "잘못된 요청입니다.");
 			}
 
 		} catch (RuntimeException e) {

@@ -27,6 +27,7 @@ public class changeUserPwController extends HttpServlet {
 		String ctx = request.getContextPath();
 		HttpSession session = request.getSession(false);
         if (session == null) {
+        	session = request.getSession();
         	session.setAttribute("errorMessage", "로그인이 필요합니다.");
             response.sendRedirect(ctx + "/error?errorCode=401");
             return;
@@ -42,8 +43,10 @@ public class changeUserPwController extends HttpServlet {
         String loginId = (String) session.getAttribute("loginId");
         if (loginId == null) {
             // 세션 꼬임 방어
-            session.invalidate();
-            response.sendRedirect(request.getContextPath() + "/login");
+        	session.invalidate();
+            session = request.getSession();
+            session.setAttribute("errorMessage", "세션이 만료되었습니다. 다시 로그인해주세요.");
+            response.sendRedirect(ctx + "/error?errorCode=401");
             return;
         }
 		// ROLE이 STUDENT인경우(학생)만 접근가능
@@ -70,6 +73,10 @@ public class changeUserPwController extends HttpServlet {
 
 			return;
 
+        }else {
+            session.setAttribute("errorMessage", "잘못된 접근입니다.");
+            response.sendRedirect(ctx + "/error?errorCode=404");
+            return;
         }
 	}
 
@@ -156,7 +163,7 @@ public class changeUserPwController extends HttpServlet {
 			// 성공시 메시지
 			session.setAttribute("alertMsg", "비밀번호 변경 성공! 다시 로그인해주세요.");
 			
-			doGet(request, response);
+			response.sendRedirect(ctx + "/login");
 			return;
 			
 			
@@ -167,6 +174,7 @@ public class changeUserPwController extends HttpServlet {
 			session.setAttribute("error", "비밀번호 변경에 실패하였습니다.");
 			
 			doGet(request, response);
+			return;
 		}
 	}
 
