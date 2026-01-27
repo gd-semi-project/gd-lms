@@ -15,10 +15,7 @@
     </p>
 
     <p>
-        📅 신청 가능 기간 :
-        <strong>
-            ${startDate} ~ ${endDate}
-        </strong>
+        📅 신청 가능 기간은 <strong>학사일정</strong>을 참고해 주세요.
     </p>
 
 </div>
