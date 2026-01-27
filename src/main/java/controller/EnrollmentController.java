@@ -15,9 +15,8 @@ import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.DepartmentService;
 import service.EnrollmentService;
+import service.LectureRequestService;
 import service.MyPageService;
-import utils.EnrollmentPeriod;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class EnrollmentController extends HttpServlet {
 
 	private EnrollmentService enrollmentService = new EnrollmentService();
 	private MyPageService myPageService = new MyPageService();
-
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
@@ -50,6 +49,19 @@ public class EnrollmentController extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/login");
 			return;
 		}
+		// 수강신청기능일경우 접근가능
+		if (!enrollmentService.isEnrollmentPeriod()) {
+
+		    request.setAttribute(
+		        "contentPage",
+		        "/WEB-INF/views/student/enrollmentClose.jsp"
+		    );
+
+		    request.getRequestDispatcher(
+		        "/WEB-INF/views/layout/layout.jsp"
+		    ).forward(request, response);
+		    return;
+		}
 		// ROLE이 STUDENT인경우(학생)만 접근가능
 		if (access.getRole() != Role.STUDENT) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -65,7 +77,7 @@ public class EnrollmentController extends HttpServlet {
 
 		String action = request.getPathInfo();
 
-		if ("/enrollment".equals(action)) {
+		if ("/enrollment".equals(action) && enrollmentService.isEnrollmentPeriod()) {
 			MypageDTO mypage = myPageService.getMypageDTO(loginId);
 			if (mypage == null) {
 				response.sendRedirect(request.getContextPath() + "/login");
@@ -106,21 +118,7 @@ public class EnrollmentController extends HttpServlet {
 			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
 			return;
-		} else if ("/closed".equals(action)) {
-
-			request.setAttribute("startDate", EnrollmentPeriod.START);
-	        request.setAttribute("endDate", EnrollmentPeriod.END);
-			
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/student/enrollmentClose.jsp"
-		    );
-
-		    request.getRequestDispatcher(
-		        "/WEB-INF/views/layout/layout.jsp"
-		    ).forward(request, response);
-		    return;
-		}
+		} 
 
 	}
 

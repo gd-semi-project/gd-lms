@@ -10,8 +10,6 @@ import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
-import utils.EnrollmentPeriod;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -71,14 +69,6 @@ public class AccessFilter extends HttpFilter {
 
 		if (!uri.equals(cleanedUri)) {
 		    response.sendRedirect(cleanedUri);
-		    return;
-		}
-
-		// (학생) 수강신청 기간 체크
-		boolean isEnrollRequest = actionPath.startsWith("/enroll") || actionPath.equals("/mypage/enrollmentPage");
-		boolean isClosedPage = actionPath.equals("/enroll/closed");
-		if (isEnrollRequest && !isClosedPage && !EnrollmentPeriod.isOpen()) {
-			response.sendRedirect(contextPath + "/enroll/closed");
 		    return;
 		}
 
