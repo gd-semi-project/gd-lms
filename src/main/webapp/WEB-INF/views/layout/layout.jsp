@@ -26,15 +26,8 @@
 	src="${pageContext.request.contextPath}/resources/js/keronBallLauncher.js"></script>
 
 
-<style>
-.sidebar {
-	min-height: calc(100vh - 56px); /* navbar 기본 높이 */
-}
+<link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/layout.css">
 
-.sidebar .nav-link:hover {
-	background: rgba(255, 255, 255, 0.15);
-}
-</style>
 </head>
 
 <body class="bg-light">
@@ -46,11 +39,9 @@
 
 			<!-- 사이드바 include -->
 			<jsp:include page="/WEB-INF/views/include/sidebar.jsp" />
-			<%-- <jsp:include page="/WEB-INF/views/include/commonSidebar.jsp" /> --%>
-			<%--  <jsp:include page="/WEB-INF/views/include/testSidebarForAdmin.jsp"/> --%>
 
 			<!-- 바디 -->
-			<main class="col-12 col-md-9 col-lg-10 p-4">
+			<main class="col-12 col-md-9 col-lg-10 p-4 about-page">
 
 				<c:if test="${not empty requestScope.contentPage}">
 					<jsp:include page="${requestScope.contentPage}" />
