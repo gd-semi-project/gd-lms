@@ -122,14 +122,6 @@
       </li>
 	</c:if>
          
-         
-         <!--  스코프 확인용 TEST -->
-         <div class="text-warning small">
-           pageScope.role = [${pageScope.role}]<br/>
-           AccessInfo.role = [${sessionScope.AccessInfo.role}]<br/>
-           sessionScope.role = [${sessionScope.AccessInfo.role}]
-         </div>
-
    </ul>
 
    <hr class="border-light opacity-50 my-3">
@@ -138,6 +130,7 @@
       로그인 사용자: ${sessionScope.AccessInfo.name}<br /> 권한:
       ${sessionScope.AccessInfo.role}
    </div>
+   
 </aside>
 
 <style>
