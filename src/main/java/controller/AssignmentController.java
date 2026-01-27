@@ -21,6 +21,9 @@ import service.AssignmentService;
 import service.FileUploadService;
 import service.LectureService;
 
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
+
 @WebServlet("/lecture/assignments")
 @MultipartConfig(
 	    fileSizeThreshold = 1024 * 1024,  // 메모리에 저장할 임계값
@@ -86,7 +89,7 @@ public class AssignmentController extends HttpServlet {
                 AssignmentDTO assignment = assignmentService.getAssignmentDetail(assignmentId, lectureId, userId, role);
 
                 if (assignment == null) {
-                    throw new AssignmentService.NotFoundException("과제를 찾을 수 없습니다.");
+                    throw new ResourceNotFoundException("과제를 찾을 수 없습니다.");
                 }
 
                 request.setAttribute("assignment", assignment);
@@ -126,7 +129,7 @@ public class AssignmentController extends HttpServlet {
             // 작성 폼 (교수)
             else if ("writeForm".equalsIgnoreCase(action)) {
                 if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
-                    throw new AssignmentService.AccessDeniedException("과제 생성 권한이 없습니다.");
+                    throw new AccessDeniedException("과제 생성 권한이 없습니다.");
                 }
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/assignment/write.jsp");
             }
@@ -134,7 +137,7 @@ public class AssignmentController extends HttpServlet {
             // 수정 폼 (교수)
             else if ("edit".equalsIgnoreCase(action)) {
                 if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
-                    throw new AssignmentService.AccessDeniedException("과제 수정 권한이 없습니다.");
+                    throw new AccessDeniedException("과제 수정 권한이 없습니다.");
                 }
 
                 long assignmentId = parseLong(request.getParameter("assignmentId"));
@@ -146,7 +149,7 @@ public class AssignmentController extends HttpServlet {
             // 제출 폼 (학생)
             else if ("submitForm".equalsIgnoreCase(action)) {
                 if (role != Role.STUDENT) {
-                    throw new AssignmentService.AccessDeniedException("학생만 제출 가능합니다.");
+                    throw new AccessDeniedException("학생만 제출 가능합니다.");
                 }
 
                 long assignmentId = parseLong(request.getParameter("assignmentId"));
@@ -161,7 +164,7 @@ public class AssignmentController extends HttpServlet {
             // 채점 폼 (교수)
             else if ("gradeForm".equalsIgnoreCase(action)) {
                 if (role != Role.INSTRUCTOR && role != Role.ADMIN) {
-                    throw new AssignmentService.AccessDeniedException("채점 권한이 없습니다.");
+                    throw new AccessDeniedException("채점 권한이 없습니다.");
                 }
 
                 long assignmentId = parseLong(request.getParameter("assignmentId"));
@@ -195,11 +198,11 @@ public class AssignmentController extends HttpServlet {
 
             request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
-        } catch (AssignmentService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error/403.jsp").forward(request, response);
 
-        } catch (AssignmentService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error/404.jsp").forward(request, response);
 
@@ -324,10 +327,10 @@ public class AssignmentController extends HttpServlet {
 
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId);
 
-        } catch (AssignmentService.AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=accessDenied");
 
-        } catch (AssignmentService.NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=notFound");
 
         } catch (Exception e) {

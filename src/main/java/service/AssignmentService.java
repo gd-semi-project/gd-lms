@@ -15,6 +15,10 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
+import exception.UnauthorizedException;
+
 public class AssignmentService {
     private static final AssignmentService instance = new AssignmentService();
     private AssignmentService() {}
@@ -29,7 +33,7 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return assignmentDAO.selectByLecture(conn, lectureId);
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             throw new RuntimeException("과제 목록 조회 실패", e);
@@ -41,7 +45,7 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return assignmentDAO.selectById(conn, assignmentId, lectureId);
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             throw new RuntimeException("과제 상세 조회 실패", e);
@@ -67,7 +71,7 @@ public class AssignmentService {
             
             conn.commit();
             return id;
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             rollbackQuietly(conn);
@@ -91,7 +95,7 @@ public class AssignmentService {
             assertCanAccessLecture(conn, userId, role, dto.getLectureId());
             int updated = assignmentDAO.update(conn, dto);
             if (updated == 0) {
-                throw new NotFoundException("과제를 찾을 수 없습니다.");
+                throw new ResourceNotFoundException("과제를 찾을 수 없습니다.");
             }
             
             String boardType = "ASSIGNMENT";
@@ -99,7 +103,7 @@ public class AssignmentService {
             fus.fileUpload(boardType, dto.getAssignmentId(), partList);
             
             conn.commit();
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             rollbackQuietly(conn);
@@ -123,13 +127,13 @@ public class AssignmentService {
             assertCanAccessLecture(conn, userId, role, lectureId);
             int deleted = assignmentDAO.softDelete(conn, assignmentId);
             if (deleted == 0) {
-                throw new NotFoundException("과제를 찾을 수 없습니다.");
+                throw new ResourceNotFoundException("과제를 찾을 수 없습니다.");
             }
             String boardType = "ASSIGNMENT";
             fus.deleteFile(boardType, assignmentId);
             
             conn.commit();
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             rollbackQuietly(conn);
@@ -148,7 +152,7 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return submissionDAO.selectByAssignment(conn, assignmentId);
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             throw new RuntimeException("제출 목록 조회 실패", e);
@@ -164,7 +168,7 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return submissionDAO.selectByStudentAndAssignment(conn, userId, assignmentId);
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             throw new RuntimeException("제출 조회 실패", e);
@@ -210,7 +214,7 @@ public class AssignmentService {
             
             conn.commit();
             return submissionId;
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             rollbackQuietly(conn);
@@ -233,10 +237,10 @@ public class AssignmentService {
             assertCanAccessLecture(conn, userId, role, lectureId);
             int updated = submissionDAO.updateGrade(conn, submissionId, score, feedback);
             if (updated == 0) {
-                throw new NotFoundException("제출물을 찾을 수 없습니다.");
+                throw new ResourceNotFoundException("제출물을 찾을 수 없습니다.");
             }
             conn.commit();
-        } catch (AccessDeniedException | NotFoundException e) {
+        } catch (AccessDeniedException | ResourceNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
             rollbackQuietly(conn);
@@ -249,7 +253,7 @@ public class AssignmentService {
     // 공통 헬퍼
     private void assertCanAccessLecture(Connection conn, long userId, Role role, long lectureId) throws SQLException {
         if (!accessDAO.lectureExists(conn, lectureId)) {
-            throw new NotFoundException("존재하지 않는 강의입니다.");
+            throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
         }
 
         switch (role) {
@@ -279,11 +283,5 @@ public class AssignmentService {
         try { conn.close(); } catch (Exception ignore) {}
     }
 
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String msg) { super(msg); }
-    }
 
-    public static class NotFoundException extends RuntimeException {
-        public NotFoundException(String msg) { super(msg); }
-    }
 }

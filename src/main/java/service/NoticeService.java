@@ -12,6 +12,9 @@ import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
 import model.enumtype.NoticeType;
 import model.enumtype.Role;
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
+import exception.UnauthorizedException;
 
 public class NoticeService {
 
@@ -265,7 +268,7 @@ public class NoticeService {
             try {
                 // 1) 기존 공지 로드 (요청 값 절대 사용 X)
                 NoticeDTO existing = noticeDAO.findById(conn, noticeId);
-                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (existing == null) throw new ResourceNotFoundException("공지사항이 존재하지 않습니다.");
                 if (!canWrite(role, userId, existing))
                     throw new AccessDeniedException("수정 권한이 없습니다.");
 
@@ -302,7 +305,7 @@ public class NoticeService {
             conn.setAutoCommit(false);
             try {
                 NoticeDTO existing = noticeDAO.findById(conn, noticeId);
-                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (existing == null) throw new ResourceNotFoundException("공지사항이 존재하지 않습니다.");
                 if (!canWrite(role, userId, existing)) throw new AccessDeniedException("삭제 권한이 없습니다.");
 
                 Long actualLectureId = existing.getLectureId();
@@ -459,11 +462,5 @@ public class NoticeService {
 
     // ========== 예외 타입 ==========
 
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String message) { super(message); }
-    }
 
-    public static class NotFoundException extends RuntimeException {
-        public NotFoundException(String message) { super(message); }
-    }
 }
