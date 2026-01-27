@@ -19,14 +19,27 @@ CREATE TABLE score_policy (
     FOREIGN KEY (lecture_id) REFERENCES lecture(lecture_id)
 );
 
+
+INSERT INTO score_policy (
+    lecture_id,
+    attendance_weight,
+    assignment_weight,
+    midterm_weight,
+    final_weight,
+    is_confirmed,
+    created_at,
+    updated_at
+)
 SELECT
     l.lecture_id,
-    l.lecture_title,
-    sp.attendance_weight,
-    sp.assignment_weight,
-    sp.midterm_weight,
-    sp.final_weight
+    20,
+    30,
+    20,
+    30,
+    0,
+    NOW(),
+    NOW()
 FROM lecture l
 LEFT JOIN score_policy sp
-    ON l.lecture_id = sp.lecture_id
-ORDER BY l.lecture_id;
+       ON sp.lecture_id = l.lecture_id
+WHERE sp.lecture_id IS NULL;

@@ -196,6 +196,7 @@ public class LectureDAO {
 				        l.validation,
 				        l.created_at,
 				        l.updated_at
+				        
 				    FROM enrollment e
 				    JOIN lecture l ON e.lecture_id = l.lecture_id
 				    WHERE e.user_id = ?
@@ -323,6 +324,9 @@ public class LectureDAO {
 	// ======================================================
 	// 공지사항 화면에서 쓰는 “단순 조회” 래퍼들
 	// ======================================================
+	
+	
+	// 전체 강의 조회(확정된)
 	public List<LectureDTO> findAll(Connection conn) throws SQLException {
 		String sql = "SELECT lecture_id, user_id, lecture_title, lecture_round, section, "
 				+ "       start_date, end_date, room, capacity, status, validation, created_at, updated_at "
@@ -340,6 +344,7 @@ public class LectureDAO {
 		}
 	}
 
+	// 교수 기준 강의 조회
 	public List<LectureDTO> findByInstructor(Connection conn,long instructorId) throws SQLException{
 		
 		String status = "ONGOING";
@@ -347,13 +352,14 @@ public class LectureDAO {
 		
 	}
 
-	// ★ 중요: studentId가 아니라 “userId”를 받는 걸로 통일하는 게 맞음
+	// 학생 기준 강의 조회
 	public List<LectureDTO> findByStudent(Connection conn,long userId) throws SQLException {
 		
 		return selectLecturesByStudent(conn, userId);
 		
 	}
 
+	// 강의 단건 조회
 	public LectureDTO findById(Connection conn, long lectureId) throws SQLException{
 
 		return selectLectureById(conn, lectureId);
@@ -535,7 +541,6 @@ public class LectureDAO {
 		return list;
 	}
 
-	// 학생 수강신청 관련
 
 	// 수강신청페이지에 들어갈 시 떠야하는 개설 강의목록을 나타내주는 메소드
 	public List<LectureForEnrollDTO> findAvailableLecturesForEnroll(Long departmentId, String keyword) {
@@ -570,7 +575,7 @@ public class LectureDAO {
 				           ON l.lecture_id = e.lecture_id
 				          AND e.status = 'ENROLLED'
 
-				    WHERE l.status = 'PLANNED'
+				    WHERE l.status IN ('PLANNED','ONGOING')
 				      AND l.validation = 'CONFIRMED'
 				""");
 
@@ -967,5 +972,82 @@ public class LectureDAO {
 			return null;
 		}
 	}
+	
+	// 이미 종강한 강의목록(학생전용)
+	public List<MyLectureDTO> selectMyEndedLecture(long userId) {
+		String sql = """
+				           SELECT
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name AS instructor_name,
+				    GROUP_CONCAT(
+				        CONCAT(
+				            CASE s.week_day
+				                WHEN 'MON' THEN '월'
+				                WHEN 'TUE' THEN '화'
+				                WHEN 'WED' THEN '수'
+				                WHEN 'THU' THEN '목'
+				                WHEN 'FRI' THEN '금'
+				                WHEN 'SAT' THEN '토'
+				                WHEN 'SUN' THEN '일'
+				            END,
+				            ' ',
+				            TIME_FORMAT(s.start_time, '%H:%i'),
+				            '~',
+				            TIME_FORMAT(s.end_time, '%H:%i')
+				        )
+				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
+				        SEPARATOR ' / '
+				    ) AS schedule
+				FROM enrollment e
+				JOIN lecture l ON e.lecture_id = l.lecture_id
+				JOIN user u ON l.user_id = u.user_id
+				JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+				WHERE e.user_id = ?
+				  AND e.status = 'ENROLLED'
+				  AND l.validation = 'CONFIRMED'
+				  AND l.status = 'ENDED'
+				GROUP BY
+				    l.lecture_id,
+				    l.lecture_title,
+				    l.section,
+				    l.room,
+				    l.start_date,
+				    l.end_date,
+				    u.name
+				ORDER BY l.start_date
+				        """;
+
+		List<MyLectureDTO> list = new ArrayList<>();
+
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				MyLectureDTO lecture = new MyLectureDTO();
+				lecture.setLectureId(rs.getLong("lecture_id"));
+				lecture.setLectureTitle(rs.getString("lecture_title"));
+				lecture.setSection(rs.getString("section"));
+				lecture.setRoom(rs.getString("room"));
+				lecture.setStartDate(rs.getDate("start_date").toLocalDate());
+				lecture.setEndDate(rs.getDate("end_date").toLocalDate());
+				lecture.setInstructorName(rs.getString("instructor_name"));
+				lecture.setSchedule(rs.getString("schedule"));
+				list.add(lecture);
+			}
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		return list;
+	}
+	
 
 }

@@ -1,19 +1,12 @@
 package controller;
 
-import jakarta.servlet.RequestDispatcher;
+import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.dto.UserDTO;
-import model.enumtype.Role;
-import service.LoginService;
-import utils.HashUtil;
-
-import java.io.IOException;
-import java.time.LocalDate;
 
 @WebServlet(
 		urlPatterns = {"/error"}
@@ -23,29 +16,36 @@ public class ErrorController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String requestURI = request.getRequestURI();
 		String contextPath = request.getContextPath();
-		String actionPath = requestURI.substring(contextPath.length());
-		
 		HttpSession session = request.getSession(false);
+		if (session == null) {
+			response.sendRedirect(contextPath + "/login");
+		} else {
+			String errorMessage = (String) session.getAttribute("errorMessage");
+			if (errorMessage == null) {
+				session.setAttribute("errorMessage", "비인가 접근입니다.");
+				response.sendRedirect(contextPath + "/error?errorCode=403");
+				return;
+			}
+		}
 		
-		String errorCode = (String) request.getAttribute("errorCode");
-		String errorMessage = (String) request.getAttribute("errorMessage");
+		String errorCode = (String) request.getParameter("errorCode");
+		String errorMessage = (String) session.getAttribute("errorMessage");
+		request.setAttribute("errorMessage", errorMessage);
+		session.removeAttribute("errorMessage");
+		
 		// 에러코드와 에러메시지는 각 서비스에서 redirect 발생
-		if (errorCode == null && errorMessage == null) {
-			// 에러코드나 에러메시지 없이 페이지 직접 접근시 별도 에러내용 발생
-		} else if (errorCode.equals("404")) {
-			
+		if (errorCode.equals("400")) {
+			response.sendError(400);
+		} else if (errorCode.equals("401")) {
+			response.sendError(401);
 		} else if (errorCode.equals("403")) {
-			
-		} else if (errorCode.equals("500")) {
-			
+			response.sendError(403);
 		} else if (errorCode.equals("404")) {
+			response.sendError(404);
+		} else if (errorCode.equals("500")) {
+			response.sendError(500);
 			
 		}
 	}
-
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	}
-
 }

@@ -340,11 +340,9 @@ public class AdminController extends HttpServlet {
 				ls.RegistUser(userDTO);
 				
 				// response.sendRedirect("/gd-lms/login.jsp");
-				String contentPage = "/WEB-INF/views/admin/DashBoard.jsp";
+				String contentPage = "/admin/dashboard";
 				
-				request.setAttribute("contentPage", contentPage);
-				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
-				rd.forward(request, response);
+				response.sendRedirect(request.getContextPath() + contentPage);
 				break;
 			}
 			

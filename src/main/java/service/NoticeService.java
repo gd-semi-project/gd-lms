@@ -12,6 +12,9 @@ import model.dto.LectureDTO;
 import model.dto.NoticeDTO;
 import model.enumtype.NoticeType;
 import model.enumtype.Role;
+import exception.AccessDeniedException;
+import exception.ResourceNotFoundException;
+import exception.UnauthorizedException;
 
 public class NoticeService {
 
@@ -27,7 +30,6 @@ public class NoticeService {
         try (Connection conn = DBConnection.getConnection()){
         	return noticeDAO.countOnlyGlobalNotices(conn,items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.countAllNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -41,7 +43,6 @@ public class NoticeService {
         try (Connection conn = DBConnection.getConnection()) {
         	return noticeDAO.findPageOnlyGlobalNotices(conn,limit, offset, items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.findPageAllNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -66,7 +67,6 @@ public class NoticeService {
                 return noticeDAO.countAllLectureNotices(conn,items, text);
             }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.countAllLectureNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -88,7 +88,6 @@ public class NoticeService {
                   return noticeDAO.findPageAllLectureNotices(conn,limit, offset, items, text);
               }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.findPageAllLectureNotices error",e);
 		} catch (ClassNotFoundException e) {
@@ -112,7 +111,6 @@ public class NoticeService {
 
             return noticeDAO.countByLecture(conn,lectureId, items, text);
 		} catch (SQLException e) {
-			// TODO: handle exception
 			throw new RuntimeException("공지사항 count 조회 실패", e);
 		} catch (ClassNotFoundException e) {
             throw new RuntimeException("NoticeService. countByLecture DB driver error", e);
@@ -135,7 +133,6 @@ public class NoticeService {
             return noticeDAO.findPageByLecture(conn,lectureId, limit, offset, items, text);
 			
 		} catch (SQLException e) {
-			// TODO: handle exception
 			throw new RuntimeException("공지 목록 조회 실패", e);
 		}  catch (ClassNotFoundException e) {
             throw new RuntimeException("NoticeService.findPageByLecture DB driver error", e);
@@ -271,7 +268,7 @@ public class NoticeService {
             try {
                 // 1) 기존 공지 로드 (요청 값 절대 사용 X)
                 NoticeDTO existing = noticeDAO.findById(conn, noticeId);
-                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (existing == null) throw new ResourceNotFoundException("공지사항이 존재하지 않습니다.");
                 if (!canWrite(role, userId, existing))
                     throw new AccessDeniedException("수정 권한이 없습니다.");
 
@@ -308,7 +305,7 @@ public class NoticeService {
             conn.setAutoCommit(false);
             try {
                 NoticeDTO existing = noticeDAO.findById(conn, noticeId);
-                if (existing == null) throw new NotFoundException("공지사항이 존재하지 않습니다.");
+                if (existing == null) throw new ResourceNotFoundException("공지사항이 존재하지 않습니다.");
                 if (!canWrite(role, userId, existing)) throw new AccessDeniedException("삭제 권한이 없습니다.");
 
                 Long actualLectureId = existing.getLectureId();
@@ -345,7 +342,6 @@ public class NoticeService {
             }
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.getAvailableLectures error",e);
 		}
@@ -365,7 +361,6 @@ public class NoticeService {
             }
             return List.of();
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("NoticeService.getUserLectures error",e);
 		}
@@ -376,7 +371,7 @@ public class NoticeService {
 
     private void requireLogin(Long userId, Role role) {
         if (userId == null || role == null) {
-            throw new AccessDeniedException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 
@@ -405,7 +400,6 @@ public class NoticeService {
     		boolean enrolled = enrollmentDAO.isStudentEnrolled(conn, userId, lectureId);
             if (!enrolled) throw new AccessDeniedException("수강하지 않는 강의의 공지사항에 접근할 수 없습니다.");
 		} catch (SQLException e) {
-			// TODO: handle exception
 	        e.printStackTrace(); 
 	        throw new RuntimeException("수강 여부 확인 DB 오류", e);
 		}
@@ -419,7 +413,6 @@ public class NoticeService {
     	           throw new AccessDeniedException("담당하지 않는 강의의 공지사항에 접근할 수 없습니다.");
     	       }
 		} catch (SQLException e) {
-			// TODO: handle exception
 			e.printStackTrace();
 			throw new RuntimeException("강의 담당 여부 확인 DB 오류", e);
 		}
@@ -469,11 +462,5 @@ public class NoticeService {
 
     // ========== 예외 타입 ==========
 
-    public static class AccessDeniedException extends RuntimeException {
-        public AccessDeniedException(String message) { super(message); }
-    }
 
-    public static class NotFoundException extends RuntimeException {
-        public NotFoundException(String message) { super(message); }
-    }
 }

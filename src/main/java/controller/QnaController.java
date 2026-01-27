@@ -14,6 +14,9 @@ import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LectureService;
 import service.QnaService;
+import exception.AccessDeniedException;
+import exception.UnauthorizedException;
+import exception.ResourceNotFoundException;
 
 @WebServlet("/lecture/qna")
 public class QnaController extends HttpServlet {
@@ -23,6 +26,11 @@ public class QnaController extends HttpServlet {
 
     private static final int DEFAULT_SIZE = 10;
     private static final int MAX_SIZE = 50;
+    
+    // SC_FORBIDDEN = 403
+    // SC_BAD_REQUEST = 400
+    // SC_NOT_FOUND = 404
+    // SC_BAD_REQUEST =400
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,7 +68,8 @@ public class QnaController extends HttpServlet {
             // 4) lecture 객체 세팅 (탭/화면 공통)
             LectureDTO lecture = lectureService.getLectureDetail(lectureId);
             if (lecture == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                session.setAttribute("errorMessage", "존재하지 않는 강의입니다.");
+                response.sendRedirect(ctx + "/error?errorCode=404");
                 return;
             }
 
@@ -78,10 +87,15 @@ public class QnaController extends HttpServlet {
                     response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
                     return;
                 }
+                // 에러 메세지
+                String err = request.getParameter("error");
+                if ("badRequest".equals(err)) request.setAttribute("errorMessage", "입력값을 다시 확인해주세요.");
+                else if ("emptyContent".equals(err)) request.setAttribute("errorMessage", "내용을 입력해주세요.");
+                else if ("invalidInput".equals(err)) request.setAttribute("errorMessage", "요청값이 올바르지 않습니다.");
 
                 QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
                 if (post == null) {
-                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                    throw new ResourceNotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
                 }
 
                 List<QnaAnswerDTO> answers = qnaService.getAnswers(qnaId, lectureId, userId, role);
@@ -105,15 +119,19 @@ public class QnaController extends HttpServlet {
                     response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
                     return;
                 }
-
+                
+                // 에러 메세지
+                String err = request.getParameter("error");
+                if ("badRequest".equals(err)) request.setAttribute("errorMessage", "입력값을 다시 확인해주세요.");
+                
                 QnaPostDTO post = qnaService.getPostDetail(qnaId, lectureId, userId, role);
                 if (post == null) {
-                    throw new QnaService.NotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
+                    throw new ResourceNotFoundException("해당 Q&A 글을 찾을 수 없습니다.");
                 }
 
                 // 권한 체크: 학생은 본인 글만 수정 가능
                 if (role == Role.STUDENT && post.getAuthorId() != userId) {
-                    throw new QnaService.AccessDeniedException("수정 권한이 없습니다.");
+                    throw new AccessDeniedException("수정 권한이 없습니다.");
                 }
 
                 request.setAttribute("post", post);
@@ -131,9 +149,17 @@ public class QnaController extends HttpServlet {
 
                 // 학생만 질문 작성 가능
                 if (role != Role.STUDENT) {
-                    throw new QnaService.AccessDeniedException("질문 작성은 학생만 가능합니다.");
+                    throw new AccessDeniedException("질문 작성은 학생만 가능합니다.");
+                }
+                // 작성중 입력 오류값 에러 메세지
+                String err = request.getParameter("error");
+                if ("badRequest".equals(err)) {
+                    request.setAttribute("errorMessage", "입력값을 다시 확인해주세요.");
+                } else if ("emptyField".equals(err)) {
+                    request.setAttribute("errorMessage", "제목/내용은 필수입니다.");
                 }
 
+                
                 request.setAttribute("contentPage", "/WEB-INF/views/lecture/qna/write.jsp");
                 request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
                        .forward(request, response);
@@ -143,6 +169,12 @@ public class QnaController extends HttpServlet {
             // =========================
             // 목록 (기본)
             // =========================
+            
+            // 에러 메세지
+            String err = request.getParameter("error");
+            if ("badRequest".equals(err)) {
+                request.setAttribute("errorMessage", "잘못된 요청입니다.");
+            }
 
             int page = parseInt(request.getParameter("page"), 1);
             int size = parseInt(request.getParameter("size"), DEFAULT_SIZE);
@@ -166,21 +198,30 @@ public class QnaController extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
                    .forward(request, response);
 
-        } catch (QnaService.AccessDeniedException e) {
-            request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/accessDenied.jsp")
-                   .forward(request, response);
+        } catch (UnauthorizedException e) {
+        	// 401 로그인 오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=401");
+            return;
 
-        } catch (QnaService.NotFoundException e) {
-            request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/notFound.jsp")
-                   .forward(request, response);
+        } catch (AccessDeniedException e) {
+        	// 403 권한오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=403");
+            return;
+
+        } catch (ResourceNotFoundException e) {
+        	// 404 경로,리소스 오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=404");
+            return;
 
         } catch (Exception e) {
-            request.setAttribute("errorMessage", "Q&A 처리 중 오류가 발생했습니다.");
-            request.setAttribute("exception", e);
-            request.getRequestDispatcher("/WEB-INF/views/error/error.jsp")
-                   .forward(request, response);
+        	// 500 서버오류
+            log("QnaController doGet error", e);
+            session.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=500");
+            return;
         }
     }
 
@@ -216,8 +257,18 @@ public class QnaController extends HttpServlet {
             response.sendRedirect(ctx + "/lecture/list?error=invalidLectureId");
             return;
         }
+     
 
         try {
+        	// 입력오류 null 체크 
+        	if (action == null || action.isBlank()) { throw new IllegalArgumentException("action is required."); }
+        	   // action별 파라미터 검증
+            if ("answer".equalsIgnoreCase(action)
+                    || "update".equalsIgnoreCase(action)
+                    || "delete".equalsIgnoreCase(action)) {
+                if (qnaId <= 0) throw new IllegalArgumentException("qnaId is required.");
+            }
+            
             // =========================
             // 답변 등록 (INSTRUCTOR, ADMIN)
             // =========================
@@ -278,7 +329,7 @@ public class QnaController extends HttpServlet {
                 String content = request.getParameter("content");
                 String isPrivate = request.getParameter("isPrivate");
 
-                if (qnaId <= 0 || title == null || title.trim().isEmpty() 
+                if (title == null || title.trim().isEmpty() 
                         || content == null || content.trim().isEmpty()) {
                     response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
                             + "&action=view&qnaId=" + qnaId + "&error=invalidInput");
@@ -304,31 +355,71 @@ public class QnaController extends HttpServlet {
             // 질문 삭제 (작성자 본인, ADMIN, INSTRUCTOR)
             // =========================
             if ("delete".equalsIgnoreCase(action)) {
-                if (qnaId <= 0) {
-                    response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=invalidQnaId");
-                    return;
-                }
-
                 qnaService.deletePost(qnaId, lectureId, userId, role);
 
                 response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&success=deleted");
                 return;
             }
 
-            // 알 수 없는 action
+           
             response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId);
 
-        } catch (QnaService.AccessDeniedException e) {
-            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
-                    + "&error=accessDenied&message=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+        } catch (IllegalArgumentException e) {
 
-        } catch (QnaService.NotFoundException e) {
-            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId 
-                    + "&error=notFound&message=" + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+            String targetAction;
+
+            if ("create".equalsIgnoreCase(action)) {
+                // 작성 저장 실패
+                targetAction = "writeForm";
+
+            } else if ("update".equalsIgnoreCase(action)) {
+                // 수정 저장 실패 
+                targetAction = "edit";
+
+            } else if ("answer".equalsIgnoreCase(action)) {
+                // 답변 등록 실패 
+                targetAction = "view";
+
+            } else if ("delete".equalsIgnoreCase(action)) {
+                // 삭제 실패 
+                targetAction = "list";
+
+            } else {
+                // 나머지
+                targetAction = "list";
+            }
+
+            String url = ctx + "/lecture/qna?lectureId=" + lectureId
+                    + "&action=" + targetAction
+                    + (qnaId > 0 ? "&qnaId=" + qnaId : "")
+                    + "&error=badRequest";
+
+            response.sendRedirect(url);
+            return;
+        } catch (UnauthorizedException e) {
+        	// 401 로그인 오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=401");
+            return;
+
+        } catch (AccessDeniedException e) {
+        	// 403 권한 오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=403");
+            return;
+
+        } catch (ResourceNotFoundException e) {
+        	// 404 경로,리소스 오류
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=404");
+            return;
 
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(ctx + "/lecture/qna?lectureId=" + lectureId + "&error=serverError");
+        	// 서버 오류
+            log("QnaController doPost error", e);
+            session.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=500");
+            return;
         }
     }
 

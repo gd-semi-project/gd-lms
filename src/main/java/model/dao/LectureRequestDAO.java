@@ -26,9 +26,7 @@ public class LectureRequestDAO {
         return instance;
     }
 
-    /* ==================================================
-     * 1. 강사별 강의 개설 신청 목록
-     * ================================================== */
+    // 강사별 강의 개설 신청 목록
     public List<LectureRequestDTO> selectByInstructor(
             Connection conn,
             Long instructorId
@@ -92,9 +90,7 @@ public class LectureRequestDAO {
         return list;
     }
 
-    /* ==================================================
-     * 2. 강의 개설 신청 단건 조회
-     * ================================================== */
+    // 강의 개설 신청 단건 조회
     public LectureRequestDTO selectByLectureId(
             Connection conn,
             Long lectureId
@@ -144,9 +140,7 @@ public class LectureRequestDAO {
         }
     }
 
-    /* ==================================================
-     * 3. 강의 개설 신청 insert (lecture)
-     * ================================================== */
+    // 강의 개설 신청 insert (lecture)
     public Long insertLecture(
             Connection conn,
             Long instructorId,
@@ -211,9 +205,7 @@ public class LectureRequestDAO {
         throw new SQLException("lecture_id 생성 실패");
     }
 
-    /* ==================================================
-     * 4. 강의 요일/시간 insert
-     * ================================================== */
+    // 강의 요일/시간 insert
     public void insertSchedule(
             Connection conn,
             Long lectureId,
@@ -247,9 +239,7 @@ public class LectureRequestDAO {
         }
     }
 
-    /* ==================================================
-     * 5. 강의 기본 정보 수정
-     * ================================================== */
+    // 강의 기본 정보 수정
     public void updateLecture(
             Connection conn,
             Long lectureId,
@@ -300,9 +290,7 @@ public class LectureRequestDAO {
         }
     }
 
-    /* ==================================================
-     * 6. 강의 상태(validation) 조회
-     * ================================================== */
+    // 강의 상태(validation) 조회
     public LectureValidation getValidation(
             Connection conn,
             Long lectureId
@@ -327,9 +315,7 @@ public class LectureRequestDAO {
         throw new SQLException("강의 상태 조회 실패");
     }
 
-    /* ==================================================
-     * 7. 강의 개설 신청 삭제
-     * ================================================== */
+    // 강의 개설 신청 삭제
     public void deleteLecture(
             Connection conn,
             Long lectureId
@@ -352,9 +338,7 @@ public class LectureRequestDAO {
         }
     }
 
-    /* ==================================================
-     * 내부 유틸 – 강사 소속 학과 조회
-     * ================================================== */
+    // 내부 유틸 – 강사 소속 학과 조회
     private Long findDepartmentIdByInstructor(
             Connection conn,
             Long instructorId

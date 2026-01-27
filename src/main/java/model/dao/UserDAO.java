@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import database.DBConnection;
+import exception.InternalServerException;
 import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Gender;
@@ -69,11 +70,9 @@ public class UserDAO {
 				}
 			}
 			return userDTO;
-		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("UserDAO selectuserbyid" + e.getMessage());
-		}
-		return null;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
 	}
 	
 	public AccessDTO selectAccessById(String Id) {
@@ -92,16 +91,16 @@ public class UserDAO {
 				accessDTO.setRole(Role.valueOf(roleStr));
 			}
 			return accessDTO;
-		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("UserDAO selectuserbyid" + e.getMessage());
-		}
-		return null;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
 	}
 	
 	public void InsertUser(UserDTO userDTO) {
-		String sql = "INSERT INTO user (login_id, password_hash, name, birth_date, email, phone, role)"
-				+ " VALUES (?,?,?,?,?,?,?)";
+		String sql = """
+					INSERT INTO user (login_id, password_hash, name, birth_date, email, phone, role)
+					VALUES (?,?,?,?,?,?,?)
+				""";
 				
 		try (Connection conn = DBConnection.getConnection()){
 			PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -113,13 +112,10 @@ public class UserDAO {
 			pstmt.setString(6, userDTO.getPhone());
 			pstmt.setString(7, userDTO.getRole().toString());
 			pstmt.executeUpdate();
-		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println(e.getMessage() + "111111");
-		}
-		
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
 	}
-	
 
 	// 유저 기본정보 수정
 	public void updateUserInfo(UserDTO userDTO) {
@@ -134,9 +130,8 @@ public class UserDAO {
 			pstmt.setString(5, userDTO.getLoginId());
 			pstmt.executeUpdate();
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println(e.getMessage() + "111111");
-		}
+            throw new InternalServerException(e);
+        }
 	}
 	
 	// 비밀번호 변경
@@ -144,19 +139,14 @@ public class UserDAO {
 	    String sql = "UPDATE user SET password_hash = ? WHERE login_id = ?";
 	    
 	    try (Connection conn = DBConnection.getConnection();
-	            PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-	           pstmt.setString(1, passwordHash);
-	           pstmt.setString(2, loginId);
-
-	           pstmt.executeUpdate();
-
-	       }catch (SQLException | ClassNotFoundException e) {
-				// TODO: 예외처리 구문 작성 필요
-				System.out.println(e.getMessage() + "111111");
-			}
+	    	PreparedStatement pstmt = conn.prepareStatement(sql)) {
+           pstmt.setString(1, passwordHash);
+           pstmt.setString(2, loginId);
+           pstmt.executeUpdate();
+       } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+       }
 	}
-
 
 	// 강사 프로필 정보 : 지윤
 	public UserDTO selectUserByUserId(Long userId) {
@@ -199,9 +189,9 @@ public class UserDAO {
 	        if (rs.next()) {
 	        	return true;
 	        }
-	    } catch (Exception e) {
-	        System.out.println("selectLoginIdByUserId: " + e.getMessage());
-	    }
+	    } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
         return false;
 	}
 	
@@ -216,9 +206,9 @@ public class UserDAO {
 	        if (rs.next()) {
 	        	return true;
 	        }
-	    } catch (Exception e) {
-	        System.out.println("selectLoginIdByUserId: " + e.getMessage());
-	    }
+	    } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
         return false;
 	}
 	
@@ -235,9 +225,8 @@ public class UserDAO {
                 return true;
             }
             return false;
-        } catch (Exception e) {
-        	System.out.println("UserDAO selectLoginIdByUserId: " + e.getMessage());
-            throw new RuntimeException(e);
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
         }
     }
 	public Long selectUserIdByEmailAndBirthDate(String email, String birthDate) {
@@ -251,9 +240,8 @@ public class UserDAO {
             if (rs.next()) {
                 return rs.getLong("user_id");
             }
-        } catch (Exception e) {
-        	System.out.println("UserDAO selectUserIdByEmailAndBirthDate: " + e.getMessage());
-            throw new RuntimeException(e);
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
         }
         return Long.getLong("0");
 	}
@@ -267,16 +255,14 @@ public class UserDAO {
              WHERE user_id = ?
         """;
 
-        try (
-            Connection conn = DBConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, encryptedTempPassword);
             pstmt.setLong(2, userId);
 
             return pstmt.executeUpdate();
-        } catch (Exception e) {
-            throw new RuntimeException("updateTempPassword error", e);
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
         }
     }
 

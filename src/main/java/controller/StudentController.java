@@ -17,6 +17,7 @@ import model.dao.StudentDAO;
 import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.MypageDTO;
+import model.dto.MyLectureDTO;
 import model.enumtype.Role;
 import service.AdminService;
 import service.LectureService;
@@ -55,6 +56,13 @@ public class StudentController extends HttpServlet {
         }
 
         Long userId = access.getUserId();
+        if (userId == null) {
+            session.invalidate();
+            session = request.getSession();
+            session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=401");
+            return;
+        }
 
         /* ======================
          *  URL 분기
@@ -77,6 +85,7 @@ public class StudentController extends HttpServlet {
                 lectureService.getMyLectures(access, null);
 
             request.setAttribute("lectures", lectures);
+            request.setAttribute("status", "ONGOING");
             request.setAttribute("activeMenu", "lectures");
             request.setAttribute(
                 "contentPage",
@@ -84,26 +93,43 @@ public class StudentController extends HttpServlet {
             );
             break;
         }
-        
-        //학생민감정보수정
+        // 학생 내 종강한 강의 목록 
+        case "/lectures/ended" : {
+        	List<MyLectureDTO> lectures =
+        	        lectureService.getMyEndedLectures(
+        	            access.getUserId()
+        	        );
+        		request.setAttribute("status", "ENDED");
+        	    request.setAttribute("lectures", lectures);
+        	    request.setAttribute("activeMenu", "lectures");
+        	    request.setAttribute(
+        	        "contentPage",
+        	        "/WEB-INF/views/lecture/lectureList.jsp"
+        	    );
+        	    break;
+        }
+            
+                //학생민감정보수정
         case "/updateInfo": {
         	MyPageService myPageService = new MyPageService();
         	String loginId = (String) session.getAttribute("loginId");
         	MypageDTO mypage = myPageService.getMypageDTO(loginId);
-			if (mypage == null) {
-				response.sendRedirect(request.getContextPath() + "/login");
-				return;
-			}
-			request.setAttribute("mypage", mypage);
-			request.setAttribute("departments", adminService.getDepartmentList());
-        	request.setAttribute("contentPage", "/WEB-INF/views/student/requestInfoUpdate.jsp");
-        	break;
-        }
-
-
-        default:
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+          if (mypage == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
+          }
+          request.setAttribute("mypage", mypage);
+          request.setAttribute("departments", adminService.getDepartmentList());
+          request.setAttribute("contentPage", "/WEB-INF/views/student/requestInfoUpdate.jsp");
+          break;
+        }
+    
+            
+            
+        default:
+        	 session.setAttribute("errorMessage", "존재하지 않는 요청입니다.");
+        	    response.sendRedirect(ctx + "/error?errorCode=404");
+        	    return;
         }
 
         request.getRequestDispatcher(

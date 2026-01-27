@@ -28,7 +28,17 @@
     </div>
     </c:when>
     <c:when test="${role == 'STUDENT'}">
-        <h3 class="mb-3">📚 수강 중인 강의</h3>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="mb-3">📚 내 수강 강의</h3>
+        <div class="btn-group" role="group">
+            <a class="btn btn-sm ${status == 'ONGOING' ? 'btn-primary' : 'btn-outline-dark'}" href="${ctx}/student/lectures">
+   				 수강중
+			</a>
+			<a class="btn btn-sm ${status == 'ENDED' ? 'btn-primary' : 'btn-outline-dark'}" href="${ctx}/student/lectures/ended?status=ENDED">
+   				 종강
+			</a>
+        </div>
+    </div>
     </c:when>
     <c:otherwise>
         <h3 class="mb-3">📚 강의 목록</h3>
@@ -120,9 +130,19 @@
 
                     <!-- 학생 전용 컬럼 -->
                     <c:if test="${role == 'STUDENT'}">
-                        <td>
-                            <span class="badge bg-success">수강중</span>
-                        </td>
+                        <c:choose >
+                       	 <c:when test="${status == 'ONGOING'}">
+                      		  <td>
+                         		 <span class="badge bg-success">수강중</span>
+                      	 	  </td>
+                      	  </c:when>
+                      	  <c:otherwise>
+                      	  	  <td>
+                         		 <span class="badge bg-secondary">종강</span>
+                      	 	  </td>
+                      	  </c:otherwise>
+                       	 
+                        </c:choose>
                     </c:if>
 
                 </tr>

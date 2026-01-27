@@ -1,20 +1,26 @@
 package service;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 
 import database.DBConnection;
 import model.dao.DepartmentDAO;
 import model.dao.EnrollmentDAO;
 import model.dao.LectureDAO;
+import model.dao.SchoolScheduleDAO;
 import model.dto.DepartmentDTO;
 import model.dto.EnrollmentDTO;
 import model.dto.LectureForEnrollDTO;
+import model.dto.SchoolScheduleDTO;
+import model.enumtype.ScheduleCode;
+import utils.AppTime;
 
 public class EnrollmentService {
 
 	private LectureDAO lectureDAO = LectureDAO.getInstance();
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
+	private SchoolScheduleDAO schoolScheduleDAO = SchoolScheduleDAO.getInstance();
 
 	// 수강신청 가능한 강의목록 조회
 	public List<LectureForEnrollDTO> getAvailableLecturesForEnroll(Long departmentId, String keyword) {
@@ -116,7 +122,23 @@ public class EnrollmentService {
 		}
 	}
 	
+	// 수강 신청 기간 여부
+    public boolean isEnrollmentPeriod() {
 
+    	try (Connection conn = DBConnection.getConnection()) {
+
+
+    		LocalDate today = AppTime.now().toLocalDate();
+    		
+            return schoolScheduleDAO
+                    .findEnrollmentPeriod(conn, today) != null;
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "수강신청 기간 확인 실패", e
+            );
+        }
+    }
 
 
 }

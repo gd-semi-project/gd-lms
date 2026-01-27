@@ -100,7 +100,7 @@ public class EnrollmentDAO {
 				}
 			}
 		} catch (Exception e) {
-			//TODO 에러가 난다면 sql 문법이나 틀린 값을 받았을 경우입니다.
+			// TODO 에러가 난다면 sql 문법이나 틀린 값을 받았을 경우입니다.
 			System.out.println("getLectureList() 예외 발생");
 			e.printStackTrace();
 		}
@@ -259,6 +259,9 @@ public class EnrollmentDAO {
 		String sql = """
 				    INSERT INTO enrollment (lecture_id, user_id, status)
 				    VALUES (?, ?, 'ENROLLED')
+				    ON DUPLICATE KEY UPDATE
+				        status = 'ENROLLED',
+				        updated_at = CURRENT_TIMESTAMP
 				""";
 
 		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -349,6 +352,7 @@ public class EnrollmentDAO {
 				      AND e2.status = 'ENROLLED'
 				WHERE e.user_id = ?
 				  AND e.status = 'ENROLLED'
+				  AND l.status IN ('PLANNED','ONGOING')
 				GROUP BY
 				    l.lecture_id,
 				    d.department_name,

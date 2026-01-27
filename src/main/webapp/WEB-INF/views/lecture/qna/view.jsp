@@ -9,12 +9,15 @@
 
 <div class="container mt-4">
   <h3 class="mb-3">Q&A 상세</h3>
+   <c:if test="${not empty errorMessage}">
+     <div class="alert alert-danger">${errorMessage}</div>
+   </c:if>
 
   <div class="card mb-3">
     <div class="card-body">
       <h5 class="card-title"><c:out value="${post.title}" /></h5>
       <div class="text-muted mb-2">
-        작성자: ${post.authorName} | 상태: ${post.status.displayName} | 공개: ${post.isPrivate}
+        작성자: ${post.authorName} | 상태: ${post.status.displayName} | 공개: ${post.isPrivate.label}
       </div>
       <div class="card-text" style="white-space: pre-wrap;"><c:out value="${post.content}" /></div>
     </div>

@@ -30,10 +30,6 @@ public class AttendanceController extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-		if (access == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
 
 		String action = request.getRequestURI().substring(ctx.length() + "/attendance".length());
 
@@ -41,16 +37,11 @@ public class AttendanceController extends HttpServlet {
 
 			if ("/open".equals(action)) {
 
-				if (access.getRole() != Role.INSTRUCTOR) {
-					response.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
 
 				long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
 				long sessionId = attendanceService.openAttendance(lectureId);
 
-				// 수강생 전원 기본 결석 생성
 				attendanceService.prepareAttendance(sessionId, lectureId);
 
 				response.sendRedirect(ctx + "/attendance/view" + "?lectureId=" + lectureId + "&sessionId=" + sessionId);
@@ -58,11 +49,6 @@ public class AttendanceController extends HttpServlet {
 			}
 
 			if ("/check".equals(action)) {
-
-				if (access.getRole() != Role.STUDENT) {
-					response.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
 
 				long lectureId = Long.parseLong(request.getParameter("lectureId"));
 				long sessionId = Long.parseLong(request.getParameter("sessionId"));
@@ -74,11 +60,6 @@ public class AttendanceController extends HttpServlet {
 			}
 
 			if ("/update".equals(action)) {
-
-				if (access.getRole() != Role.INSTRUCTOR) {
-					response.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
 
 				long attendanceId = Long.parseLong(request.getParameter("attendanceId"));
 				AttendanceStatus status = AttendanceStatus.valueOf(request.getParameter("status"));
@@ -94,11 +75,6 @@ public class AttendanceController extends HttpServlet {
 
 			if ("/close".equals(action)) {
 
-				if (access.getRole() != Role.INSTRUCTOR) {
-					response.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
-
 				long lectureId = Long.parseLong(request.getParameter("lectureId"));
 				long sessionId = Long.parseLong(request.getParameter("sessionId"));
 
@@ -108,9 +84,19 @@ public class AttendanceController extends HttpServlet {
 				return;
 			}
 
-		} catch (Exception e) {
-			session.setAttribute("flashMsg", e.getMessage());
-			response.sendRedirect(ctx + "/attendance/view?lectureId=" + request.getParameter("lectureId"));
+		} catch (IllegalArgumentException e) {
+		    // TODO : 404 : 파라미터 누락, 존재하지 않는 회차 선택시
+		    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "요청 값이 올바르지 않습니다.");
+
+		} catch (IllegalStateException e) {
+		    session.setAttribute("flashMsg", e.getMessage());
+		    response.sendRedirect(
+		        ctx + "/attendance/view?lectureId=" + request.getParameter("lectureId")
+		    );
+		    return;
+		} catch (RuntimeException e) {
+		    // TODO : 500 Internal Server Error
+		    throw e;
 		}
 	}
 
@@ -122,12 +108,8 @@ public class AttendanceController extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 
-		if (access == null) {
-			response.sendRedirect(ctx + "/login");
-			return;
-		}
-
 		long lectureId;
+		
 		try {
 			lectureId = Long.parseLong(request.getParameter("lectureId"));
 		} catch (Exception e) {
@@ -176,9 +158,7 @@ public class AttendanceController extends HttpServlet {
 			boolean alreadyOpenedToday = attendanceService.hasTodaySession(lectureId);
 
 			request.setAttribute("attendanceOpen", attendanceOpen);
-
 			request.setAttribute("sessions", attendanceService.getSessionsByLecture(lectureId));
-
 			request.setAttribute("alreadyOpenedToday", alreadyOpenedToday);
 
 			String sessionIdParam = request.getParameter("sessionId");

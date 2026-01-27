@@ -14,7 +14,7 @@ public class QnaPostDAO {
     private QnaPostDAO() {}
     public static QnaPostDAO getInstance() { return instance; }
 
-    // ====== 목록: 강의별 ======
+    // 강의별 QnA 목록 조회
     public List<QnaPostDTO> findByLecture(Connection conn, long lectureId, int limit, int offset) throws SQLException {
     	String sql =
     			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
@@ -64,6 +64,7 @@ public class QnaPostDAO {
         return list;
     }
 
+    // 강의별 Qna 총 개수
     public int countByLecture(Connection conn, long lectureId) throws SQLException {
         String sql = "SELECT COUNT(*) cnt FROM qna_posts WHERE lecture_id = ? AND is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -73,7 +74,8 @@ public class QnaPostDAO {
             }
         }
     }
-
+    
+    // STUDENT: 강의별 QnA 총 개수: 공개글 + 본인 비공개글만(삭제 제외)
     public int countByLectureForStudent(Connection conn, long lectureId, long studentId) throws SQLException {
         String sql =
             "SELECT COUNT(*) cnt " +
@@ -89,7 +91,7 @@ public class QnaPostDAO {
         }
     }
 
-    // ====== 단건 조회 ======
+    // 단건 조회
     public QnaPostDTO findById(Connection conn, long qnaId, long lectureId) throws SQLException {
     	String sql =
     			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
@@ -107,6 +109,8 @@ public class QnaPostDAO {
     }
 
     // ====== CUD ======
+    
+    // 질문 생성
     public long insert(Connection conn, QnaPostDTO dto) throws SQLException {
         String sql =
             "INSERT INTO qna_posts (lecture_id, author_id, title, content, is_private, status, is_deleted) " +
@@ -129,6 +133,7 @@ public class QnaPostDAO {
         }
     }
 
+    // 질문 수정
     public int update(Connection conn, QnaPostDTO dto) throws SQLException {
         String sql =
             "UPDATE qna_posts " +
@@ -147,6 +152,7 @@ public class QnaPostDAO {
         }
     }
 
+    // 질문 삭제
     public int softDelete(Connection conn, long qnaId) throws SQLException {
         String sql = "UPDATE qna_posts SET is_deleted = 'Y', updated_at = NOW() WHERE qna_id = ? AND is_deleted = 'N'";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -155,7 +161,7 @@ public class QnaPostDAO {
         }
     }
 
-    // ★ status도 enum으로 받도록 수정
+    // 질문 상태 변경(OPEN,CLOSED)
     public int updateStatus(Connection conn, long qnaId, QnaStatus status) throws SQLException {
         String sql = "UPDATE qna_posts SET status = ?, updated_at = NOW() WHERE qna_id = ? AND is_deleted = 'N'";
         QnaStatus st = (status == null) ? QnaStatus.OPEN : status;
@@ -167,6 +173,7 @@ public class QnaPostDAO {
         }
     }
 
+    // ResultSet,QnaPostDTO 매핑
     private QnaPostDTO map(ResultSet rs) throws SQLException {
         QnaPostDTO d = new QnaPostDTO();
         d.setQnaId(rs.getLong("qna_id"));

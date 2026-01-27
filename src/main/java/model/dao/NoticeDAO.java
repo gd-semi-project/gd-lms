@@ -16,6 +16,7 @@ public class NoticeDAO {
 
     private static final Set<String> ALLOWED_ITEMS = Set.of("title", "content", "notice_type", "all");
 
+    // 검색시 items가 all,title,content에 구분 
     private String buildSearchCondition(String items) {
         if ("all".equals(items)) {
             return "(title LIKE ? OR content LIKE ?)";
@@ -23,12 +24,14 @@ public class NoticeDAO {
         return items + " LIKE ?";
     }
 
+    // items && text 빈문자열,null체크 
     private boolean isValidSearch(String items, String text) {
         return items != null && text != null
                 && !items.isBlank() && !text.isBlank()
                 && ALLOWED_ITEMS.contains(items);
     }
 
+    // 조회수 증가 Update문
     public int increaseViewCount(Connection conn, long noticeId) throws SQLException {
         String sql =
             "UPDATE notice " +
@@ -43,6 +46,7 @@ public class NoticeDAO {
 
     // ========== 전체 공지사항만 (lecture_id IS NULL) ==========
 
+    // 전체 공지사항 개수 카운트(삭제포함x)
     public int countOnlyGlobalNotices(Connection conn,String items, String text) throws SQLException{
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
@@ -72,6 +76,7 @@ public class NoticeDAO {
         }
     }
 
+    // 전체 공지사항 목록
     public List<NoticeDTO> findPageOnlyGlobalNotices(Connection conn,int limit, int offset, String items, String text) throws SQLException{
         StringBuilder sql = new StringBuilder(
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
@@ -113,6 +118,7 @@ public class NoticeDAO {
 
     // ========== 모든 강의 공지사항 (lecture_id IS NOT NULL) ==========
 
+    // 강의 공지사항 개수 카운트
     public int countAllLectureNotices(Connection conn,String items, String text) throws SQLException {
         StringBuilder sql = new StringBuilder(
             "SELECT COUNT(*) AS cnt " +
@@ -142,6 +148,7 @@ public class NoticeDAO {
         }
     }
 
+    //강의 공지 목록
     public List<NoticeDTO> findPageAllLectureNotices(Connection conn,int limit, int offset, String items, String text) throws SQLException {
         StringBuilder sql = new StringBuilder(
             "SELECT notice_id, lecture_id, author_id, notice_type, title, content, " +
@@ -270,8 +277,9 @@ public class NoticeDAO {
             "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
             "AND lecture_id IN (" +
             "  SELECT lecture_id FROM lecture " +
-            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED' AND status = 'ONGOING'" +  
             ")"
+            
         );
 
         boolean hasSearch = isValidSearch(items, text);
@@ -306,7 +314,7 @@ public class NoticeDAO {
             "WHERE is_deleted = 'N' AND lecture_id IS NOT NULL " +
             "AND lecture_id IN (" +
             "  SELECT lecture_id FROM lecture " +
-            "  WHERE user_id = ? AND validation = 'CONFIRMED'" +
+            "  WHERE user_id = ? AND validation = 'CONFIRMED' AND status = 'ONGOING'" +  
             ")"
         );
 

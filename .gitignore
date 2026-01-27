@@ -12,5 +12,3 @@ Servers/
 build/
 bin/
 target/
-
-*.jar

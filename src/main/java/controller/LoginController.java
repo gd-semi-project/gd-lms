@@ -15,7 +15,7 @@ import utils.PasswordUtil;
 import java.io.IOException;
 
 @WebServlet(
-		urlPatterns = {"/main", "/login/*", "/index.jsp", "/about"}
+		urlPatterns = {"/main", "/login/*", "/about"}
 		)
 
 public class LoginController extends HttpServlet {
@@ -37,8 +37,8 @@ public class LoginController extends HttpServlet {
 			request.setAttribute("contentPage", "/WEB-INF/views/login/login.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/index.jsp");
 			rd.forward(request, response);
-		}  else if (actionPath.equals("/main")) {
-			request.setAttribute("contentPage", "/WEB-INF/main.jsp");
+		} else if (actionPath.equals("/main")) {
+			request.setAttribute("contentPage", "/WEB-INF/views/about/about.jsp");
 			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp");
 			rd.forward(request, response);
 		} else if (actionPath.equals("/login/logout")) {
@@ -55,10 +55,8 @@ public class LoginController extends HttpServlet {
 		    String token = (String) request.getParameter("token");
 
 		    if (token == null || token.length() != 32) {
-		    	// TODO: 403, 비인가접근입니다.
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		        System.out.println("token없이 접근하면 안됩니다.");
-		        return;
+		    	session.setAttribute("errorMessage", "올바른 방식으로 접근해주세요.");
+				response.sendRedirect(contextPath + "/error?errorCode=400");
 		    }
 
 		    // DB 검증 후 진행
@@ -66,10 +64,8 @@ public class LoginController extends HttpServlet {
 		    Long userId = ls.getUserIdByToken(hashToken);
 		    
 		    if (userId == null) {
-		    	// TODO: 403, 유효하지 않은 토큰입니다.? 비인가접근입니다.
-		        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-		        System.out.println("token: " + hashToken);
-		        return;
+		    	session.setAttribute("errorMessage", "올바른 방식으로 접근해주세요.");
+				response.sendRedirect(contextPath + "/error?errorCode=400");
 		    }
 		    
 		    // 임시 비밀번호 생성
