@@ -3,6 +3,8 @@ package service;
 import java.sql.Connection;
 
 import database.DBConnection;
+import exception.BadRequestException;
+import exception.InternalServerException;
 import model.dao.ScorePolicyDAO;
 import model.dto.ScorePolicyDTO;
 
@@ -31,9 +33,7 @@ public class ScorePolicyService {
             dao.insert(conn, dto);
 
         } catch (Exception e) {
-        	// TODO : 500 Internal Server Error
-            throw new RuntimeException(
-                "성적 배점 등록 실패", e);
+            throw new InternalServerException("성적 배점 등록 실패", e);
         }
     }
 
@@ -46,9 +46,7 @@ public class ScorePolicyService {
             return dao.findByLectureId(conn, lectureId);
 
         } catch (Exception e) {
-        	// TODO : 500 Internal Server Error
-            throw new RuntimeException(
-                "성적 배점 조회 실패", e);
+            throw new InternalServerException("성적 배점 조회 실패", e);
         }
     }
 
@@ -63,9 +61,7 @@ public class ScorePolicyService {
             dao.update(conn, dto);
 
         } catch (Exception e) {
-        	// TODO : 500 Internal Server Error
-            throw new RuntimeException(
-                "성적 배점 수정 실패", e);
+            throw new InternalServerException("성적 배점 수정 실패", e);
         }
     }
 
@@ -78,19 +74,16 @@ public class ScorePolicyService {
             dao.confirm(conn, lectureId);
 
         } catch (Exception e) {
-        	// TODO : 500 Internal Server Error
-            throw new RuntimeException(
-                "성적 배점 확정 실패", e);
+            throw new InternalServerException("성적 배점 확정 실패", e);
         }
     }
 
     // 검증 로직
     private void validate(ScorePolicyDTO dto) {
 
+
         if (dto.getTotalWeight() != 100) {
-            throw new IllegalArgumentException(
-                "성적 배점의 합은 반드시 100이어야 합니다."
-            );
+            throw new BadRequestException("성적 배점의 합은 반드시 100이어야 합니다.");
         }
 
         if (dto.getAttendanceWeight() < 0 ||
@@ -98,9 +91,7 @@ public class ScorePolicyService {
             dto.getMidtermWeight() < 0 ||
             dto.getFinalWeight() < 0) {
 
-            throw new IllegalArgumentException(
-                "배점은 음수가 될 수 없습니다."
-            );
+        	throw new BadRequestException("배점은 음수가 될 수 없습니다.");
         }
     }
 }

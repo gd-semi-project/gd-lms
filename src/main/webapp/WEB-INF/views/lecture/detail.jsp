@@ -2,6 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+
 <jsp:include page="/WEB-INF/views/lecture/lectureTabs.jsp" />
 
 <div class="container mt-4">
@@ -22,12 +24,10 @@
         <th style="width:20%">이름</th>
         <td>${instructor.name}</td>
       </tr>
-
       <tr>
         <th>이메일</th>
         <td>${instructor.email}</td>
       </tr>
-
       <tr>
         <th>연구실</th>
         <td>
@@ -41,7 +41,6 @@
           </c:choose>
         </td>
       </tr>
-
       <tr>
         <th>연락처</th>
         <td>
@@ -55,7 +54,6 @@
           </c:choose>
         </td>
       </tr>
-
       <tr>
         <th>소속 학과</th>
         <td>${instructor.department}</td>
@@ -72,17 +70,14 @@
         <th style="width:20%">강의 기간</th>
         <td>${lecture.startDate} ~ ${lecture.endDate}</td>
       </tr>
-
       <tr>
         <th>강의실</th>
         <td>${lecture.room}</td>
       </tr>
-
       <tr>
         <th>정원</th>
         <td>${lecture.capacity}명</td>
       </tr>
-
       <tr>
         <th>상태</th>
         <td>
@@ -112,7 +107,6 @@
       </tr>
     </thead>
     <tbody>
-
       <c:forEach var="s" items="${schedules}">
         <tr>
           <td>
@@ -136,7 +130,6 @@
           </td>
         </tr>
       </c:if>
-
     </tbody>
   </table>
 
@@ -173,5 +166,27 @@
       </div>
     </c:otherwise>
   </c:choose>
+
+  <!-- ================= 수정/삭제 버튼 ================= -->
+<c:if test="${isRequest == true}">
+  <div class="mt-4 text-end">
+
+    <!-- ✅ 수정 : 항상 가능 -->
+    <a href="${ctx}/instructor/lecture/request/edit?lectureId=${lecture.lectureId}"
+       class="btn btn-warning">수정</a>
+
+    <!-- ✅ 삭제 : 승인 전(PENDING)만 가능 -->
+    <c:if test="${lecture.validation eq 'PENDING'}">
+      <form method="post"
+            action="${ctx}/instructor/lecture/request/delete"
+            style="display:inline;"
+            onsubmit="return confirm('삭제하시겠습니까?');">
+        <input type="hidden" name="lectureId" value="${lecture.lectureId}">
+        <button class="btn btn-danger">삭제</button>
+      </form>
+    </c:if>
+
+  </div>
+</c:if>
 
 </div>
