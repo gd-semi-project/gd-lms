@@ -197,16 +197,16 @@ public class AssignmentController extends HttpServlet {
 
         } catch (AssignmentService.AccessDeniedException e) {
             request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/accessDenied.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp").forward(request, response);
 
         } catch (AssignmentService.NotFoundException e) {
             request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/notFound.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/error/404.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "과제 처리 중 오류가 발생했습니다.");
-            request.getRequestDispatcher("/WEB-INF/views/error/error.jsp").forward(request, response);
+            request.setAttribute("errorMessage", "과제 처리 중 서버 오류가 발생했습니다.");
+            request.getRequestDispatcher("/WEB-INF/views/error/500.jsp").forward(request, response);
         }
     }
 

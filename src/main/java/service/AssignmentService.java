@@ -29,7 +29,9 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return assignmentDAO.selectByLecture(conn, lectureId);
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             throw new RuntimeException("과제 목록 조회 실패", e);
         }
     }
@@ -39,7 +41,9 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return assignmentDAO.selectById(conn, assignmentId, lectureId);
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             throw new RuntimeException("과제 상세 조회 실패", e);
         }
     }
@@ -63,7 +67,9 @@ public class AssignmentService {
             
             conn.commit();
             return id;
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 생성 실패", e);
         } finally {
@@ -93,7 +99,9 @@ public class AssignmentService {
             fus.fileUpload(boardType, dto.getAssignmentId(), partList);
             
             conn.commit();
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 수정 실패", e);
         } finally {
@@ -121,7 +129,9 @@ public class AssignmentService {
             fus.deleteFile(boardType, assignmentId);
             
             conn.commit();
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 삭제 실패", e);
         } finally {
@@ -138,7 +148,9 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return submissionDAO.selectByAssignment(conn, assignmentId);
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             throw new RuntimeException("제출 목록 조회 실패", e);
         }
     }
@@ -152,7 +164,9 @@ public class AssignmentService {
         try (Connection conn = DBConnection.getConnection()) {
             assertCanAccessLecture(conn, userId, role, lectureId);
             return submissionDAO.selectByStudentAndAssignment(conn, userId, assignmentId);
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             throw new RuntimeException("제출 조회 실패", e);
         }
     }
@@ -196,7 +210,9 @@ public class AssignmentService {
             
             conn.commit();
             return submissionId;
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("과제 제출 실패", e);
         } finally {
@@ -220,7 +236,9 @@ public class AssignmentService {
                 throw new NotFoundException("제출물을 찾을 수 없습니다.");
             }
             conn.commit();
-        } catch (Exception e) {
+        } catch (AccessDeniedException | NotFoundException e) {
+			throw e;
+		} catch (Exception e) {
             rollbackQuietly(conn);
             throw new RuntimeException("채점 실패", e);
         } finally {
