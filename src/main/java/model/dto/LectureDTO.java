@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
+import utils.AppDate;
+import utils.AppTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -31,4 +33,5 @@ public class LectureDTO {
 	private String instructorName;
 	private List<LectureScheduleDTO> schedules;
 	private String scheduleHtml;
+	
 }

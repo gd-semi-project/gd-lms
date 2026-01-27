@@ -127,8 +127,9 @@ public class EnrollmentService {
 
     	try (Connection conn = DBConnection.getConnection()) {
 
-            LocalDate today = LocalDate.now();
 
+    		LocalDate today = AppTime.now().toLocalDate();
+    		
             return schoolScheduleDAO
                     .findEnrollmentPeriod(conn, today) != null;
 

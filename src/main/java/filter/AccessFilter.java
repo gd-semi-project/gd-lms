@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
+import service.AdminService;
+import utils.EnrollmentPeriod;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -82,6 +85,14 @@ public class AccessFilter extends HttpFilter {
 			if (session.getAttribute("AccessInfo") != null) {
 				// role 권한 체크
 				AccessDTO accessDTO = (AccessDTO) session.getAttribute("AccessInfo");
+				
+				if (accessDTO != null && accessDTO.getRole() == Role.ADMIN) { // 백시현 추가 관리자 알림용
+					try {
+						request.setAttribute("pendingInfoUpdateCount", AdminService.getInstance().getPendingStudentInfoUpdateCount());
+						System.out.println("adminWelcome");
+					} catch (Exception ignore) {}
+				}
+				
 				if (middlePath.equals("admin")) {
 					if (accessDTO.getRole() == Role.ADMIN) {
 						chain.doFilter(request, response);
@@ -105,12 +116,15 @@ public class AccessFilter extends HttpFilter {
 				if (whiteList.contains(middlePath) || whiteList.contains(actionPath)) {
 					chain.doFilter(request, response);
 				} else {
-					session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
-					response.sendRedirect(contextPath + "/error?errorCode=401");
+					if (uri.equals(contextPath) || uri.equals(contextPath+"/")) {
+						response.sendRedirect(contextPath + "/login");
+					} else {
+						session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
+						response.sendRedirect(contextPath + "/error?errorCode=401");
+					}
 				}
 			}
 		}
-
 	}
 
 	public void init(FilterConfig fConfig) throws ServletException {

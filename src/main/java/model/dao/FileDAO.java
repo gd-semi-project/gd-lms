@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import database.DBConnection;
+import exception.InternalServerException;
 import lombok.NoArgsConstructor;
 import model.dto.FileDTO;
 
@@ -35,17 +36,16 @@ public class FileDAO {
 				fileDTO.setOriginalFilename(rs.getString("original_filename"));
 				String uuidStr = rs.getString("uuid");
 				fileDTO.setUuid(UUID.fromString(uuidStr));
+				fileDTO.setBoardType(boardType);
 				fileList.add(fileDTO);
 			}
 			return fileList;
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO selectFileListById: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
-		return null;
 	}
 	
-	public void isnertFileUpload (FileDTO fileDTO) {
+	public void insertFileUpload (FileDTO fileDTO) {
 		String sql = "INSERT INTO file_upload (board_type, ref_id, uuid, original_filename)"
 				+ " values (?, ?, ?, ?)";
 		
@@ -57,13 +57,11 @@ public class FileDAO {
 			pstmt.setString(4, fileDTO.getOriginalFilename());
 			pstmt.executeUpdate();
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO isnertFileById: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
 	}
 
-	public int deleteFileByBoardTypeAndRefId(Connection conn, String boardType, Long refId)
-	        throws SQLException {
+	public int deleteFileByBoardTypeAndRefId(Connection conn, String boardType, Long refId) {
 
 		String sql = """
 			    UPDATE file_upload
@@ -76,7 +74,9 @@ public class FileDAO {
 	        ps.setString(1, boardType);
 	        ps.setLong(2, refId);
 	        return ps.executeUpdate(); // 삭제된 파일 수
-	    }
+	    } catch (SQLException e) {
+			throw new InternalServerException(e);
+		}
 	}
 	
 	public String selectFileNameByUUID(UUID uuid) {
@@ -92,10 +92,59 @@ public class FileDAO {
 			}
 			return originalFileName;
 		} catch (SQLException | ClassNotFoundException e) {
-			// TODO: 예외처리 구문 작성 필요
-			System.out.println("FileDAO selectFileNameByUUID: " + e.getMessage());
+			throw new InternalServerException(e);
 		}
-		return null;
+	}
+	
+	public List<FileDTO> selectFilesByRefId(Long refId) {
+	    String sql = """
+	        SELECT file_id, board_type, ref_id, uuid, original_filename
+	        FROM file_upload
+	        WHERE ref_id = ? AND is_deleted='N'
+	        ORDER BY file_id
+	    """;
+
+	    List<FileDTO> list = new ArrayList<>();
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+	        ps.setLong(1, refId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                FileDTO f = new FileDTO();
+	                f.setFileId(rs.getLong("file_id"));
+	                f.setBoardType(rs.getString("board_type"));
+	                f.setRefId(rs.getLong("ref_id"));
+	                f.setUuid(UUID.fromString(rs.getString("uuid")));
+	                f.setOriginalFilename(rs.getString("original_filename"));
+	                list.add(f);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return list;
+	}
+
+	public FileDTO selectFileMetaByUUID(UUID uuid) {
+	    String sql = "SELECT board_type, ref_id, original_filename FROM file_upload WHERE uuid = ? AND is_deleted='N' LIMIT 1";
+	    try (Connection conn = DBConnection.getConnection()){
+	        PreparedStatement ps = conn.prepareStatement(sql);
+	        ps.setString(1, uuid.toString());
+
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            FileDTO f = new FileDTO();
+	            f.setUuid(uuid);
+	            f.setBoardType(rs.getString("board_type"));
+	            f.setRefId(rs.getLong("ref_id"));
+	            f.setOriginalFilename(rs.getString("original_filename"));
+	            return f;
+	        }
+	    } catch (Exception e) {
+	        System.out.println("FileDAO selectFileMetaByUUID: " + e.getMessage());
+	    }
+	    return null;
 	}
 
 

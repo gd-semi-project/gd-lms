@@ -8,6 +8,7 @@ import automation.log.AutomationLogDAO;
 import model.enumtype.ScheduleCode;
 import service.LectureService;
 import service.SchedulePolicyService;
+import utils.AppTime;
 
 public class LectureStatusSyncJob implements AutomationJob{
 	
@@ -38,7 +39,7 @@ public class LectureStatusSyncJob implements AutomationJob{
 	@Override
 	public void run(LocalDateTime now) {
 		System.out.println("[LectureStatusSyncJob] run START: "+now);
-		LocalDate today = now.toLocalDate();
+		LocalDate today = AppTime.now().toLocalDate();
 		
 		if(!logDAO.tryStart(code(), today)) {
 			System.out.println("[LectureRequestExpireJob] already executed today");

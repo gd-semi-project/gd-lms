@@ -237,7 +237,7 @@ public class ScoreDAO {
 	public List<ScoreDTO> selectMytotScore(Connection conn, Long userId) {
 
 		String sql = """
-				    SELECT
+				  SELECT
 				    s.score_id,
 				    s.lecture_id,
 				    s.student_id,
@@ -248,7 +248,19 @@ public class ScoreDAO {
 				    l.start_date,
 				    l.end_date,
 
-				    s.attendance_score,
+
+				    ROUND(
+				        IFNULL(
+				            SUM(
+				                CASE a.status
+				                    WHEN 'PRESENT' THEN 1
+				                    WHEN 'LATE' THEN 0.5
+				                    ELSE 0
+				                END
+				            ) / NULLIF(COUNT(ls.session_id), 0) * 100,
+				        0)
+				    ) AS attendance_score,
+
 				    s.assignment_score,
 				    s.midterm_score,
 				    s.final_score,
@@ -257,17 +269,45 @@ public class ScoreDAO {
 
 				    s.is_completed,
 				    s.is_confirmed
+
 				FROM score s
 				JOIN student st
 				    ON st.student_id = s.student_id
 				JOIN lecture l
 				    ON l.lecture_id = s.lecture_id
+
+
+				LEFT JOIN lecture_session ls
+				    ON ls.lecture_id = l.lecture_id
+				LEFT JOIN attendance a
+				  ON a.session_id = ls.session_id
+				 AND a.student_id = st.user_id
+
 				WHERE st.user_id = ?
-				AND s.is_confirmed = TRUE
+				  AND s.is_confirmed = TRUE
+				  AND l.status = 'ENDED'
+
+				GROUP BY
+				    s.score_id,
+				    s.lecture_id,
+				    s.student_id,
+				    l.lecture_title,
+				    l.lecture_round,
+				    l.section,
+				    l.start_date,
+				    l.end_date,
+				    s.assignment_score,
+				    s.midterm_score,
+				    s.final_score,
+				    s.total_score,
+				    s.grade_letter,
+				    s.is_completed,
+				    s.is_confirmed
+
 				ORDER BY
 				    l.start_date DESC,
 				    l.lecture_title
-				""";
+								""";
 
 		List<ScoreDTO> list = new ArrayList<>();
 
@@ -286,20 +326,20 @@ public class ScoreDAO {
 
 					// 과목 정보
 					dto.setLectureTitle(rs.getString("lecture_title"));
-					dto.setLectureRound(rs.getInt("lecture_round"));
-					dto.setSection(rs.getString("section"));
-					dto.setStartDate(rs.getDate("start_date").toLocalDate());
+	                dto.setLectureRound(rs.getInt("lecture_round"));
+	                dto.setSection(rs.getString("section"));
+	                dto.setStartDate(rs.getDate("start_date").toLocalDate());
 
 					// 점수
-					dto.setAttendanceScore(rs.getObject("attendance_score", Integer.class));
-					dto.setAssignmentScore(rs.getObject("assignment_score", Integer.class));
-					dto.setMidtermScore(rs.getObject("midterm_score", Integer.class));
-					dto.setFinalScore(rs.getObject("final_score", Integer.class));
-					dto.setTotalScore(rs.getObject("total_score", Integer.class));
+					dto.setAttendanceScore(rs.getInt("attendance_score"));
+	                dto.setAssignmentScore(rs.getObject("assignment_score", Integer.class));
+	                dto.setMidtermScore(rs.getObject("midterm_score", Integer.class));
+	                dto.setFinalScore(rs.getObject("final_score", Integer.class));
+	                dto.setTotalScore(rs.getObject("total_score", Integer.class));
 
-					dto.setGradeLetter(rs.getString("grade_letter"));
-					dto.setCompleted(rs.getBoolean("is_completed"));
-					dto.setConfirmed(rs.getBoolean("is_confirmed"));
+	                dto.setGradeLetter(rs.getString("grade_letter"));
+	                dto.setCompleted(rs.getBoolean("is_completed"));
+	                dto.setConfirmed(rs.getBoolean("is_confirmed"));
 
 					list.add(dto);
 				}

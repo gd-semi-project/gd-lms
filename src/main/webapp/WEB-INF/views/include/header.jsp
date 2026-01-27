@@ -41,7 +41,21 @@
 
 				<li class="nav-item"><a class="nav-link"
 					href="${ctx}/login/logout">로그아웃</a></li>
+        <c:if test="${sessionScope.AccessInfo.role.name() == 'ADMIN'}">
+          <c:if test="${not empty pendingInfoUpdateCount and pendingInfoUpdateCount > 0}">
+            <a href="${ctx}/admin/studentInfoUpdateRequests"
+               class="position-relative d-inline-flex align-items-center justify-content-center
+                      me-3 text-decoration-none text-dark">
 
+              🔔
+
+              <span class="position-absolute top-20 start-100 translate-middle
+                      badge rounded-pill bg-danger">
+                ${pendingInfoUpdateCount}
+              </span>
+            </a>
+          </c:if>
+        </c:if>
 			</ul>
 
 			<!-- ================= 모바일 통합 메뉴 (헤더+사이드바) ================= -->

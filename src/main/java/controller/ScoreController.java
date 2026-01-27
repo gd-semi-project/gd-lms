@@ -49,6 +49,7 @@ public class ScoreController extends HttpServlet {
 
             switch (action) {
 
+            // ================= 성적 조회 =================
             case "/grades": {
 
                 Long lectureId = parseLong(request.getParameter("lectureId"));
@@ -69,16 +70,12 @@ public class ScoreController extends HttpServlet {
                 request.setAttribute("role", role);
 
                 if (role == Role.INSTRUCTOR) {
-                    List<ScoreDTO> scores =
-                            scoreService.getScoreList(lectureId);
+                    List<ScoreDTO> scores = scoreService.getScoreList(lectureId);
                     request.setAttribute("scores", scores);
 
                 } else if (role == Role.STUDENT) {
-
                     Long studentId = access.getUserId();
-                    ScoreDTO myScore =
-                            scoreService.getMyScore(lectureId, studentId);
-
+                    ScoreDTO myScore = scoreService.getMyScore(lectureId, studentId);
                     request.setAttribute("myScore", myScore);
                 }
 
@@ -88,6 +85,7 @@ public class ScoreController extends HttpServlet {
                 break;
             }
 
+            // ================= 학생 전체 성적 =================
             case "/totscore": {
 
                 if (role != Role.STUDENT) {
@@ -95,8 +93,7 @@ public class ScoreController extends HttpServlet {
                 }
 
                 Long studentId = access.getUserId();
-                List<ScoreDTO> myScores =
-                        scoreService.getMytotScore(studentId);
+                List<ScoreDTO> myScores = scoreService.getMytotScore(studentId);
 
                 request.setAttribute("myScores", myScores);
                 request.setAttribute("activeTab", "myScore");
@@ -145,6 +142,7 @@ public class ScoreController extends HttpServlet {
 
         try {
 
+            // ================= 성적 저장 =================
             if (uri.endsWith("/grades/save")) {
 
                 Long lectureId = parseLong(request.getParameter("lectureId"));
@@ -160,19 +158,17 @@ public class ScoreController extends HttpServlet {
                     throw new AccessDeniedException("교수만 성적 저장이 가능합니다.");
                 }
 
-                // ✅ 강의 상태 체크
                 LectureDTO lecture = lectureService.getLectureDetail(lectureId);
                 lectureAccessService.assertLectureIsOpen(lecture);
 
-                List<ScoreDTO> scoreList =
-                        extractScoreList(request, lectureId);
-
+                List<ScoreDTO> scoreList = extractScoreList(request, lectureId);
                 scoreService.saveScores(lectureId, scoreList);
 
                 response.sendRedirect(ctx + "/score/grades?lectureId=" + lectureId);
                 return;
             }
 
+            // ================= 학점 계산 =================
             if (uri.endsWith("/grades/calculate")) {
 
                 Long lectureId = parseLong(request.getParameter("lectureId"));
@@ -188,7 +184,6 @@ public class ScoreController extends HttpServlet {
                     throw new AccessDeniedException("교수만 학점 계산이 가능합니다.");
                 }
 
-                // ✅ 강의 상태 체크
                 LectureDTO lecture = lectureService.getLectureDetail(lectureId);
                 lectureAccessService.assertLectureIsOpen(lecture);
 

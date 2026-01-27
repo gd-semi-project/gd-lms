@@ -20,8 +20,10 @@ import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.LectureScheduleDTO;
 import model.dto.LectureStudentDTO;
+import model.dto.MyLectureDTO;
 import model.enumtype.LectureStatus;
 import model.enumtype.Role;
+import utils.AppTime;
 
 public class LectureService {	// 이미 개설된 강의에 기준
 
@@ -105,7 +107,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	public int cancelExpiredLectureRequest() {
 		return lectureDAO.cancelExpiredLectureRequest();
 	}
-
+	
 	// 강의 상태 동기화 (PLANNED → ONGOING → ENDED)
 	public int[] syncLectureStatusByDate(LocalDate today) {
 		int ongoingCount = lectureDAO.markOnGoing(today);
@@ -183,6 +185,17 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	public List<LectureDTO> getAllLecture() {
 		return lectureDAO.getAllLecture();
 	}
+	
+	
+	// 과거 수강한 과목, 현재수강한 과목 버튼으로 볼수있게
+	public List<MyLectureDTO> getMyOngoingLectures(Long userId) {
+	    return lectureDAO.selectMyEnrollmentedLecture(userId);
+	}
+
+	public List<MyLectureDTO> getMyEndedLectures(Long userId) {
+	    return lectureDAO.selectMyEndedLecture(userId);
+	}
+
 	
 
 }

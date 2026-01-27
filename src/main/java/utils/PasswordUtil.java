@@ -3,6 +3,8 @@ package utils;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
+import exception.InternalServerException;
+
 public class PasswordUtil {
 	// 혼동되는 문자 제거 (O, 0, I, l, 1)
     private static final String UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -22,26 +24,28 @@ public class PasswordUtil {
     }
 
     public static String generate(int length) {
-        if (length < 8) {
-            throw new IllegalArgumentException("비밀번호 길이는 최소 8자 이상이어야 합니다.");
-        }
+    	try {
+            if (length < 8) {
+                throw new IllegalArgumentException("비밀번호 길이는 최소 8자 이상이어야 합니다.");
+            }
 
-        StringBuilder sb = new StringBuilder(length);
+            StringBuilder sb = new StringBuilder(length);
 
-        // 정책 충족 보장
-        sb.append(randomChar(UPPER));
-        sb.append(randomChar(LOWER));
-        sb.append(randomChar(DIGIT));
-        sb.append(randomChar(SPECIAL));
+            // 정책 충족 보장
+            sb.append(randomChar(UPPER));
+            sb.append(randomChar(LOWER));
+            sb.append(randomChar(DIGIT));
+            sb.append(randomChar(SPECIAL));
 
-        String all = UPPER + LOWER + DIGIT + SPECIAL;
+            String all = UPPER + LOWER + DIGIT + SPECIAL;
 
-        for (int i = 4; i < length; i++) {
-            sb.append(randomChar(all));
-        }
-
-        // 문자 섞기
-        return shuffle(sb.toString());
+            for (int i = 4; i < length; i++) {
+                sb.append(randomChar(all));
+            }
+            return shuffle(sb.toString());
+    	} catch (RuntimeException e) {
+    		throw new InternalServerException(e);
+    	}
     }
 
     private static char randomChar(String source) {
