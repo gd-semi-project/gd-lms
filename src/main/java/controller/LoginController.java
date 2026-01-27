@@ -15,7 +15,7 @@ import utils.PasswordUtil;
 import java.io.IOException;
 
 @WebServlet(
-		urlPatterns = {"/main", "/login/*", "/about", "/"}
+		urlPatterns = {"/main", "/login/*", "/about"}
 		)
 
 public class LoginController extends HttpServlet {

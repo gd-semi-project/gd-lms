@@ -61,15 +61,19 @@ public class AccessFilter extends HttpFilter {
 			middlePath = actionPath.split("/")[1];
 		}
 		
-		// 중복슬래시 리다이렉트
-		String cleanedUri = uri.replaceAll("/{2,}", "/");
+		String path = uri.substring(contextPath.length());
 
-        if (!uri.equals(cleanedUri)) {
-            // 중복 슬래시가 있으면 리다이렉트
-            response.sendRedirect(request.getContextPath() + cleanedUri);
-            return;
-        }
-        
+		path = path.replaceAll("/{2,}", "/");
+		if (path.length() > 1) {
+		    path = path.replaceAll("/+$", "");
+		}
+		String cleanedUri = contextPath + path;
+
+		if (!uri.equals(cleanedUri)) {
+		    response.sendRedirect(cleanedUri);
+		    return;
+		}
+
 		if (session == null) {
 			if (whiteList.contains(actionPath)) {
 		        chain.doFilter(request, response);
