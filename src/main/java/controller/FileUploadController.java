@@ -40,11 +40,21 @@ public class FileUploadController extends HttpServlet {
 				// 서비스 호출해서 UUID로 파일 다운로드 시도
 				System.out.println("파일다운로드를 시도합니다.");
 				
-				
 				String uuid = request.getParameter("filename");
 			    String originalFileName = fus.getFileOriginalName(UUID.fromString(fileUUID));
+			    
+			    String downloadDir = "D:/upload";
+			    String storedName = fileUUID;
+			    
 				if (originalFileName != null) {
-					byte[] fileData = fus.fileDownload("D:/upload", fileUUID);
+					
+					String boardType = request.getParameter("boardType"); // 백시현 추가
+					if (boardType != null && !boardType.equals("ASSIGNMENT")) { // 백시현 추가
+						downloadDir = downloadDir + "/" + boardType;
+						storedName = fileUUID + "_" + originalFileName;
+					}
+					
+					byte[] fileData = fus.fileDownload(downloadDir, storedName);
 					
 					response.setContentType("application/octet-stream"); // 다운로드용 MIME
 				    response.setContentLength(fileData.length);

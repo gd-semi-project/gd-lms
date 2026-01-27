@@ -4,7 +4,8 @@ public enum StudentStatus {
 
     ENROLLED("ENROLLED"),
     LEAVE("LEAVE"),
-    GRADUATED("GRADUATED");
+    GRADUATED("GRADUATED"),
+	BREAK("BREAK");
 
     private final String label;
 

@@ -15,6 +15,7 @@ import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
 import model.dto.ScheduleUiPolicyDTO;
 import model.dto.SchoolScheduleDTO;
+import model.dto.StudentInfoUpdateRequestDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import model.enumtype.ScheduleCode;
@@ -238,6 +239,41 @@ public class AdminController extends HttpServlet {
 		case "/campus":
 			contentPage = "/WEB-INF/views/admin/adminCampusMap.jsp";
 			break;
+			
+		case "/updateStudent":
+			contentPage = "/WEB-INF/views/admin/adminUpdateStudent.jsp";
+			request.setAttribute("loginId", request.getAttribute("loginId"));
+
+			String rid = request.getParameter("requestId");
+		    if (rid == null) {
+		        response.sendRedirect(contextPath + "/admin/studentInfoUpdateRequests");
+		        return;
+		    }
+
+		    Long requestId;
+		    try {
+		        requestId = Long.parseLong(rid.trim());
+		    } catch (NumberFormatException e) {
+		        response.sendRedirect(contextPath + "/admin/studentInfoUpdateRequests");
+		        return;
+		    }
+
+		    Map<String, Object> detail = service.getStudentInfoUpdateRequestDetail(requestId);
+
+		    request.setAttribute("req", detail.get("req"));
+		    request.setAttribute("currentUser", detail.get("currentUser"));
+		    request.setAttribute("currentStudent", detail.get("currentStudent"));
+		    request.setAttribute("currentDept", detail.get("currentDept"));
+		    request.setAttribute("filesByType", detail.get("filesByType"));
+		    request.setAttribute("departments", service.getDepartmentList());
+			break;
+			
+		case "/studentInfoUpdateRequests":
+			contentPage = "/WEB-INF/views/admin/studentInfoUpdateRequests.jsp";
+			
+		    List<StudentInfoUpdateRequestDTO> list = service.getStudentInfoUpdateRequests();
+		    request.setAttribute("requestList", list);
+			break;
 		
 		// 고희권 추가
 		case "/registUser":
@@ -434,6 +470,17 @@ public class AdminController extends HttpServlet {
 		        response.getWriter().write(json);
 				break;
 			}
+			
+			case "/updateStudentProcess": {
+			    Long requestId = Long.parseLong(request.getParameter("requestId"));
+			    Long studentId = Long.parseLong(request.getParameter("studentId"));
+
+			    service.applyStudentInfoUpdate(requestId, studentId, request);
+
+			    response.sendRedirect(contextPath + "/admin/studentInfoUpdateRequests");
+			    return;
+			}
+			
 			default: break;
 		}
 		

@@ -83,7 +83,7 @@ public class FileUploadService {
 	        saveFileToDisk(part, uuid);
 
 	        // 3. DB insert
-	        fileDAO.isnertFileUpload(fileDTO);
+	        fileDAO.insertFileUpload(fileDTO);
 	    }
 	}
 	

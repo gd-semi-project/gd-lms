@@ -24,6 +24,26 @@ public class StudentDAO {
 	}
 	
 
+	public Long studentIdFromLoginId(String loginId) {
+		String sql = """
+				SELECT s.student_id AS student_id
+				FROM student s
+				JOIN `user` u ON s.user_id = u.user_id
+				WHERE u.login_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql);
+				){
+			ps.setString(1, loginId);
+			try (ResultSet rs = ps.executeQuery();) {
+				if(rs.next()) return rs.getLong("student_id");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
 	// login_id을 통해서 학생테이블을 가져옴
 
 //	public StudentDTO findStudentByLoginId(String loginId) {
@@ -288,6 +308,70 @@ public class StudentDAO {
 		
 		return list;
 	}
+	
+	public StudentDTO findStudentByStudentId(long studentId) {
+	    String sql = "SELECT * FROM student WHERE student_id = ?";
+
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setLong(1, studentId);
+
+	        try (ResultSet rs = pstmt.executeQuery()) {
+	            if (rs.next()) {
+	                StudentDTO student = new StudentDTO();
+
+	                student.setStudentId(rs.getLong("student_id"));
+	                student.setUserId(rs.getLong("user_id"));
+	                student.setDepartmentId(rs.getLong("department_id"));
+
+	                student.setStudentNumber(rs.getInt("student_number"));
+	                student.setStudentGrade(rs.getInt("student_grade"));
+	                student.setStatus(StudentType.fromLabel(rs.getString("status")));
+	                student.setStudentStatus(StudentStatus.fromLabel(rs.getString("student_status")));
+
+	                Timestamp enrollTs = rs.getTimestamp("enroll_date");
+	                if (enrollTs != null) student.setEnrollDate(enrollTs.toLocalDateTime());
+
+	                Timestamp endTs = rs.getTimestamp("end_date");
+	                if (endTs != null) student.setEndDate(endTs.toLocalDateTime());
+
+	                student.setTuitionAccount(rs.getString("tuition_account"));
+	                return student;
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
+
+	public void updateStudentByAdmin(Connection conn, StudentDTO s) {
+		String sql = """
+		        UPDATE student
+		           SET department_id   = ?,
+		               tuition_account = ?,
+		               student_status  = ?
+		         WHERE student_id = ?
+		    """;
+		    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+		        ps.setLong(1, s.getDepartmentId());
+		        ps.setString(2, s.getTuitionAccount());
+		        ps.setString(3, s.getStudentStatus() == null ? null : s.getStudentStatus().name()); // ENROLLED/BREAK/LEAVE...
+		        ps.setLong(4, s.getStudentId());
+		        ps.executeUpdate();
+		    } catch(Exception e) {
+		    	e.printStackTrace();
+		    	System.out.println("updateStudentByAdmin():실패");
+		    }
+	}
+
+	
+	
+	
+	
+	
+	
 }
 
 
