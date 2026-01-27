@@ -13,6 +13,13 @@ String ctx = request.getContextPath();
 	margin-bottom: 20px;
 }
 
+.box2{
+	max-height: 500px;      
+    overflow-y: auto;      
+    padding: 10px;
+    border: 1px solid #ccc; 
+    }
+
 table {
 	width: 100%;
 	border-collapse: collapse;
@@ -96,7 +103,7 @@ button {
 
 <div class="box">
 	<h4>개설강좌</h4>
-
+	<div class="box2">
 	<table>
 		<thead>
 			<tr>
@@ -155,11 +162,11 @@ button {
 			</c:if>
 		</tbody>
 	</table>
-
+</div>
 
 </div>
 
-
+<br>
 <!-- 수강신청 내역 -->
 
 <div class="box">
