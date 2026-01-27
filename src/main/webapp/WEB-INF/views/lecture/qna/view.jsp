@@ -9,6 +9,9 @@
 
 <div class="container mt-4">
   <h3 class="mb-3">Q&A 상세</h3>
+   <c:if test="${not empty errorMessage}">
+     <div class="alert alert-danger">${errorMessage}</div>
+   </c:if>
 
   <div class="card mb-3">
     <div class="card-body">

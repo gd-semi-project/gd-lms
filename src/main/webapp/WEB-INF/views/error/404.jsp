@@ -3,7 +3,7 @@
 
 <div class="container mt-4">
   <div class="alert alert-danger">
-    <h4 class="alert-heading">접근 권한이 없습니다 (403)</h4>
+    <h4 class="alert-heading">경로가 없는 페이지입니다. (404)</h4>
     <p class="mb-0">
       <c:out value="${requestScope.errorMessage}" />
     </p>

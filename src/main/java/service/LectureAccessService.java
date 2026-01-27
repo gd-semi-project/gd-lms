@@ -5,7 +5,7 @@ import java.sql.Connection;
 import database.DBConnection;
 import model.dao.LectureAccessDAO;
 import model.enumtype.Role;
-import service.exception.AccessDeniedException;
+import exception.AccessDeniedException;
 
 public class LectureAccessService {
 

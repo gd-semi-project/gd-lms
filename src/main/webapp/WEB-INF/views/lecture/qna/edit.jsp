@@ -13,6 +13,9 @@
   </c:when>
   <c:otherwise>
     <h3 class="mb-3">Q&amp;A 수정</h3>
+       <c:if test="${not empty errorMessage}">
+     	<div class="alert alert-danger">${errorMessage}</div>
+   	   </c:if>
 
     <form method="post" action="${ctx}/lecture/qna?action=update">
       <input type="hidden" name="lectureId" value="${lectureId}" />
