@@ -19,7 +19,6 @@ import service.EnrollmentService;
 import service.MyPageService;
 
 import java.io.IOException;
-import java.nio.channels.AcceptPendingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +61,7 @@ public class MypageController extends HttpServlet {
 	        if (loginId == null) {
 	            // 세션 꼬임 방어
 	            session.invalidate();
+	            session = request.getSession();
 	            session.setAttribute("errorMessage", "세션정보가 유효하지 않습니다.");
 	            response.sendRedirect(ctx + "/error?errorCode=401");
 	            return;

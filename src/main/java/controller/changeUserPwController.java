@@ -24,15 +24,18 @@ public class changeUserPwController extends HttpServlet {
        
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
+		String ctx = request.getContextPath();
 		HttpSession session = request.getSession(false);
         if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        	session.setAttribute("errorMessage", "로그인이 필요합니다.");
+            response.sendRedirect(ctx + "/error?errorCode=401");
             return;
         }
 
         AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
         if (access == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        	session.setAttribute("errorMessage", "로그인이 필요합니다.");
+            response.sendRedirect(ctx + "/error?errorCode=401");
             return;
         }
         // loginId 확보
@@ -45,7 +48,8 @@ public class changeUserPwController extends HttpServlet {
         }
 		// ROLE이 STUDENT인경우(학생)만 접근가능
 		if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=403");
 			return;
 		}
 		
@@ -72,16 +76,16 @@ public class changeUserPwController extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
-		
+		String ctx = request.getContextPath();
 		
         if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        	response.sendRedirect(ctx + "/login");
             return;
         }
 
         AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
         if (access == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        	response.sendRedirect(ctx + "/login");
             return;
         }
         // loginId 확보
@@ -93,7 +97,8 @@ public class changeUserPwController extends HttpServlet {
             return;
         }
         if (access.getRole() != Role.STUDENT) {
-	        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        	session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=403");
 	        return;
 	    }
         
@@ -103,21 +108,32 @@ public class changeUserPwController extends HttpServlet {
         String confirmPw = request.getParameter("confirmPw");
         
         // 아무것도 입력안했을때
-        if(studentNum == null || newPw == null || confirmPw == null || currentPw == null) {
-        	request.setAttribute("error", "모든 항목을 입력하시오");
-        	doGet(request, response);
-        	return;
-        }
+        if (studentNum == null || currentPw == null ||
+                newPw == null || confirmPw == null ||
+                studentNum.isBlank() || currentPw.isBlank() ||
+                newPw.isBlank() || confirmPw.isBlank()) {
+
+                request.setAttribute("error", "모든 항목을 입력하시오");
+                doGet(request, response);
+                return;
+            }
         
 		// 비밀번호가 일치하지 않을때
-		if (!newPw.equals(confirmPw)) {
-			request.setAttribute("error", "비밀번호가 일치하지 않습니다");
-			doGet(request, response);
-			return;
-		}
+        if (!newPw.equals(confirmPw)) {
+            request.setAttribute("error", "비밀번호가 일치하지 않습니다");
+            doGet(request, response);
+            return;
+        }
 		
 		// 학번 검증
-	    int studentNumber = Integer.parseInt(studentNum);
+	    int studentNumber;
+	    try {
+	        studentNumber = Integer.parseInt(studentNum);
+	    } catch (NumberFormatException e) {
+	        request.setAttribute("error", "학번의 형식이 알맞지않습니다.");
+	        doGet(request, response);
+	        return;
+	    }
 		boolean validStudent =
 				myPageService.checkStudentNumber(loginId, studentNumber);
 		
