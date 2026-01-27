@@ -17,8 +17,6 @@ import service.DepartmentService;
 import service.EnrollmentService;
 import service.LectureRequestService;
 import service.MyPageService;
-import utils.EnrollmentPeriod;
-
 import java.io.IOException;
 import java.util.List;
 
