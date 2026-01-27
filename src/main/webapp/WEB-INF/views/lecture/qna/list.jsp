@@ -9,6 +9,9 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">💬 Q&amp;A</h3>
+     <c:if test="${not empty errorMessage}">
+     	<div class="alert alert-danger">${errorMessage}</div>
+   	 </c:if>
 
   <c:if test="${sessionScope.AccessInfo.role == 'STUDENT'}">
     <a class="btn btn-primary"

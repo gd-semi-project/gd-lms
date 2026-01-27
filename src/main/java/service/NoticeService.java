@@ -368,7 +368,7 @@ public class NoticeService {
 
     private void requireLogin(Long userId, Role role) {
         if (userId == null || role == null) {
-            throw new AccessDeniedException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 

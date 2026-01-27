@@ -30,6 +30,10 @@ public class NoticeController extends HttpServlet {
     private static final String NOTICE_NEW  = "/WEB-INF/views/notice/new.jsp";
     private static final String NOTICE_EDIT = "/WEB-INF/views/notice/edit.jsp";
     
+    // SC_FORBIDDEN = 403
+    // SC_BAD_REQUEST = 400
+    // SC_NOT_FOUND = 404
+    // SC_BAD_REQUEST =400
     // 에러페이지 경로 상수
     private static final String ERROR_403   = "/WEB-INF/views/error/403.jsp";
 
@@ -38,6 +42,7 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
+        HttpSession session = req.getSession(false);
 
         String action = resolveAction(req);
 
@@ -56,22 +61,28 @@ public class NoticeController extends HttpServlet {
                     showEditForm(req, resp);
                     break;
                 default:
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                	throw new NoticeService.NotFoundException("잘못된 경로 요청입니다.");
             }
+        } catch (NoticeService.UnauthorizedException e) {
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=401");
+            return;
+
         } catch (NoticeService.AccessDeniedException e) {
-            req.setAttribute("errorMessage", e.getMessage());
-            // 403부분
-            forwardLayout(req, resp, ERROR_403);
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=403");
+            return;
+
         } catch (NoticeService.NotFoundException e) {
-        	e.printStackTrace();
-           // TODO: 404 부분
-           // resp.sendError();
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=404");
+            return;
 
         } catch (Exception e) {
-            e.printStackTrace();
-           // TODO: 500 에러페이지 forward
-           //resp.sendError();
-            
+            log("NoticeController doGet error", e);
+            if (session != null) session.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=500");
+            return;
         }
     }
 
@@ -80,7 +91,7 @@ public class NoticeController extends HttpServlet {
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
-
+        HttpSession session = req.getSession(false);
         String action = resolveAction(req);
 
         try {
@@ -95,24 +106,28 @@ public class NoticeController extends HttpServlet {
                     handleDelete(req, resp);
                     return;
                 default:
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND); return;
+                	throw new NoticeService.NotFoundException("잘못된 경로 요청입니다.");
             }
+        } catch (NoticeService.UnauthorizedException e) {
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=401");
+            return;
+
         } catch (NoticeService.AccessDeniedException e) {
-        	if (resp.isCommitted()) return; // 응답 있다면 포워드 금지 
-            req.setAttribute("errorMessage", e.getMessage());
-            forwardLayout(req, resp, ERROR_403);
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=403");
+            return;
+
         } catch (NoticeService.NotFoundException e) {
-            if (resp.isCommitted()) return;
-            req.setAttribute("errorMessage", e.getMessage());
-            // TODO: 404 부분
-            // forwardLayout(req, resp, ERROR_404);
+            if (session != null) session.setAttribute("errorMessage", e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=404");
+            return;
 
         } catch (Exception e) {
-            e.printStackTrace();
-            if (resp.isCommitted()) return;
-            req.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
-            // TODO: 500 부분
-            // forwardLayout(req, resp, ERROR_500);
+            log("NoticeController doPost error", e);
+            if (session != null) session.setAttribute("errorMessage", "서버 오류가 발생했습니다.");
+            resp.sendRedirect(req.getContextPath() + "/error?errorCode=500");
+            return;
         }
     }
 
@@ -203,8 +218,7 @@ public class NoticeController extends HttpServlet {
 
         NoticeDTO notice = noticeService.getNoticeDetail(noticeId, lectureId, userId, role);
         if (notice == null) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        	throw new NoticeService.NotFoundException("공지사항을 찾을 수 없습니다.");
         }
 
         req.setAttribute("notice", notice);
@@ -254,8 +268,7 @@ public class NoticeController extends HttpServlet {
 
         NoticeDTO notice = noticeService.getNoticeForEdit(noticeId, lectureId, userId, role);
         if (notice == null) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        	throw new NoticeService.NotFoundException("공지사항을 찾을 수 없습니다.");
         }
 
         req.setAttribute("notice", notice);
@@ -441,10 +454,11 @@ public class NoticeController extends HttpServlet {
 
     private void requireLogin(Long userId, Role role) {
         if (userId == null || role == null) {
-            throw new NoticeService.AccessDeniedException("로그인이 필요합니다.");
+            throw new NoticeService.UnauthorizedException("로그인이 필요합니다.");
         }
     }
 
+    // 리다이렉트 URL 유틸 메소드
     private String buildRedirectUrl(HttpServletRequest req, String path, String... kv) {
         StringBuilder sb = new StringBuilder();
         sb.append(req.getContextPath()).append(path);

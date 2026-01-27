@@ -159,6 +159,8 @@ public class QnaService {
         if (dto == null || dto.getQnaId() == null || dto.getLectureId() == null) {
             throw new IllegalArgumentException("dto/qnaId/lectureId is required.");
         }
+        requirePositiveId("qnaId", dto.getQnaId());
+        requirePositiveId("lectureId", dto.getLectureId());
 
         Connection conn = null;
         try {
@@ -247,6 +249,7 @@ public class QnaService {
         if (dto == null || dto.getQnaId() == null) {
             throw new IllegalArgumentException("dto/qnaId is required.");
         }
+        requirePositiveId("qnaId", dto.getQnaId()); 
 
         if (!(role == Role.INSTRUCTOR || role == Role.ADMIN)) {
             throw new AccessDeniedException("답변 권한이 없습니다.");
@@ -291,7 +294,7 @@ public class QnaService {
 
     private void requireLogin(long userId, Role role) {
         if (userId <= 0 || role == null) {
-            throw new AccessDeniedException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
     }
 
