@@ -1,6 +1,9 @@
 package utils;
 
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import exception.InternalServerException;
 
 public class HashUtil {
 	public static String sha256(String passwd) {
@@ -16,9 +19,8 @@ public class HashUtil {
             }
             return sb.toString();
 
-        } catch (Exception e) {
-            // 예외 처리
+        } catch (InternalServerException | NoSuchAlgorithmException e) {
+            throw new InternalServerException(e);
         }
-		return null; // 예외 처리 구문 포함 후 삭제처리 필요
 	}
 }

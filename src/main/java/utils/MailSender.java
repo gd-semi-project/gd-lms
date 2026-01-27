@@ -2,6 +2,7 @@ package utils;
 
 import java.util.Properties;
 
+import exception.InternalServerException;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -22,8 +23,6 @@ public class MailSender {
             System.out.println("환경변수 'SMTP_PASSWORD'가 설정되지 않음");
             return;
         }
-
-        System.out.println("환경변수 읽기 성공");
 
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -52,7 +51,7 @@ public class MailSender {
             System.out.println("메일 전송 완료");
 
         } catch (MessagingException e) {
-            e.printStackTrace();
+            throw new InternalServerException(e);
         }
     }
 }
