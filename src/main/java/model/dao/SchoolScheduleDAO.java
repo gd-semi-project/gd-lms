@@ -226,7 +226,7 @@ public class SchoolScheduleDAO {
 	}
 
 	
-	// 수강신청기간?
+	// 수강신청기간 찾기
 	public SchoolScheduleDTO findEnrollmentPeriod(Connection conn, LocalDate today) {
 
 	    String sql = """

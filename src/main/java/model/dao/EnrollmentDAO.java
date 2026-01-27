@@ -349,6 +349,7 @@ public class EnrollmentDAO {
 				      AND e2.status = 'ENROLLED'
 				WHERE e.user_id = ?
 				  AND e.status = 'ENROLLED'
+				  AND l.status = 'PLANNED'
 				GROUP BY
 				    l.lecture_id,
 				    d.department_name,

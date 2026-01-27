@@ -69,19 +69,7 @@ public class AccessFilter extends HttpFilter {
             response.sendRedirect(request.getContextPath() + cleanedUri);
             return;
         }
-		
-
-		// (학생) 수강신청 기간 체크 테스트용(임의의 유틸값 사용 utils/EnrollmentPeriod.java)
-//		boolean isEnrollRequest = actionPath.startsWith("/enroll") || actionPath.equals("/mypage/enrollmentPage");
-//		boolean isClosedPage = actionPath.equals("/enroll/closed");
-//		if (isEnrollRequest && !isClosedPage && !EnrollmentPeriod.isOpen()) {
-//			response.sendRedirect(contextPath + "/enroll/closed");
-//		    return;
-//		}
         
-        // 학생 수강신청 기간 체크
-        
-
 		if (session == null) {
 			if (whiteList.contains(actionPath)) {
 		        chain.doFilter(request, response);

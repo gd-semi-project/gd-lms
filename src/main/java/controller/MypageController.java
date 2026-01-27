@@ -15,6 +15,7 @@ import model.dto.MypageDTO;
 import model.dto.MyscheduleDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
+import service.EnrollmentService;
 import service.MyPageService;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ public class MypageController extends HttpServlet {
 
 	private MyPageService myPageService = new MyPageService();
 	private LectureDAO lectureDAO = LectureDAO.getInstance();
+	private EnrollmentService enrollmentService = new EnrollmentService();
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -121,9 +123,22 @@ public class MypageController extends HttpServlet {
 	
 		case "/enrollmentPage": {	// 수강신청(학생)
 			// ROLE이 STUDENT인경우(학생)만 접근가능
-			if (access.getRole() != Role.STUDENT) {
+			if (access.getRole() != Role.STUDENT ) {
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return;
+			}
+			// 수강신청기능일경우 접근가능
+			if (!enrollmentService.isEnrollmentPeriod()) {
+
+			    request.setAttribute(
+			        "contentPage",
+			        "/WEB-INF/views/student/enrollmentClose.jsp"
+			    );
+
+			    request.getRequestDispatcher(
+			        "/WEB-INF/views/layout/layout.jsp"
+			    ).forward(request, response);
+			    return;
 			}
 			
 			 MypageDTO mypage = myPageService.getMypageDTO(loginId);

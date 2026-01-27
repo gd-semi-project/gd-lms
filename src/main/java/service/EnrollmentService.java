@@ -127,12 +127,10 @@ public class EnrollmentService {
 
     	try (Connection conn = DBConnection.getConnection()) {
 
-            LocalDate today = AppTime.now().toLocalDate();
+            LocalDate today = LocalDate.now();
 
-            SchoolScheduleDTO schedule =
-                schoolScheduleDAO.findEnrollmentPeriod(conn, today);
-
-            return schedule != null;
+            return schoolScheduleDAO
+                    .findEnrollmentPeriod(conn, today) != null;
 
         } catch (Exception e) {
             throw new RuntimeException(
