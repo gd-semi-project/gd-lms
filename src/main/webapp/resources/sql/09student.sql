@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS student (
     student_grade INT,                              
 
     status ENUM('UNDERGRADUATE','GRADUATE') NOT NULL,           
-    student_status ENUM('ENROLLED','LEAVE','GRADUATED') 
+    student_status ENUM('ENROLLED','LEAVE','GRADUATED','BREAK') 
                    NOT NULL DEFAULT 'ENROLLED',       
 
     enroll_date DATETIME,                           

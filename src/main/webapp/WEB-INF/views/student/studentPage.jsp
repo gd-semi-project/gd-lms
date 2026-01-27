@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>   
     
 <style>
 <link
@@ -92,8 +93,20 @@
   </div>
 </div>
 <div class="mt-3">
-	<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
-		class="btn btn-primary">정보 수정</a> <a
-		href="${pageContext.request.contextPath}/changeUserPw/change"
-		class="btn btn-warning">비밀번호 변경</a>
+	<c:choose>
+		<c:when test="${AccessInfo.role == 'STUDENT'}">
+			<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
+				class="btn btn-primary">정보 수정</a> 
+		</c:when>
+		<c:when test="${AccessInfo.role =='ADMIN'}">
+			<a
+				href="${pageContext.request.contextPath}/admin/updateStudent"
+			>정보 수정</a>
+		</c:when>
+	</c:choose>
+		<c:if test="${AccessInfo.role == 'STUDENT'}">
+			<a
+			href="${pageContext.request.contextPath}/changeUserPw/change"
+			class="btn btn-warning">비밀번호 변경</a>
+		</c:if>
 </div>

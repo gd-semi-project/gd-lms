@@ -22,7 +22,6 @@ public class MypageDTO {
 //	교수 
 	private InstructorDTO professor;
 	
-
 	
 	
 	

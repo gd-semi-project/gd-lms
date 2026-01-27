@@ -165,6 +165,10 @@ public class UserDAO {
 	            userDTO.setEmail(rs.getString("email"));
 	            userDTO.setRole(Role.valueOf(rs.getString("role")));
 	            // 필요한 필드만
+	            String genderStr = rs.getString("gender");
+	            if (genderStr != null && !genderStr.isBlank()) {
+	                userDTO.setGender(model.enumtype.Gender.valueOf(genderStr));
+	            }// 나 이거 필요함
 	            return userDTO;
 	        }
 	        return null;
@@ -261,5 +265,24 @@ public class UserDAO {
             throw new InternalServerException(e);
         }
     }
+
+	public void updateUserByAdmin(Connection conn, UserDTO user) {
+	    String sql = """
+	            UPDATE `user`
+	               SET name = ?,
+	                   gender = ?
+	             WHERE user_id = ?
+	        """;
+	        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+	            ps.setString(1, user.getName());
+	            ps.setString(2, user.getGender() == null ? null : user.getGender().name()); // M/F 등
+	            ps.setLong(3, user.getUserId());
+	            ps.executeUpdate();
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+	        	System.out.println("updateUserByAdmin(): 실패");
+	        }
+		
+	}
 	
 }
