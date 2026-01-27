@@ -196,6 +196,7 @@ public class LectureDAO {
 				        l.validation,
 				        l.created_at,
 				        l.updated_at
+				        
 				    FROM enrollment e
 				    JOIN lecture l ON e.lecture_id = l.lecture_id
 				    WHERE e.user_id = ?
@@ -575,7 +576,7 @@ public class LectureDAO {
 				           ON l.lecture_id = e.lecture_id
 				          AND e.status = 'ENROLLED'
 
-				    WHERE l.status = 'PLANNED'
+				    WHERE l.status IN ('PLANNED','ONGOING')
 				      AND l.validation = 'CONFIRMED'
 				""");
 

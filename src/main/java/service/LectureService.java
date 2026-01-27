@@ -19,6 +19,7 @@ import model.dto.LectureScheduleDTO;
 import model.dto.LectureStudentDTO;
 import model.enumtype.LectureStatus;
 import model.enumtype.Role;
+import utils.AppTime;
 
 public class LectureService {	// 이미 개설된 강의에 기준
 
@@ -92,7 +93,7 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	public int cancelExpiredLectureRequest() {
 		return lectureDAO.cancelExpiredLectureRequest();
 	}
-
+	
 	// 강의 상태 동기화 (PLANNED → ONGOING → ENDED)
 	public int[] syncLectureStatusByDate(LocalDate today) {
 		int ongoingCount = lectureDAO.markOnGoing(today);
