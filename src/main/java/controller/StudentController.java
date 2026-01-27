@@ -44,6 +44,13 @@ public class StudentController extends HttpServlet {
         }
 
         Long userId = access.getUserId();
+        if (userId == null) {
+            session.invalidate();
+            session = request.getSession();
+            session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+            response.sendRedirect(ctx + "/error?errorCode=401");
+            return;
+        }
 
         /* ======================
          *  URL 분기
@@ -90,8 +97,9 @@ public class StudentController extends HttpServlet {
         	    break;
         }
         default:
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
+        	 session.setAttribute("errorMessage", "존재하지 않는 요청입니다.");
+        	    response.sendRedirect(ctx + "/error?errorCode=404");
+        	    return;
         }
 
         request.getRequestDispatcher(
