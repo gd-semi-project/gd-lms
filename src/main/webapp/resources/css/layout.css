@@ -1,14 +1,8 @@
 
-
 .navbar {
   position: sticky;
   top: 0;
   z-index: 1000;
-}
-
-/* ❌ row 높이 조작 제거 */
-.row {
-  min-height: auto;
 }
 
 /* 메인 콘텐츠만 패딩 */
@@ -21,6 +15,11 @@
   top: 56px;              /* navbar 높이 */
   height: calc(100vh - 56px);
   overflow-y: auto;
+}
+
+main.about-page {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ===== 기본: PC ===== */
