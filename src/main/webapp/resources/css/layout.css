@@ -6,10 +6,7 @@
   z-index: 1000;
 }
 
-/* ❌ row 높이 조작 제거 */
-.row {
-  min-height: auto;
-}
+
 
 /* 메인 콘텐츠만 패딩 */
 .main-content {
