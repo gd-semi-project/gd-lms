@@ -2,7 +2,12 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/about.css">
-
+<c:if test="${MPWC}">
+	<script>
+	  alert("비밀번호가 초기화되었습니다. 변경해주세요.");
+	</script>
+	<c:remove var="MPWC" scope="session"/>
+</c:if>
 <!-- HERO -->
 <div class="hero">
   <div class="hero-content">
