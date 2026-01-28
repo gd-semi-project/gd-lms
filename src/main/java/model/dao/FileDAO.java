@@ -36,6 +36,7 @@ public class FileDAO {
 				fileDTO.setOriginalFilename(rs.getString("original_filename"));
 				String uuidStr = rs.getString("uuid");
 				fileDTO.setUuid(UUID.fromString(uuidStr));
+				fileDTO.setBoardType(boardType);
 				fileList.add(fileDTO);
 			}
 			return fileList;
@@ -93,6 +94,57 @@ public class FileDAO {
 		} catch (SQLException | ClassNotFoundException e) {
 			throw new InternalServerException(e);
 		}
+	}
+	
+	public List<FileDTO> selectFilesByRefId(Long refId) {
+	    String sql = """
+	        SELECT file_id, board_type, ref_id, uuid, original_filename
+	        FROM file_upload
+	        WHERE ref_id = ? AND is_deleted='N'
+	        ORDER BY file_id
+	    """;
+
+	    List<FileDTO> list = new ArrayList<>();
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+	        ps.setLong(1, refId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                FileDTO f = new FileDTO();
+	                f.setFileId(rs.getLong("file_id"));
+	                f.setBoardType(rs.getString("board_type"));
+	                f.setRefId(rs.getLong("ref_id"));
+	                f.setUuid(UUID.fromString(rs.getString("uuid")));
+	                f.setOriginalFilename(rs.getString("original_filename"));
+	                list.add(f);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return list;
+	}
+
+	public FileDTO selectFileMetaByUUID(UUID uuid) {
+	    String sql = "SELECT board_type, ref_id, original_filename FROM file_upload WHERE uuid = ? AND is_deleted='N' LIMIT 1";
+	    try (Connection conn = DBConnection.getConnection()){
+	        PreparedStatement ps = conn.prepareStatement(sql);
+	        ps.setString(1, uuid.toString());
+
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            FileDTO f = new FileDTO();
+	            f.setUuid(uuid);
+	            f.setBoardType(rs.getString("board_type"));
+	            f.setRefId(rs.getLong("ref_id"));
+	            f.setOriginalFilename(rs.getString("original_filename"));
+	            return f;
+	        }
+	    } catch (Exception e) {
+	        System.out.println("FileDAO selectFileMetaByUUID: " + e.getMessage());
+	    }
+	    return null;
 	}
 
 

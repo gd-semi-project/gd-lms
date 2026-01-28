@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import database.DBConnection;
+import exception.BadRequestException;
+import exception.InternalServerException;
+import exception.ResourceNotFoundException;
 import model.dao.LectureDAO;
 import model.dao.LectureScheduleDAO;
 import model.dto.AccessDTO;
@@ -36,59 +39,69 @@ public class LectureService {	// 이미 개설된 강의에 기준
 	private final LectureDAO lectureDAO = LectureDAO.getInstance();
 	private final LectureScheduleDAO lectureScheduleDAO = LectureScheduleDAO.getInstance();
 	
-	// 학생/교수 강의 리스트 
-	public List<LectureDTO> getMyLectures(AccessDTO access, String status) {	
-	    if (access == null) {
-	        throw new IllegalArgumentException("AccessInfo is null");
-	    }
-	    
+	public List<LectureDTO> getMyLectures(AccessDTO access, String status) {
 
-	    try (Connection conn = DBConnection.getConnection()) {
+        if (access == null) {
+            throw new BadRequestException("로그인 정보가 없습니다.");
+        }
 
-	        if (access.getRole() == Role.INSTRUCTOR) {
-	            return lectureDAO.selectLecturesByInstructor(
-	                conn,
-	                access.getUserId(),
-	                status
-	            );
-	        }
+        try (Connection conn = DBConnection.getConnection()) {
 
-	        if (access.getRole() == Role.STUDENT) {
-	            return lectureDAO.selectLecturesByStudent(
-	                conn,
-	                access.getUserId()
-	            );
-	        }
+            if (access.getRole() == Role.INSTRUCTOR) {
+                return lectureDAO.selectLecturesByInstructor(
+                        conn, access.getUserId(), status);
+            }
 
-	        return List.of();
+            if (access.getRole() == Role.STUDENT) {
+                return lectureDAO.selectLecturesByStudent(
+                        conn, access.getUserId());
+            }
 
-	    } catch (Exception e) {
-	    	// TODO : 500 Internal Server Error
-	        throw new RuntimeException("내 강의 목록 조회 실패", e);
-	    }
-	}
+            return List.of();
 
-	// 강의 상세
-	public LectureDTO getLectureDetail(Long lectureId) {
-		if (lectureId == null || lectureId <= 0) {
-			throw new IllegalArgumentException("lectureId is required.");
-		}
+        } catch (Exception e) {
+            throw new InternalServerException("내 강의 목록 조회 실패", e);
+        }
+    }
 
-		try (Connection conn = DBConnection.getConnection()) {
-			return lectureDAO.selectLectureById(conn, lectureId);
-		} catch (Exception e) {
-			throw new RuntimeException("강의 상세 조회 실패", e);
-		}
-	}
+    // 강의 상세
+    public LectureDTO getLectureDetail(Long lectureId) {
 
-	// 수강생 목록 조회
-	public List<LectureStudentDTO> getLectureStudents(Long lectureId) {
-		try (Connection conn = DBConnection.getConnection()) {
-			return lectureDAO.selectLectureStudents(conn, lectureId);
-		} catch (Exception e) {
-			throw new RuntimeException("강의 수강생 조회 실패", e);
-		}
-	}
+        if (lectureId == null || lectureId <= 0) {
+            throw new BadRequestException("강의 ID가 올바르지 않습니다.");
+        }
+
+        try (Connection conn = DBConnection.getConnection()) {
+
+            LectureDTO lecture = lectureDAO.selectLectureById(conn, lectureId);
+
+            if (lecture == null) {
+                throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
+            }
+
+            return lecture;
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InternalServerException("강의 상세 조회 실패", e);
+        }
+    }
+
+    // 수강생 목록
+    public List<LectureStudentDTO> getLectureStudents(Long lectureId) {
+
+        if (lectureId == null || lectureId <= 0) {
+            throw new BadRequestException("강의 ID가 올바르지 않습니다.");
+        }
+
+        try (Connection conn = DBConnection.getConnection()) {
+            return lectureDAO.selectLectureStudents(conn, lectureId);
+        } catch (Exception e) {
+            throw new InternalServerException("강의 수강생 조회 실패", e);
+        }
+    }
+
 	
 	// 강의 개설 요청 기간 종료 후 PENDING → CANCELED
 	public int cancelExpiredLectureRequest() {

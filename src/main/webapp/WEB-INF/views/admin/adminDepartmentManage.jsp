@@ -3,7 +3,9 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
+<style>
+	body{ padding-top : 40px; }
+</style>
 <div class="container-fluid my-4">
 
   <!-- ✅ status 기본값 + 전체 페이지 공용 -->
@@ -66,9 +68,6 @@
       </div>
     </div>
 
-    <!-- =========================
-         RIGHT (75%): 선택 학과 상세(include)
-    ========================== -->
     <div class="col-12 col-lg-9">
       <div class="card shadow-sm h-100">
         <div class="card-body">

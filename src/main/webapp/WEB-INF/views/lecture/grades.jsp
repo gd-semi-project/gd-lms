@@ -7,9 +7,6 @@
 
 <h3 class="mb-4">📝 성적 관리</h3>
 
-<!-- =========================
-     ⚠ 경고 메시지 (교수만)
-     ========================= -->
 <c:if test="${role == 'INSTRUCTOR' && not empty warningMessage}">
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
     ⚠ ${warningMessage}
@@ -17,9 +14,6 @@
   </div>
 </c:if>
 
-<!-- =========================================================
-     👨‍🏫 교수 화면
-     ========================================================= -->
 <c:if test="${role == 'INSTRUCTOR'}">
 
     <div class="alert alert-info">
@@ -28,12 +22,11 @@
         ✔ 학점 계산 시 과제 / 중간 / 기말 점수가 모두 필요합니다.
     </div>
 
-    <!-- 탭 버튼 -->
     <div class="mb-3">
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('attendance')">출석</button>
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('assignment')">과제</button>
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('midterm')">중간</button>
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('final')">기말</button>
+    	<button id="btn-attendance" type="button" class="btn btn-primary btn-sm" onclick="showTab('attendance')">출석</button>
+		<button id="btn-assignment" type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('assignment')">과제</button>
+		<button id="btn-midterm" type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('midterm')">중간</button>
+		<button id="btn-final" type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('final')">기말</button>
     </div>
 
     <form id="scoreForm" method="post" action="${ctx}/score/grades/save">
@@ -94,9 +87,7 @@
         </table>
 
         <div class="text-end mt-3">
-            <button type="submit"
-                    class="btn btn-primary"
-                    onclick="setAction('save')">
+            <button type="submit" class="btn btn-primary" onclick="setAction('save')">
                 💾 저장
             </button>
             <button type="submit"
@@ -109,9 +100,6 @@
     </form>
 </c:if>
 
-<!-- =========================================================
-     🎓 학생 화면 (본인 성적만)
-     ========================================================= -->
 <c:if test="${role == 'STUDENT'}">
 
     <div class="alert alert-info">
@@ -139,62 +127,4 @@
     </table>
 </c:if>
 
-<script>
-function setAction(type) {
-    document.getElementById('actionType').value = type;
-}
-
-function showTab(type) {
-    ['attendance','assignment','midterm','final'].forEach(t => {
-        document.querySelectorAll('.tab-' + t)
-            .forEach(el => el.classList.add('d-none'));
-    });
-    document.querySelectorAll('.tab-' + type)
-        .forEach(el => el.classList.remove('d-none'));
-}
-
-/**
- * 🔥 저장 / 학점 계산 공통 검증
- * 규칙:
- * - 과제 / 중간 / 기말 중
- *   하나라도 입력이 시작되면 → 해당 항목 전원 입력 필수
- */
-document.getElementById('scoreForm').addEventListener('submit', function (e) {
-
-    const actionType = document.getElementById('actionType').value;
-    const rows = document.querySelectorAll('.score-row');
-
-    const assignmentInputs = document.querySelectorAll('.assignment-input');
-    const midtermInputs = document.querySelectorAll('.midterm-input');
-    const finalInputs = document.querySelectorAll('.final-input');
-
-    let hasError = false;
-
-    function checkAllOrNothing(inputs) {
-        const filled = [...inputs].filter(i => i.value !== '');
-        if (filled.length === 0) return false; // 아무도 안 입력 → OK
-        return filled.length !== inputs.length; // 일부만 입력 → ❌
-    }
-
-    const assignmentError = checkAllOrNothing(assignmentInputs);
-    const midtermError = checkAllOrNothing(midtermInputs);
-    const finalError = checkAllOrNothing(finalInputs);
-
-    if (assignmentError || midtermError || finalError) {
-        hasError = true;
-    }
-
-    if (hasError) {
-        e.preventDefault();
-
-        rows.forEach(row => row.classList.add('table-danger'));
-
-        alert(
-            '⚠ 저장 규칙 위반\n\n' +
-            '과제 / 중간 / 기말 중\n' +
-            '하나라도 입력을 시작했다면\n' +
-            '해당 항목은 모든 학생이 전부 입력해야 합니다.'
-        );
-    }
-});
-</script>
+<script src="${ctx}/resources/js/grades.js"></script>

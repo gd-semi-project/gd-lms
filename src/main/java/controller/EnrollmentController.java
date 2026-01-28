@@ -27,7 +27,7 @@ public class EnrollmentController extends HttpServlet {
 
 	private EnrollmentService enrollmentService = new EnrollmentService();
 	private MyPageService myPageService = new MyPageService();
-	
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
@@ -52,26 +52,24 @@ public class EnrollmentController extends HttpServlet {
 		// 수강신청기능일경우 접근가능
 		if (!enrollmentService.isEnrollmentPeriod()) {
 
-		    request.setAttribute(
-		        "contentPage",
-		        "/WEB-INF/views/student/enrollmentClose.jsp"
-		    );
+			request.setAttribute("contentPage", "/WEB-INF/views/student/enrollmentClose.jsp");
 
-		    request.getRequestDispatcher(
-		        "/WEB-INF/views/layout/layout.jsp"
-		    ).forward(request, response);
-		    return;
+			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+			return;
 		}
 		// ROLE이 STUDENT인경우(학생)만 접근가능
 		if (access.getRole() != Role.STUDENT) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
-			return;
+			session.setAttribute("errorMessage", "학생만 접근 가능합니다.");
+		    response.sendRedirect(request.getContextPath() + "/error?errorCode=403");
+		    return;
 		}
 
 		Long studentId = (Long) session.getAttribute("userId");
 		if (studentId == null) {
 			session.invalidate();
-			response.sendRedirect(request.getContextPath() + "/login");
+			session = request.getSession();
+			session.setAttribute("errorMessage", "세션 정보가 유효하지 않습니다.");
+			response.sendRedirect(request.getContextPath() + "/error?errorCode=401");
 			return;
 		}
 
@@ -86,20 +84,26 @@ public class EnrollmentController extends HttpServlet {
 			// 수강신청 가능 강의목록(검색기능 부분)
 			String departmentIdParam = request.getParameter("departmentId");
 			String keyword = request.getParameter("keyword");
-			
+
 			Long departmentId = null;
-			if(departmentIdParam != null && !departmentIdParam.isBlank()) {
-				departmentId = Long.parseLong(departmentIdParam);
+			if (departmentIdParam != null && !departmentIdParam.isBlank()) {
+				try {
+					departmentId = Long.parseLong(departmentIdParam);
+				} catch (NumberFormatException e) {
+					request.setAttribute("alertMsg", "잘못된 학과 선택입니다.");
+					response.sendRedirect(request.getContextPath() + "/enroll/enrollment");
+					return;
+				}
 			}
-			
+
 			// 강의 검색(과 리스트출력 구분)
 			DepartmentService departmentService = new DepartmentService();
-			
+
 			List<DepartmentDTO> departmentList = departmentService.getAllDepartments();
-			
 
 			// 수강신청 가능한 강의목록
-			List<LectureForEnrollDTO> lectureList = enrollmentService.getAvailableLecturesForEnroll(departmentId, keyword);
+			List<LectureForEnrollDTO> lectureList = enrollmentService.getAvailableLecturesForEnroll(departmentId,
+					keyword);
 
 			// 내가 신청한 강의(수강신청 내역)
 			List<EnrollmentDTO> enrollList = enrollmentService.getMyEnrollments(studentId);
@@ -110,7 +114,7 @@ public class EnrollmentController extends HttpServlet {
 			request.setAttribute("enrollList", enrollList);
 			request.setAttribute("myLectureId", myLectureId);
 			request.setAttribute("departmentList", departmentList);
-			
+
 			request.setAttribute("mypage", mypage);
 
 			request.setAttribute("contentPage", "/WEB-INF/views/student/enrollmentPage.jsp");
@@ -118,34 +122,66 @@ public class EnrollmentController extends HttpServlet {
 			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
 			return;
-		} 
+		}
 
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
+		if (session == null) {
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
+		}
+
 		Long studentId = (Long) session.getAttribute("userId");
+		if (studentId == null) {
+			session.invalidate();
+			response.sendRedirect(request.getContextPath() + "/login");
+			return;
+		}
+		
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+		if (access == null || access.getRole() != Role.STUDENT) {
+		    session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+		    response.sendRedirect(request.getContextPath() + "/error?errorCode=403");
+		    return;
+		}
 
 		String action = request.getPathInfo();
 
 		try {
 			if ("/apply".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
-				enrollmentService.apply(studentId, lectureId);
+				long lectureId;
+				try {
+					lectureId = Long.parseLong(request.getParameter("lectureId"));
+				} catch (NumberFormatException e) {
+					session.setAttribute("alertMsg", "잘못된 강의 정보입니다.");
+					response.sendRedirect(request.getContextPath() + "/enroll/enrollment");
+					return;
+				}
 
+				enrollmentService.apply(studentId, lectureId);
 				session.setAttribute("alertMsg", "수강신청이 완료되었습니다.");
 			}
-
 			else if ("/cancel".equals(action)) {
-				long lectureId = Long.parseLong(request.getParameter("lectureId"));
-				enrollmentService.cancel(studentId, lectureId);
+				long lectureId;
+				try {
+					lectureId = Long.parseLong(request.getParameter("lectureId"));
+				} catch (NumberFormatException e) {
+					session.setAttribute("alertMsg", "잘못된 강의 정보입니다.");
+					response.sendRedirect(request.getContextPath() + "/enroll/enrollment");
+					return;
+				}
 
+				enrollmentService.cancel(studentId, lectureId);
 				session.setAttribute("alertMsg", "수강취소가 완료되었습니다.");
+			}else {
+				session.setAttribute("alertMsg", "잘못된 요청입니다.");
 			}
 
 		} catch (RuntimeException e) {
-			// 서비스에서 던진 메시지 그대로 알림
+			// 서비스에서 던진 메시지 그대로
 			session.setAttribute("alertMsg", e.getMessage());
 		}
 

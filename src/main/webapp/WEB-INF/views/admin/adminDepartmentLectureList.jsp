@@ -64,22 +64,22 @@
       <c:set var="lectureStatus" value="${empty param.lectureStatus ? 'ALL' : param.lectureStatus}" />
       <div class="btn-group btn-group-sm" role="group" aria-label="status">
         <a class="btn ${lectureStatus=='ALL' ? 'btn-success active' : 'btn-outline-secondary'}"
-           href="${pageContext.request.contextPath}/admin/sectionResult?departmentId=${deptId}&lectureStatus=ALL">
+           href="${pageContext.request.contextPath}/admin/departmentManage?departmentId=${deptId}&lectureStatus=ALL">
           ALL
         </a>
 
         <a class="btn ${lectureStatus=='ONGOING' ? 'btn-success active' : 'btn-outline-secondary'}"
-           href="${pageContext.request.contextPath}/admin/sectionResult?departmentId=${deptId}&lectureStatus=ONGOING">
+           href="${pageContext.request.contextPath}/admin/departmentManage?departmentId=${deptId}&lectureStatus=ONGOING">
           ONGOING
         </a>
 
         <a class="btn ${lectureStatus=='PLANNED' ? 'btn-success active' : 'btn-outline-secondary'}"
-           href="${pageContext.request.contextPath}/admin/sectionResult?departmentId=${deptId}&lectureStatus=PLANNED">
+           href="${pageContext.request.contextPath}/admin/departmentManage?departmentId=${deptId}&lectureStatus=PLANNED">
           PLANNED
         </a>
 
         <a class="btn ${lectureStatus=='ENDED' ? 'btn-success active' : 'btn-outline-secondary'}"
-           href="${pageContext.request.contextPath}/admin/sectionResult?departmentId=${deptId}&lectureStatus=ENDED">
+           href="${pageContext.request.contextPath}/admin/departmentManage?departmentId=${deptId}&lectureStatus=ENDED">
           ENDED
         </a>
       </div>

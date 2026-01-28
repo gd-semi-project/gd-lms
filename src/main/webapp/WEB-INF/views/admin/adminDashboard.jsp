@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
 <style>
+	body{ padding-top : 40px; }
   tr.lecture-row { position: relative; }
   tr.lecture-row:hover { background: rgba(13,110,253,.06); }
 
@@ -26,72 +27,62 @@
   <!-- =======================
        헤더 (컨트롤러 값 사용)
   ======================= -->
-  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
-    <div>
-      <h1 class="h5 fw-bold mb-1">수강신청 결과 · 강의 목록</h1>
-      <div class="text-muted small">학과 선택 후 통계/목록을 한 번에 확인합니다.</div>
-    </div>
-
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      <span class="badge bg-secondary">개설(중복X): ${empty lectureCount ? 0 : lectureCount}</span>
-      <span class="badge bg-dark">전체(중복O): ${empty totalLectureCount ? 0 : totalLectureCount}</span>
-      <span class="badge bg-danger">폐강위기: ${empty lowFillRateLecture ? 0 : lowFillRateLecture}</span>
-      <span class="badge bg-light text-dark border">평균 충원율: ${empty lectureFillRate ? 0 : lectureFillRate}%</span>
-      <span class="text-muted small ms-1">기준일: <%= java.time.LocalDate.now() %></span>
-    </div>
+<div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-end justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="h5 fw-bold mb-1">수강신청 결과 · 강의 목록</h1>
+    <div class="text-muted small">학과 선택 후 통계/목록을 한 번에 확인합니다.</div>
   </div>
+
+  <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-lg-end">
+    <span class="badge bg-secondary">개설(중복X): ${empty lectureCount ? 0 : lectureCount}</span>
+    <span class="badge bg-dark">전체(중복O): ${empty totalLectureCount ? 0 : totalLectureCount}</span>
+    <span class="badge bg-danger">폐강위기: ${empty lowFillRateLecture ? 0 : lowFillRateLecture}</span>
+    <span class="badge bg-light text-dark border">기준일: <%= java.time.LocalDate.now() %></span>
+  </div>
+</div>
+
 
   <!-- =======================
        KPI (4개) - 컨트롤러 값
   ======================= -->
-  <div class="row g-3 mb-3">
-    <div class="col-12 col-md-3">
-      <div class="card shadow-sm metric-card h-100">
-        <div class="card-body">
-          <div class="label">개설된 강의(중복X)</div>
-          <div class="value">${empty lectureCount ? 0 : lectureCount}</div>
-          <div class="sub">강의명 기준</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-      <div class="card shadow-sm metric-card h-100">
-        <div class="card-body">
-          <div class="label">전체 강의(중복O)</div>
-          <div class="value text-dark">${empty totalLectureCount ? 0 : totalLectureCount}</div>
-          <div class="sub">분반 포함</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-      <div class="card shadow-sm metric-card h-100">
-        <div class="card-body">
-          <div class="label">폐강 위기</div>
-          <div class="value text-danger">${empty lowFillRateLecture ? 0 : lowFillRateLecture}</div>
-          <div class="sub">충원율 50% 미만</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-      <div class="card shadow-sm metric-card h-100">
-        <div class="card-body">
-          <div class="label">평균 충원율</div>
-          <div class="value">${empty lectureFillRate ? 0 : lectureFillRate}%</div>
-          <div class="sub">전체 기준</div>
-        </div>
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm metric-card">
+      <div class="card-body">
+        <div class="label">개설된 강의(중복X)</div>
+        <div class="value">${empty lectureCount ? 0 : lectureCount}</div>
+        <div class="sub">강의명 기준</div>
       </div>
     </div>
   </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm metric-card">
+      <div class="card-body">
+        <div class="label">전체 강의(중복O)</div>
+        <div class="value text-dark">${empty totalLectureCount ? 0 : totalLectureCount}</div>
+        <div class="sub">분반 포함</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="card shadow-sm metric-card">
+      <div class="card-body">
+        <div class="label">폐강 위기</div>
+        <div class="value text-danger">${empty lowFillRateLecture ? 0 : lowFillRateLecture}</div>
+        <div class="sub">충원율 50% 미만</div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- =======================
        KPI (3개) - 컨트롤러 값
   ======================= -->
   <div class="row g-3 mb-4">
     <div class="col-12 col-md-4">
-      <div class="card shadow-sm metric-card h-100">
+      <div class="card shadow-sm metric-card">
         <div class="card-body">
           <div class="label">총 정원</div>
           <div class="value">${empty totalLectureCapacity ? 0 : totalLectureCapacity}</div>
@@ -101,7 +92,7 @@
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card shadow-sm metric-card h-100">
+      <div class="card shadow-sm metric-card">
         <div class="card-body">
           <div class="label">전체 학생 수(Active)</div>
           <div class="value">${empty totalEnrollment ? 0 : totalEnrollment}</div>
@@ -111,7 +102,7 @@
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card shadow-sm metric-card h-100">
+      <div class="card shadow-sm metric-card">
         <div class="card-body">
           <div class="label">평균 충원율</div>
           <div class="value">${empty lectureFillRate ? 0 : lectureFillRate}%</div>

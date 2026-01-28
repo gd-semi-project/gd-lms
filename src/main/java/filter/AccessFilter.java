@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.enumtype.Role;
+import service.AdminService;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -108,6 +110,13 @@ public class AccessFilter extends HttpFilter {
 		
 		// role 권한 체크
 		AccessDTO accessDTO = (AccessDTO) session.getAttribute("AccessInfo");
+		
+		if (accessDTO != null && accessDTO.getRole() == Role.ADMIN) { // 백시현 추가 관리자 알림용
+			try {
+				request.setAttribute("pendingInfoUpdateCount", AdminService.getInstance().getPendingStudentInfoUpdateCount());
+			} catch (Exception ignore) {}
+		}
+		
 		if (middlePath.equals("admin")) {
 			if (accessDTO.getRole() == Role.ADMIN) {
 				chain.doFilter(request, response);

@@ -35,14 +35,9 @@
         color: #0b5ed7;
     }
 
-    ul {
+    .score-page ul {
         padding-left: 18px;
         font-size: 14px;
-    }
-
-    li {
-        margin-bottom: 6px;
-        line-height: 1.6;
     }
 
     .highlight {
@@ -93,7 +88,7 @@
                 ▶ 전체 학기 성적 열람 안내
             </h5>
 
-            <ul class="mb-3">
+            <ul class="mb-3 score-page">
                 <li>
                     본 화면에 표시되는 성적은
                     <strong>해당 학기의 종강이 완료되고</strong>,

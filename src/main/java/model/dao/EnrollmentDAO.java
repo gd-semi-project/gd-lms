@@ -77,8 +77,6 @@ public class EnrollmentDAO {
 
 		ArrayList<LectureRequestDTO> list = new ArrayList<LectureRequestDTO>();
 
-		// TODO 뭔가 정리 기준을 추가할 수 있는 기능 sql+="ORDER BY =?" 수정 및 추가
-
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql);) {
 			pstmt.setString(1, validation);
 			if (departmentId != null) {
@@ -100,7 +98,6 @@ public class EnrollmentDAO {
 				}
 			}
 		} catch (Exception e) {
-			// TODO 에러가 난다면 sql 문법이나 틀린 값을 받았을 경우입니다.
 			System.out.println("getLectureList() 예외 발생");
 			e.printStackTrace();
 		}
