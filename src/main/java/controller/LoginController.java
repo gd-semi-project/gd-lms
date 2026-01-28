@@ -179,12 +179,13 @@ public class LoginController extends HttpServlet {
 		        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		        return;
 		    }
-		    String token;
+		    String token = null;
 		    UserStatus userStatus = ls.getloginStatus(userId);
 		    
 		    // 계정이 비활성화 상태라면 토큰 미발급
 		    if (userStatus == UserStatus.INACTIVE) {
 		    	message = "계정 비활성화";
+		    	System.out.println(message);
 		    } else {
 		    	token = ls.getPlainToken(userId, token_type, request.getRemoteAddr());
 		    	// 토큰 생성하고 메일전송
@@ -226,7 +227,6 @@ public class LoginController extends HttpServlet {
 			    response.setContentType("application/json");
 			    response.setCharacterEncoding("UTF-8");
 			    String json = "{\"status\":" + generateTokenCheck + ",\"message\":\"" + message + "\"}";
-			    response.getWriter().write(json);
 		    }
 		} 
 	}

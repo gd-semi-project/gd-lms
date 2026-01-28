@@ -12,6 +12,7 @@ import model.dto.StudentDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.MyPageService;
+import utils.HashUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -111,9 +112,9 @@ public class changeUserPwController extends HttpServlet {
         
         String sessionLoginId = (String) session.getAttribute("loginId");
         String inputLoginId = request.getParameter("inputLoginId");
-        String currentPw = request.getParameter("Pw");
-        String newPw = request.getParameter("newPw");
-        String confirmPw = request.getParameter("confirmPw");
+        String currentPw = HashUtil.sha256(request.getParameter("Pw"));
+        String newPw = HashUtil.sha256(request.getParameter("newPw"));
+        String confirmPw = HashUtil.sha256(request.getParameter("confirmPw"));
         
         // 아무것도 입력안했을때
         if (inputLoginId == null || currentPw == null ||
@@ -151,6 +152,7 @@ public class changeUserPwController extends HttpServlet {
 		try {
 			// 비밀번호 변경
 			myPageService.changePassword(loginId, confirmPw);
+			
 			// 성공시 메시지
 			session.setAttribute("alertMsg", "비밀번호 변경 성공! 다시 로그인해주세요.");
 			
