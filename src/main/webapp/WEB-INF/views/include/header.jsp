@@ -73,8 +73,6 @@
 				<!-- 학생 -->
 				<c:if test="${sessionScope.AccessInfo.role == 'STUDENT'}">
 					<li class="nav-item"><a class="nav-link"
-						href="${ctx}/mypage/studentPage">학생정보</a></li>
-					<li class="nav-item"><a class="nav-link"
 						href="${ctx}/student/lectures">내 강의 목록</a></li>
 					<li class="nav-item"><a class="nav-link"
 						href="${ctx}/mypage/enrollmentPage">수강 신청</a></li>

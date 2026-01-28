@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
 <style>
+	body{ padding-top : 40px; }
   tr.lecture-row { position: relative; }
   tr.lecture-row:hover { background: rgba(13,110,253,.06); }
 
