@@ -545,104 +545,107 @@ public class LectureDAO {
 
 	// 수강신청페이지에 들어갈 시 떠야하는 개설 강의목록을 나타내주는 메소드
 	public List<LectureForEnrollDTO> findAvailableLecturesForEnroll(Long departmentId, String keyword) {
-		StringBuilder sql = new StringBuilder("""
-				    SELECT
-				        l.lecture_id,
-				        d.department_name AS departmentName,
-				        l.lecture_title   AS lectureTitle,
-				        u.name            AS instructorName,
-				        l.room            AS room,
-				        l.capacity        AS capacity,
 
-				        COUNT(e.enrollment_id) AS currentCount,
+	    StringBuilder sql = new StringBuilder("""
+	        SELECT
+	            l.lecture_id,
+	            d.department_name AS departmentName,
+	            l.lecture_title   AS lectureTitle,
+	            u.name            AS instructorName,
+	            l.room            AS room,
+	            l.capacity        AS capacity,
 
-				        GROUP_CONCAT(
-				            CONCAT(
-				                ls.week_day, ' ',
-				                DATE_FORMAT(ls.start_time, '%H:%i'),
-				                '~',
-				                DATE_FORMAT(ls.end_time, '%H:%i')
-				            )
-				            ORDER BY FIELD(ls.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
-				                     ls.start_time
-				            SEPARATOR ', '
-				        ) AS schedule
+	            COALESCE(ec.currentCount, 0) AS currentCount,
 
-				    FROM lecture l
-				    JOIN department d ON l.department_id = d.department_id
-				    JOIN user u       ON l.user_id = u.user_id
-				    LEFT JOIN lecture_schedule ls ON l.lecture_id = ls.lecture_id
-				    LEFT JOIN enrollment e
-				           ON l.lecture_id = e.lecture_id
-				          AND e.status = 'ENROLLED'
+	            GROUP_CONCAT(
+	                DISTINCT CONCAT(
+	                    ls.week_day, ' ',
+	                    DATE_FORMAT(ls.start_time, '%H:%i'),
+	                    '~',
+	                    DATE_FORMAT(ls.end_time, '%H:%i')
+	                )
+	                ORDER BY FIELD(ls.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+	                         ls.start_time
+	                SEPARATOR ', '
+	            ) AS schedule
 
-				    WHERE l.status IN ('PLANNED','ONGOING')
-				      AND l.validation = 'CONFIRMED'
-				""");
+	        FROM lecture l
+	        JOIN department d ON l.department_id = d.department_id
+	        JOIN user u       ON l.user_id = u.user_id
 
-		List<Object> params = new ArrayList<>();
-		
-		// 학과 검색
-		if (departmentId != null) {
-			sql.append(" AND l.department_id = ? ");
-			params.add(departmentId);
-		}
+	        LEFT JOIN lecture_schedule ls
+	               ON l.lecture_id = ls.lecture_id
 
-		// 과목명 검색
-		if (keyword != null && !keyword.isBlank()) {
-			sql.append(" AND l.lecture_title LIKE ? ");
-			params.add("%" + keyword + "%");
-		}
+	        LEFT JOIN (
+	            SELECT lecture_id, COUNT(*) AS currentCount
+	            FROM enrollment
+	            WHERE status = 'ENROLLED'
+	            GROUP BY lecture_id
+	        ) ec ON l.lecture_id = ec.lecture_id
 
-		sql.append("""
-				    GROUP BY
-				        l.lecture_id,
-				        d.department_name,
-				        l.lecture_title,
-				        u.name,
-				        l.room,
-				        l.capacity
-				    ORDER BY l.lecture_id DESC
-				""");
+	        WHERE l.status IN ('PLANNED','ONGOING')
+	          AND l.validation = 'CONFIRMED'
+	    """);
 
-		List<LectureForEnrollDTO> list = new ArrayList<>();
+	    List<Object> params = new ArrayList<>();
 
-		try (Connection conn = DBConnection.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+	    // 학과 검색
+	    if (departmentId != null) {
+	        sql.append(" AND l.department_id = ? ");
+	        params.add(departmentId);
+	    }
 
-			int idx = 1;
+	    // 과목명 검색
+	    if (keyword != null && !keyword.isBlank()) {
+	        sql.append(" AND l.lecture_title LIKE ? ");
+	        params.add("%" + keyword + "%");
+	    }
 
-			if (departmentId != null) {
-				pstmt.setLong(idx++, departmentId);
-			}
+	    // ✅ GROUP BY / ORDER BY는 마지막에 딱 한 번
+	    sql.append("""
+	        GROUP BY
+	            l.lecture_id,
+	            d.department_name,
+	            l.lecture_title,
+	            u.name,
+	            l.room,
+	            l.capacity,
+	            ec.currentCount
+	        ORDER BY l.lecture_id DESC
+	    """);
 
-			if (keyword != null && !keyword.isBlank()) {
-				pstmt.setString(idx++, "%" + keyword + "%");
-			}
+	    List<LectureForEnrollDTO> list = new ArrayList<>();
 
-			try (ResultSet rs = pstmt.executeQuery()) {
-				while (rs.next()) {
-					LectureForEnrollDTO dto = new LectureForEnrollDTO();
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
-					dto.setLectureId(rs.getLong("lecture_id"));
-					dto.setDepartmentName(rs.getString("departmentName"));
-					dto.setLectureTitle(rs.getString("lectureTitle"));
-					dto.setInstructorName(rs.getString("instructorName"));
-					dto.setRoom(rs.getString("room"));
-					dto.setCapacity(rs.getInt("capacity"));
-					dto.setCurrentCount(rs.getInt("currentCount"));
-					dto.setSchedule(rs.getString("schedule"));
+	        int idx = 1;
+	        for (Object param : params) {
+	            pstmt.setObject(idx++, param);
+	        }
 
-					list.add(dto);
-				}
-			}
+	        try (ResultSet rs = pstmt.executeQuery()) {
+	            while (rs.next()) {
+	                LectureForEnrollDTO dto = new LectureForEnrollDTO();
+	                dto.setLectureId(rs.getLong("lecture_id"));
+	                dto.setDepartmentName(rs.getString("departmentName"));
+	                dto.setLectureTitle(rs.getString("lectureTitle"));
+	                dto.setInstructorName(rs.getString("instructorName"));
+	                dto.setRoom(rs.getString("room"));
+	                dto.setCapacity(rs.getInt("capacity"));
+	                dto.setCurrentCount(rs.getInt("currentCount"));
+	                dto.setSchedule(rs.getString("schedule"));
+	                list.add(dto);
+	            }
+	        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 
-		return list;
+	    return list;
 	}
+
 
 	public int updateStatus(Connection conn, LectureStatus from, LectureStatus to) throws SQLException {
 
