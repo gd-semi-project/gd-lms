@@ -56,10 +56,6 @@
             <span class="material-symbols-outlined">comedy_mask</span>학과 관리</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="<%=ctx%>/admin/campus">
-            <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link text-white" href="<%=ctx%>/admin/registUser">
             <span class="material-symbols-outlined">comedy_mask</span>사용자 등록</a>
           </li>
