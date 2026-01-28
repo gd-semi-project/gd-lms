@@ -207,7 +207,6 @@ public class MypageController extends HttpServlet {
 					return;
 				}
 			} catch (Exception e) {
-				// TODO: handle exception
 				e.printStackTrace();
 				session.setAttribute("errorMessage", "페이지 처리 중 서버 오류가 발생했습니다.");
 				response.sendRedirect(ctx + "/error?errorCode=500");
@@ -218,8 +217,6 @@ public class MypageController extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
 	}
 
 }
