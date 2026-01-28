@@ -5,10 +5,23 @@
   z-index: 1000;
 }
 
-/* 사이드바 고정 */
+html, body {
+  height: 100%;
+}
+
+.container-fluid,
+.row,
+.main-content {
+  overflow: visible;
+}
+
+.row {
+  min-height: calc(100vh - 56px - 60px);
+}
+
 .sidebar {
   position: sticky;
-  top: 56px;              /* 헤더 높이만큼 */
+  top: 56px;
   height: calc(100vh - 56px);
   overflow-y: auto;
 }

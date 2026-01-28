@@ -9,8 +9,8 @@
 <c:set var="role" value="${sessionScope.AccessInfo.role}" />
 
 
-<aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar">
-   <ul class="nav nav-pills flex-column gap-1">
+<aside class="col-12 col-md-3 col-lg-2 bg-dark text-white p-3 sidebar d-flex flex-column">
+   <ul class="nav nav-pills flex-column gap-3 flex-grow-1">
 
 	<c:if test="${AccessInfo.role!='ADMIN' }">
       <li class="nav-item"><a class="nav-link text-white"
@@ -54,10 +54,6 @@
           <li class="nav-item">
             <a class="nav-link text-white" href="<%=ctx%>/admin/departmentManage">
             <span class="material-symbols-outlined">comedy_mask</span>학과 관리</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-white" href="<%=ctx%>/admin/campus">
-            <span class="material-symbols-outlined">comedy_mask</span>캠퍼스 관리</a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="<%=ctx%>/admin/registUser">
@@ -124,12 +120,29 @@
          
    </ul>
 
-   <hr class="border-light opacity-50 my-3">
-
-   <div class="small opacity-75">
-      로그인 사용자: ${sessionScope.AccessInfo.name}<br /> 권한:
-      ${sessionScope.AccessInfo.role}
-   </div>
+	<div class="sidebar-footer">
+		   <hr class="border-light opacity-50 my-3">
+		
+		   <div class="small opacity-75">
+			  사용자 : ${sessionScope.AccessInfo.name}
+			  (
+			  <c:choose>
+			    <c:when test="${sessionScope.AccessInfo.role == 'STUDENT'}">
+			      학생
+			    </c:when>
+			    <c:when test="${sessionScope.AccessInfo.role == 'INSTRUCTOR'}">
+			      강사
+			    </c:when>
+			    <c:when test="${sessionScope.AccessInfo.role == 'ADMIN'}">
+			      관리자
+			    </c:when>
+			    <c:otherwise>
+			      알 수 없음
+			    </c:otherwise>
+			  </c:choose>
+			  )
+			</div>
+	</div>
    
 </aside>
 

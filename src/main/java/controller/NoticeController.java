@@ -412,7 +412,8 @@ public class NoticeController extends HttpServlet {
 
     private String resolveAction(HttpServletRequest req) {
         String path = req.getPathInfo();
-        return (path == null || path.isBlank()) ? "/list" : path;
+        if (path == null || path.isBlank() || "/".equals(path)) return "/list";
+        return path;
     }
 
     private String trimToNull(String s) {

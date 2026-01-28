@@ -41,7 +41,7 @@
 			<jsp:include page="/WEB-INF/views/include/sidebar.jsp" />
 
 			<!-- 바디 -->
-			<main class="col-12 col-md-9 col-lg-10 p-4 about-page">
+			<main class="col-12 col-md-9 col-lg-10 p-4 main-content about-page">
 
 				<c:if test="${not empty requestScope.contentPage}">
 					<jsp:include page="${requestScope.contentPage}" />
