@@ -16,6 +16,7 @@
   .risk-pill { font-weight: 800; letter-spacing: .2px; }
   .progress-thin { height: 8px; }
   .table thead th { white-space: nowrap; }
+  .kpi-row {--bs-gutter-y: 1rem;}
 </style>
 
 <c:choose>
@@ -80,7 +81,7 @@
   <!-- =======================
        KPI (3개) - 컨트롤러 값
   ======================= -->
-  <div class="row g-3 mb-4">
+  <div class="row g-3 mb-4 kpi-row">
     <div class="col-12 col-md-4">
       <div class="card shadow-sm metric-card">
         <div class="card-body">
