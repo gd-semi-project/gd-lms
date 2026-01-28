@@ -86,8 +86,17 @@
 
 			<div class="mt-3">
         <button type="submit" class="btn btn-warning">변경</button>
-        <a href="${pageContext.request.contextPath}/mypage/studentPage"
-           class="btn btn-secondary">취소</a>
+        <c:choose>
+      	  <c:when test="${sessionScope.AccessInfo.role == 'ADMIN' or sessionScope.AccessInfo.role == 'STUDENT'}">
+      	  <a href="${pageContext.request.contextPath}/mypage/studentPage"
+       	    class="btn btn-secondary">취소</a>
+       	 </c:when>
+       	 <c:when test="${sessionScope.AccessInfo.role == 'INSTRUCTOR'}">
+      	  <a href="${pageContext.request.contextPath}/instructor/profile"
+       	    class="btn btn-secondary">취소</a>
+       	 </c:when>
+        </c:choose>
+ 
       </div>
 
     </form>

@@ -62,6 +62,8 @@
                 </div>
 
                 <div class="card-footer text-end">
+                <a href="${pageContext.request.contextPath}/changeUserPw/change"
+			class="btn btn-outline-primary btn-sm">비밀번호 변경</a>
                     <a href="${pageContext.request.contextPath}/instructor/lectures"
                        class="btn btn-outline-primary btn-sm">
                         내 강의 보기
