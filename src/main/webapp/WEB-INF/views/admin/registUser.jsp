@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<script src="${pageContext.request.contextPath}/resources/js/registUserNotDuplicated.js"></script>
 <script>
     const ctx = "${pageContext.request.contextPath}";
 </script>
+<script src="${pageContext.request.contextPath}/resources/js/registUserNotDuplicated.js"></script>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
@@ -76,7 +76,7 @@
         <button type="reset" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-counterclockwise"></i> 초기화
         </button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
           <i class="bi bi-check-circle"></i> 등록
         </button>
       </div>

@@ -421,7 +421,7 @@ public class AdminController extends HttpServlet {
 
 		        // 3. 중복 여부 확인
 		        LoginService ls = LoginService.getInstance();
-		        boolean isDuplicate = ls.DuplicateLoginId(loginId);
+		        boolean isDuplicate = ls.duplicateLoginId(loginId);
 
 		        // 4. 응답 타입 설정 (중요)
 		        response.setContentType("application/json");

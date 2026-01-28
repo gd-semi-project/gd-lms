@@ -35,9 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (token.status === true) {
 	            alert("메일 전송 완료");
 	        } else if (token.status === false) {
-	            alert("메일 전송 실패: " + token.status);
+				if (message.equals("")){
+					alert("계정이 잠긴 상태입니다.");
+				} else {
+					alert("메일 전송 실패: ");
+				}
 	        } else {
-	            alert("서버 오류 발생" + token.status);
+	            alert("서버 오류 발생");
 	        }
 	        // 창 닫기
 	        window.close();
