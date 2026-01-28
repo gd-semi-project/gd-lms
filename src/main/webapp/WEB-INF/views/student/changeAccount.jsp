@@ -22,11 +22,11 @@
             <th scope="row">아이디</th>
             <td>
               <input type="text"
-                     name="inputLoginId"
+                     name="studentNumber"
                      class="form-control"
-                     placeholder="본인 아이디를 입력하세요"
+                     placeholder="아이디를 입력하세요"
                      required>
-                     ※ 아이디과 비밀번호를 모두 입력하세요.
+                     ※ 아이디와 비밀번호를 모두 입력하세요.
             </td>
           </tr>
 
@@ -86,17 +86,8 @@
 
 			<div class="mt-3">
         <button type="submit" class="btn btn-warning">변경</button>
-        <c:choose>
-      	  <c:when test="${sessionScope.AccessInfo.role == 'ADMIN' or sessionScope.AccessInfo.role == 'STUDENT'}">
-      	  <a href="${pageContext.request.contextPath}/mypage/studentPage"
-       	    class="btn btn-secondary">취소</a>
-       	 </c:when>
-       	 <c:when test="${sessionScope.AccessInfo.role == 'INSTRUCTOR'}">
-      	  <a href="${pageContext.request.contextPath}/instructor/profile"
-       	    class="btn btn-secondary">취소</a>
-       	 </c:when>
-        </c:choose>
- 
+        <a href="${pageContext.request.contextPath}/mypage/studentPage"
+           class="btn btn-secondary">취소</a>
       </div>
 
     </form>

@@ -99,6 +99,52 @@ public class InstructorDAO {
     }
     
     
+    public void updateInstructorUserInfo(Long userId, String name, String email, String phone) {
+
+        String sql = """
+            UPDATE user
+            SET name = ?, email = ?, phone = ?
+            WHERE user_id = ?
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, email);
+            pstmt.setString(3, phone);
+            pstmt.setLong(4, userId);
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateInstructorOfficeInfo(Long userId, String officeRoom, String officePhone) {
+
+        String sql = """
+            UPDATE instructor
+            SET office_room = ?, office_phone = ?
+            WHERE user_id = ?
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, officeRoom);
+            pstmt.setString(2, officePhone);
+            pstmt.setLong(3, userId);
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
 
     // admin
 	public static ArrayList<InstructorDTO> getAllInstructorByDepartment(Long departmentId, String status) {

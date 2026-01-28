@@ -1,27 +1,25 @@
-/* 헤더 고정 */
+
+
 .navbar {
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
-html, body {
-  height: 100%;
-}
-
-.container-fluid,
-.row,
-.main-content {
-  overflow: visible;
-}
-
+/* ❌ row 높이 조작 제거 */
 .row {
-  min-height: calc(100vh - 56px - 60px);
+  min-height: auto;
 }
 
+/* 메인 콘텐츠만 패딩 */
+.main-content {
+  border: 1px solid red; /* 여백만 살짝 */
+}
+
+/* 사이드바 고정 */
 .sidebar {
   position: sticky;
-  top: 56px;
+  top: 56px;              /* navbar 높이 */
   height: calc(100vh - 56px);
   overflow-y: auto;
 }

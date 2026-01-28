@@ -39,8 +39,13 @@
 						href="${ctx}/mypage/studentPage">학생 마이페이지</a></li>
 				</c:if>
 
-				<li class="nav-item"><a class="nav-link"
-					href="${ctx}/login/logout">로그아웃</a></li>
+				<c:if test="${not empty sessionScope.AccessInfo}">
+				  <li class="nav-item">
+				    <a class="nav-link" href="${ctx}/login/logout">로그아웃</a>
+				  </li>
+				</c:if>
+				
+				
         <c:if test="${sessionScope.AccessInfo.role.name() == 'ADMIN'}">
           <c:if test="${not empty pendingInfoUpdateCount and pendingInfoUpdateCount > 0}">
             <a href="${ctx}/admin/studentInfoUpdateRequests"
@@ -119,8 +124,11 @@
 						href="${ctx}/mypage/studentPage">학생 마이페이지</a></li>
 				</c:if>
 
-				<li class="nav-item"><a class="nav-link"
-					href="${ctx}/login/logout">로그아웃</a></li>
+				<c:if test="${not empty sessionScope.AccessInfo}">
+				  <li class="nav-item">
+				    <a class="nav-link" href="${ctx}/login/logout">로그아웃</a>
+				  </li>
+				</c:if>
 
 			</ul>
 

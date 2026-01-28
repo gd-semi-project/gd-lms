@@ -26,239 +26,229 @@ import service.ScoreService;
 @WebServlet("/score/*")
 public class ScoreController extends HttpServlet {
 
-    private final ScoreService scoreService = ScoreService.getInstance();
-    private final LectureService lectureService = LectureService.getInstance();
-    private final LectureAccessService lectureAccessService = new LectureAccessService();
+	private final ScoreService scoreService = ScoreService.getInstance();
+	private final LectureService lectureService = LectureService.getInstance();
+	private final LectureAccessService lectureAccessService = new LectureAccessService();
 
-    // ===================== GET =====================
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	// ===================== GET =====================
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        String ctx = request.getContextPath();
-        String uri = request.getRequestURI();
-        String action = uri.substring(ctx.length() + "/score".length());
+		String ctx = request.getContextPath();
+		String uri = request.getRequestURI();
+		String action = uri.substring(ctx.length() + "/score".length());
 
-        if (action == null || action.isBlank()) action = "/grades";
+		if (action == null || action.isBlank())
+			action = "/grades";
 
-        HttpSession session = request.getSession(false);
-        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
-        Role role = access.getRole();
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+		Role role = access.getRole();
 
-        try {
+		try {
 
-            switch (action) {
+			switch (action) {
 
-            // ================= 성적 조회 =================
-            case "/grades": {
+			// ================= 성적 조회 =================
+			case "/grades": {
 
-                Long lectureId = parseLong(request.getParameter("lectureId"));
-                if (lectureId == null) {
-                    throw new BadRequestException("강의 정보가 올바르지 않습니다.");
-                }
+				Long lectureId = parseLong(request.getParameter("lectureId"));
+				if (lectureId == null) {
+					throw new BadRequestException("강의 정보가 올바르지 않습니다.");
+				}
 
-                // 🔐 접근 권한 체크
-                lectureAccessService.assertCanAccessLecture(
-                        access.getUserId(), lectureId, role
-                );
+				// 🔐 접근 권한 체크
+				lectureAccessService.assertCanAccessLecture(access.getUserId(), lectureId, role);
 
-                LectureDTO lecture = lectureService.getLectureDetail(lectureId);
-                lectureAccessService.assertLectureIsOpen(lecture);
+				LectureDTO lecture = lectureService.getLectureDetail(lectureId);
+				lectureAccessService.assertLectureIsOpen(lecture);
 
-                request.setAttribute("lecture", lecture);
-                request.setAttribute("lectureId", lectureId);
-                request.setAttribute("role", role);
+				request.setAttribute("lecture", lecture);
+				request.setAttribute("lectureId", lectureId);
+				request.setAttribute("role", role);
 
-                if (role == Role.INSTRUCTOR) {
-                    List<ScoreDTO> scores = scoreService.getScoreList(lectureId);
-                    request.setAttribute("scores", scores);
+				if (role == Role.INSTRUCTOR) {
+					List<ScoreDTO> scores = scoreService.getScoreList(lectureId);
+					request.setAttribute("scores", scores);
 
-                } else if (role == Role.STUDENT) {
-                    Long studentId = access.getUserId();
-                    ScoreDTO myScore = scoreService.getMyScore(lectureId, studentId);
-                    request.setAttribute("myScore", myScore);
-                }
+				} else if (role == Role.STUDENT) {
+					Long studentId = access.getUserId();
+					ScoreDTO myScore = scoreService.getMyScore(lectureId, studentId);
+					request.setAttribute("myScore", myScore);
+				}
 
-                request.setAttribute("activeTab", "grades");
-                request.setAttribute("contentPage",
-                        "/WEB-INF/views/lecture/grades.jsp");
-                break;
-            }
+				request.setAttribute("activeTab", "grades");
+				request.setAttribute("contentPage", "/WEB-INF/views/lecture/grades.jsp");
+				break;
+			}
 
-            // ================= 학생 전체 성적 =================
-            case "/totscore": {
+			// ================= 학생 전체 성적 =================
+			case "/totscore": {
 
-                if (role != Role.STUDENT) {
-                    throw new AccessDeniedException("학생만 접근 가능합니다.");
-                }
+				if (role != Role.STUDENT) {
+					throw new AccessDeniedException("학생만 접근 가능합니다.");
+				}
 
-                Long studentId = access.getUserId();
-                List<ScoreDTO> myScores = scoreService.getMytotScore(studentId);
+				Long studentId = access.getUserId();
+				List<ScoreDTO> myScores = scoreService.getMytotScore(studentId);
 
-                request.setAttribute("myScores", myScores);
-                request.setAttribute("activeTab", "myScore");
-                request.setAttribute(
-                        "contentPage",
-                        "/WEB-INF/views/student/totScore.jsp"
-                );
-                break;
-            }
+				request.setAttribute("myScores", myScores);
+				request.setAttribute("activeTab", "myScore");
+				request.setAttribute("contentPage", "/WEB-INF/views/student/totScore.jsp");
+				break;
+			}
 
-            default:
-                throw new ResourceNotFoundException("요청하신 페이지를 찾을 수 없습니다.");
-            }
+			default:
+				throw new ResourceNotFoundException("요청하신 페이지를 찾을 수 없습니다.");
+			}
 
-            request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp")
-                   .forward(request, response);
+			request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
 
-        } catch (BadRequestException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+		} catch (BadRequestException e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 
-        } catch (UnauthorizedException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+		} catch (UnauthorizedException e) {
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
 
-        } catch (AccessDeniedException e) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+		} catch (AccessDeniedException e) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
 
-        } catch (ResourceNotFoundException e) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+		} catch (ResourceNotFoundException e) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 
-        } catch (InternalServerException e) {
-            throw e;
-        }
-    }
+		} catch (InternalServerException e) {
+			throw e;
+		}
+	}
 
-    // ===================== POST =====================
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	// ===================== POST =====================
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        String ctx = request.getContextPath();
-        String uri = request.getRequestURI();
+		String ctx = request.getContextPath();
+		String uri = request.getRequestURI();
 
-        HttpSession session = request.getSession(false);
-        AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
-        Role role = access.getRole();
+		HttpSession session = request.getSession(false);
+		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
+		Role role = access.getRole();
 
-        try {
+		try {
 
-            // ================= 성적 저장 =================
-            if (uri.endsWith("/grades/save")) {
+			// ================= 성적 저장 =================
+			if (uri.endsWith("/grades/save")) {
 
-                Long lectureId = parseLong(request.getParameter("lectureId"));
-                if (lectureId == null) {
-                    throw new BadRequestException("강의 정보가 올바르지 않습니다.");
-                }
+				Long lectureId = parseLong(request.getParameter("lectureId"));
+				if (lectureId == null) {
+					throw new BadRequestException("강의 정보가 올바르지 않습니다.");
+				}
 
-                lectureAccessService.assertCanAccessLecture(
-                        access.getUserId(), lectureId, role
-                );
+				lectureAccessService.assertCanAccessLecture(access.getUserId(), lectureId, role);
 
-                if (role != Role.INSTRUCTOR) {
-                    throw new AccessDeniedException("교수만 성적 저장이 가능합니다.");
-                }
+				if (role != Role.INSTRUCTOR) {
+					throw new AccessDeniedException("교수만 성적 저장이 가능합니다.");
+				}
 
-                LectureDTO lecture = lectureService.getLectureDetail(lectureId);
-                lectureAccessService.assertLectureIsOpen(lecture);
+				LectureDTO lecture = lectureService.getLectureDetail(lectureId);
+				lectureAccessService.assertLectureIsOpen(lecture);
 
-                List<ScoreDTO> scoreList = extractScoreList(request, lectureId);
-                scoreService.saveScores(lectureId, scoreList);
+				List<ScoreDTO> scoreList = extractScoreList(request, lectureId);
+				scoreService.saveScores(lectureId, scoreList);
 
-                response.sendRedirect(ctx + "/score/grades?lectureId=" + lectureId);
-                return;
-            }
+				response.sendRedirect(ctx + "/score/grades?lectureId=" + lectureId);
+				return;
+			}
 
-            // ================= 학점 계산 =================
-            if (uri.endsWith("/grades/calculate")) {
+			// ================= 학점 계산 =================
+			if (uri.endsWith("/grades/calculate")) {
 
-                Long lectureId = parseLong(request.getParameter("lectureId"));
-                if (lectureId == null) {
-                    throw new BadRequestException("강의 정보가 올바르지 않습니다.");
-                }
+				Long lectureId = parseLong(request.getParameter("lectureId"));
+				if (lectureId == null) {
+					throw new BadRequestException("강의 정보가 올바르지 않습니다.");
+				}
 
-                lectureAccessService.assertCanAccessLecture(
-                        access.getUserId(), lectureId, role
-                );
+				lectureAccessService.assertCanAccessLecture(access.getUserId(), lectureId, role);
 
-                if (role != Role.INSTRUCTOR) {
-                    throw new AccessDeniedException("교수만 학점 계산이 가능합니다.");
-                }
+				if (role != Role.INSTRUCTOR) {
+					throw new AccessDeniedException("교수만 학점 계산이 가능합니다.");
+				}
 
-                LectureDTO lecture = lectureService.getLectureDetail(lectureId);
-                lectureAccessService.assertLectureIsOpen(lecture);
+				LectureDTO lecture = lectureService.getLectureDetail(lectureId);
+				lectureAccessService.assertLectureIsOpen(lecture);
 
-                scoreService.calculateGrade(lectureId);
+				scoreService.calculateGrade(lectureId);
 
-                response.sendRedirect(ctx + "/score/grades?lectureId=" + lectureId);
-                return;
-            }
+				response.sendRedirect(ctx + "/score/grades?lectureId=" + lectureId);
+				return;
+			}
 
-            throw new ResourceNotFoundException("요청하신 작업을 처리할 수 없습니다.");
+			throw new ResourceNotFoundException("요청하신 작업을 처리할 수 없습니다.");
 
-        } catch (BadRequestException e) {
+		} catch (BadRequestException e) {
 
-            String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            response.sendRedirect(ctx + "/score/grades?lectureId="
-                    + request.getParameter("lectureId")
-                    + "&warning=" + msg);
+			String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+			response.sendRedirect(
+					ctx + "/score/grades?lectureId=" + request.getParameter("lectureId") + "&warning=" + msg);
 
-        } catch (AccessDeniedException e) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+		} catch (AccessDeniedException e) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
 
-        } catch (UnauthorizedException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+		} catch (UnauthorizedException e) {
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
 
-        } catch (ResourceNotFoundException e) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+		} catch (ResourceNotFoundException e) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
 
-        } catch (InternalServerException e) {
-            throw e;
-        }
-    }
+		} catch (InternalServerException e) {
+			throw e;
+		}
+	}
 
-    // ================= 유틸 =================
+	// ================= 유틸 =================
 
-    private Long parseLong(String s) {
-        try {
-            return (s == null || s.isBlank()) ? null : Long.parseLong(s);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+	private Long parseLong(String s) {
+		try {
+			return (s == null || s.isBlank()) ? null : Long.parseLong(s);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 
-    private List<ScoreDTO> extractScoreList(HttpServletRequest request, Long lectureId) {
+	private List<ScoreDTO> extractScoreList(HttpServletRequest request, Long lectureId) {
 
-        String[] studentIds = request.getParameterValues("studentId");
-        List<ScoreDTO> list = new ArrayList<>();
+		String[] studentIds = request.getParameterValues("studentId");
+		List<ScoreDTO> list = new ArrayList<>();
 
-        if (studentIds == null) return list;
+		if (studentIds == null)
+			return list;
 
-        for (String sid : studentIds) {
+		for (String sid : studentIds) {
 
-            ScoreDTO dto = new ScoreDTO();
-            dto.setLectureId(lectureId);
-            dto.setStudentId(Long.parseLong(sid));
+			ScoreDTO dto = new ScoreDTO();
+			dto.setLectureId(lectureId);
+			dto.setStudentId(Long.parseLong(sid));
 
-            String scoreIdParam = request.getParameter("scoreId_" + sid);
-            if (scoreIdParam != null) {
-                dto.setScoreId(Long.parseLong(scoreIdParam));
-            }
+			String scoreIdParam = request.getParameter("scoreId_" + sid);
+			if (scoreIdParam != null) {
+				dto.setScoreId(Long.parseLong(scoreIdParam));
+			}
 
-            dto.setAssignmentScore(parseInteger(request.getParameter("assignmentScore_" + sid)));
-            dto.setMidtermScore(parseInteger(request.getParameter("midtermScore_" + sid)));
-            dto.setFinalScore(parseInteger(request.getParameter("finalScore_" + sid)));
+			dto.setAssignmentScore(parseInteger(request.getParameter("assignmentScore_" + sid)));
+			dto.setMidtermScore(parseInteger(request.getParameter("midtermScore_" + sid)));
+			dto.setFinalScore(parseInteger(request.getParameter("finalScore_" + sid)));
 
-            list.add(dto);
-        }
+			list.add(dto);
+		}
 
-        return list;
-    }
+		return list;
+	}
 
-    private Integer parseInteger(String s) {
-        try {
-            return (s == null || s.isBlank()) ? null : Integer.parseInt(s);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+	private Integer parseInteger(String s) {
+		try {
+			return (s == null || s.isBlank()) ? null : Integer.parseInt(s);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }
