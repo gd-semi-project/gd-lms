@@ -11,13 +11,11 @@ import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.AdminService;
-import utils.EnrollmentPeriod;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import com.mysql.cj.Session;
 
 // @WebFilter("/AccessFilter")
 public class AccessFilter extends HttpFilter {
@@ -89,7 +87,6 @@ public class AccessFilter extends HttpFilter {
 				if (accessDTO != null && accessDTO.getRole() == Role.ADMIN) { // 백시현 추가 관리자 알림용
 					try {
 						request.setAttribute("pendingInfoUpdateCount", AdminService.getInstance().getPendingStudentInfoUpdateCount());
-						System.out.println("adminWelcome");
 					} catch (Exception ignore) {}
 				}
 				

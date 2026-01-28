@@ -66,9 +66,6 @@
       </div>
     </div>
 
-    <!-- =========================
-         RIGHT (75%): 선택 학과 상세(include)
-    ========================== -->
     <div class="col-12 col-lg-9">
       <div class="card shadow-sm h-100">
         <div class="card-body">
