@@ -17,12 +17,12 @@
       <table class="table table-bordered">
         <tbody>
 
-          <!-- 학번 (본인 확인용) -->
+    
           <tr>
             <th scope="row">아이디</th>
             <td>
               <input type="text"
-                     name="studentNumber"
+                     name="inputLoginId"
                      class="form-control"
                      placeholder="아이디를 입력하세요"
                      required>
