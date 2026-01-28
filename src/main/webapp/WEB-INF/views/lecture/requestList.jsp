@@ -1,24 +1,22 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:if test="${not empty sessionScope.flashMessage}">
+  <script>
+    let msg = "";
+
+    if ("${sessionScope.flashMessage}" === "updated") msg = "수정되었습니다.";
+    else if ("${sessionScope.flashMessage}" === "created") msg = "강의 신청이 완료되었습니다.";
+    else if ("${sessionScope.flashMessage}" === "deleted") msg = "삭제되었습니다.";
+    else if ("${sessionScope.flashMessage}" === "failed") msg = "처리에 실패했습니다.";
+
+    if (msg) alert(msg);
+  </script>
+
+  <c:remove var="flashMessage" scope="session"/>
+</c:if>
 
 <h3 class="mb-4">📘 강의 개설 신청</h3>
-
-<!-- 성공 메시지 -->
-<c:if test="${param.success == 'created'}">
-    <div class="alert alert-success alert-dismissible fade show">
-        강의 개설 신청이 정상적으로 접수되었습니다.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-</c:if>
-
-<c:if test="${param.success == 'deleted'}">
-    <div class="alert alert-success alert-dismissible fade show">
-        강의 신청이 삭제되었습니다.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-</c:if>
 
 <!-- 신청 기간 아닐 때 -->
 <c:if test="${!isLectureRequestOpen}">
@@ -99,24 +97,29 @@
 
                             <!-- 관리 버튼 -->
                             <td>
-							    <!-- 수정 : 항상 가능 -->
-							    <a class="btn btn-sm btn-warning me-1"
-							       href="${ctx}/instructor/lecture/request/edit?lectureId=${req.lectureId}">
-							        수정
-							    </a>
 							
-							    <!-- 삭제 : PENDING만 -->
-							    <c:if test="${req.validation eq 'PENDING'}">
-							        <form method="post"
-							              action="${ctx}/instructor/lecture/request/delete"
-							              style="display:inline;"
-							              onsubmit="return confirm('정말 삭제하시겠습니까?');">
-							            <input type="hidden" name="lectureId" value="${req.lectureId}">
-							            <button class="btn btn-sm btn-danger">
-							               삭제
-							            </button>
-							        </form>
-							    </c:if>
+							  <!-- 수정 버튼 -->
+							  <a href="${ctx}/instructor/lecture/request/edit?lectureId=${req.lectureId}"
+								   class="btn btn-sm btn-warning me-1">
+								    수정
+								</a>
+							
+							  <!-- 삭제 버튼 (PENDING만) -->
+							  <c:if test="${req.validation eq 'PENDING'}">
+							    <form method="post"
+							          action="${ctx}/instructor/lecture/request/delete"
+							          style="display:inline;">
+							          
+							      <input type="hidden" name="lectureId" value="${req.lectureId}">
+							      
+							      <button type="button"
+							              class="btn btn-sm btn-danger"
+							              onclick="confirmDelete(this.form)">
+							          삭제
+							      </button>
+							    </form>
+							  </c:if>
+							
 							</td>
 
                         </tr>

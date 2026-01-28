@@ -74,8 +74,10 @@
      비밀번호 변경
   </a>
 
-  <a href="${pageContext.request.contextPath}/instructor/lectures"
-     class="btn btn-outline-secondary">
-     내 강의 보기
-  </a>
-</div>
+
+    <a href="${pageContext.request.contextPath}/instructor/lectures"
+       class="btn btn-outline-secondary">
+       내 강의 보기
+    </a>
+  </div>
+</c:if>
