@@ -115,6 +115,7 @@ public class changeUserPwController extends HttpServlet {
         String currentPw = HashUtil.sha256(request.getParameter("Pw"));
         String newPw = HashUtil.sha256(request.getParameter("newPw"));
         String confirmPw = HashUtil.sha256(request.getParameter("confirmPw"));
+
         
         // 아무것도 입력안했을때
         if (inputLoginId == null || currentPw == null ||

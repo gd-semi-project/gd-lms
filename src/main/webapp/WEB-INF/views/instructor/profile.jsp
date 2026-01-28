@@ -69,6 +69,10 @@
      class="btn btn-primary">
      정보 수정
   </a>
+    <a href="${pageContext.request.contextPath}/changeUserPw/change"
+     class="btn btn-warning">
+     비밀번호 변경
+  </a>
 
   <a href="${pageContext.request.contextPath}/instructor/lectures"
      class="btn btn-outline-secondary">
