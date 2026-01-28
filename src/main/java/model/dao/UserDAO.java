@@ -194,6 +194,23 @@ public class UserDAO {
         }
 	}
 	
+	public int updateMustChangePasswordByLoginId(String loginId) {
+		String sql = """
+				UPDATE user
+				SET must_change_pw = 0
+				WHERE login_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, loginId);
+			int updated = pstmt.executeUpdate();
+			
+			return updated;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
 	public void InsertUser(UserDTO userDTO) {
 		String sql = """
 					INSERT INTO user (login_id, password_hash, name, birth_date, email, phone, role)

@@ -1,19 +1,16 @@
 package controller;
 
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import lombok.Builder.Default;
 import model.dao.LectureDAO;
 import model.dto.AccessDTO;
 import model.dto.MyLectureDTO;
 import model.dto.MypageDTO;
 import model.dto.MyscheduleDTO;
-import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.EnrollmentService;
 import service.MyPageService;

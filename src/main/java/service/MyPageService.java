@@ -10,7 +10,6 @@ import model.dto.MypageDTO;
 import model.dto.StudentDTO;
 import model.dto.UserDTO;
 import model.enumtype.Role;
-import utils.HashUtil;
 
 //	 로그인한 사용자의 role에 따라 필요한 데이터만 조회해서 MypageDTO조립
 public class MyPageService {
@@ -83,6 +82,7 @@ public class MyPageService {
 	// 비밀번호 변경
 	public void changePassword(String loginId, String newPassword) {
 		userDAO.updatePassword(loginId, newPassword);
+		userDAO.updateMustChangePasswordByLoginId(loginId);
 	}
 
 	// 교수가 볼 수 있는 페이지
