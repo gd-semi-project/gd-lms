@@ -320,71 +320,152 @@ public class EnrollmentDAO {
 	}
 
 	// (수강신청)내가 신청한 강의
+//	public List<EnrollmentDTO> findByStudentId(long studentId) {
+//		String sql = """
+//						        SELECT
+//				    l.lecture_id,
+//				    d.department_name,
+//				    l.lecture_title,
+//				    u.name AS instructor_name,
+//				    l.room,
+//				    l.capacity,
+//				    COUNT(e2.enrollment_id) AS current_count,
+//				    GROUP_CONCAT(
+//				        CONCAT(
+//				            s.week_day, ' ',
+//				            TIME_FORMAT(s.start_time, '%H:%i'), '~',
+//				            TIME_FORMAT(s.end_time, '%H:%i')
+//				        )
+//				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
+//				        SEPARATOR ', '
+//				    ) AS schedule
+//				FROM enrollment e
+//				JOIN lecture l ON e.lecture_id = l.lecture_id
+//				JOIN department d ON l.department_id = d.department_id
+//				JOIN user u ON l.user_id = u.user_id
+//				LEFT JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
+//				LEFT JOIN enrollment e2
+//				       ON e2.lecture_id = l.lecture_id
+//				      AND e2.status = 'ENROLLED'
+//				WHERE e.user_id = ?
+//				  AND e.status = 'ENROLLED'
+//				  AND l.status IN ('PLANNED','ONGOING')
+//				GROUP BY
+//				    l.lecture_id,
+//				    d.department_name,
+//				    l.lecture_title,
+//				    u.name,
+//				    l.room,
+//				    l.capacity;
+//						    """;
+//
+//		List<EnrollmentDTO> list = new ArrayList<>();
+//
+//		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//
+//			pstmt.setLong(1, studentId);
+//			ResultSet rs = pstmt.executeQuery();
+//
+//			while (rs.next()) {
+//				EnrollmentDTO dto = new EnrollmentDTO();
+//				dto.setLectureId(rs.getLong("lecture_id"));
+//				dto.setDepartmentName(rs.getString("department_name"));
+//				dto.setLectureTitle(rs.getString("lecture_title"));
+//				dto.setInstructorName(rs.getString("instructor_name"));
+//				dto.setRoom(rs.getString("room"));
+//				dto.setSchedule(rs.getString("schedule"));
+//				dto.setCapacity(rs.getInt("capacity"));
+//				dto.setCurrentCount(rs.getInt("current_count"));
+//
+//				list.add(dto);
+//			}
+//
+//		} catch (Exception e) {
+//			throw new RuntimeException("수강신청 내역 조회 실패", e);
+//		}
+//
+//		return list;
+//	}
 	public List<EnrollmentDTO> findByStudentId(long studentId) {
-		String sql = """
-						        SELECT
-				    l.lecture_id,
-				    d.department_name,
-				    l.lecture_title,
-				    u.name AS instructor_name,
-				    l.room,
-				    l.capacity,
-				    COUNT(e2.enrollment_id) AS current_count,
-				    GROUP_CONCAT(
-				        CONCAT(
-				            s.week_day, ' ',
-				            TIME_FORMAT(s.start_time, '%H:%i'), '~',
-				            TIME_FORMAT(s.end_time, '%H:%i')
-				        )
-				        ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN')
-				        SEPARATOR ', '
-				    ) AS schedule
-				FROM enrollment e
-				JOIN lecture l ON e.lecture_id = l.lecture_id
-				JOIN department d ON l.department_id = d.department_id
-				JOIN user u ON l.user_id = u.user_id
-				LEFT JOIN lecture_schedule s ON l.lecture_id = s.lecture_id
-				LEFT JOIN enrollment e2
-				       ON e2.lecture_id = l.lecture_id
-				      AND e2.status = 'ENROLLED'
-				WHERE e.user_id = ?
-				  AND e.status = 'ENROLLED'
-				  AND l.status IN ('PLANNED','ONGOING')
-				GROUP BY
-				    l.lecture_id,
-				    d.department_name,
-				    l.lecture_title,
-				    u.name,
-				    l.room,
-				    l.capacity;
-						    """;
 
-		List<EnrollmentDTO> list = new ArrayList<>();
+	    String sql = """
+	        SELECT
+	            l.lecture_id,
+	            d.department_name,
+	            l.lecture_title,
+	            u.name AS instructor_name,
+	            l.room,
+	            l.capacity,
 
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+	            COALESCE(ec.current_count, 0) AS current_count,
 
-			pstmt.setLong(1, studentId);
-			ResultSet rs = pstmt.executeQuery();
+	            GROUP_CONCAT(
+	                DISTINCT CONCAT(
+	                    s.week_day, ' ',
+	                    TIME_FORMAT(s.start_time, '%H:%i'), '~',
+	                    TIME_FORMAT(s.end_time, '%H:%i')
+	                )
+	                ORDER BY FIELD(s.week_day,'MON','TUE','WED','THU','FRI','SAT','SUN'),
+	                         s.start_time
+	                SEPARATOR ', '
+	            ) AS schedule
 
-			while (rs.next()) {
-				EnrollmentDTO dto = new EnrollmentDTO();
-				dto.setLectureId(rs.getLong("lecture_id"));
-				dto.setDepartmentName(rs.getString("department_name"));
-				dto.setLectureTitle(rs.getString("lecture_title"));
-				dto.setInstructorName(rs.getString("instructor_name"));
-				dto.setRoom(rs.getString("room"));
-				dto.setSchedule(rs.getString("schedule"));
-				dto.setCapacity(rs.getInt("capacity"));
-				dto.setCurrentCount(rs.getInt("current_count"));
+	        FROM enrollment e
+	        JOIN lecture l ON e.lecture_id = l.lecture_id
+	        JOIN department d ON l.department_id = d.department_id
+	        JOIN user u ON l.user_id = u.user_id
 
-				list.add(dto);
-			}
+	        LEFT JOIN lecture_schedule s
+	               ON l.lecture_id = s.lecture_id
 
-		} catch (Exception e) {
-			throw new RuntimeException("수강신청 내역 조회 실패", e);
-		}
+	        LEFT JOIN (
+	            SELECT lecture_id, COUNT(*) AS current_count
+	            FROM enrollment
+	            WHERE status = 'ENROLLED'
+	            GROUP BY lecture_id
+	        ) ec ON l.lecture_id = ec.lecture_id
 
-		return list;
+	        WHERE e.user_id = ?
+	          AND e.status = 'ENROLLED'
+	          AND l.status IN ('PLANNED','ONGOING')
+
+	        GROUP BY
+	            l.lecture_id,
+	            d.department_name,
+	            l.lecture_title,
+	            u.name,
+	            l.room,
+	            l.capacity,
+	            ec.current_count
+	    """;
+
+	    List<EnrollmentDTO> list = new ArrayList<>();
+
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setLong(1, studentId);
+
+	        try (ResultSet rs = pstmt.executeQuery()) {
+	            while (rs.next()) {
+	                EnrollmentDTO dto = new EnrollmentDTO();
+	                dto.setLectureId(rs.getLong("lecture_id"));
+	                dto.setDepartmentName(rs.getString("department_name"));
+	                dto.setLectureTitle(rs.getString("lecture_title"));
+	                dto.setInstructorName(rs.getString("instructor_name"));
+	                dto.setRoom(rs.getString("room"));
+	                dto.setSchedule(rs.getString("schedule"));
+	                dto.setCapacity(rs.getInt("capacity"));
+	                dto.setCurrentCount(rs.getInt("current_count"));
+	                list.add(dto);
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("수강신청 내역 조회 실패", e);
+	    }
+
+	    return list;
 	}
 
 }

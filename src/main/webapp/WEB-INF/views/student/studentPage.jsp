@@ -46,6 +46,7 @@
 </div>
 
 <!-- 학생 정보 -->
+<c:if test="${not empty mypage.student}">
 <div class="card mt-4">
   <div class="card-body">
     <h5 class="mb-3">학생 정보</h5>
@@ -84,12 +85,11 @@
     </table>
   </div>
 </div>
+</c:if>
 
 <!-- 버튼 영역 -->
 <div class="mt-3">
-  <c:choose>
-    <c:when test="${AccessInfo.role == 'STUDENT'}">
-      <a href="${pageContext.request.contextPath}/editUserInfoController/edit"
+<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
          class="btn btn-primary">
         정보 수정
       </a>
@@ -98,12 +98,11 @@
          class="btn btn-warning">
         비밀번호 변경
       </a>
-    </c:when>
-
+  <c:choose>
     <c:when test="${AccessInfo.role == 'ADMIN'}">
       <a href="${pageContext.request.contextPath}/admin/updateStudent"
-         class="btn btn-primary">
-        정보 수정
+         class="btn btn-outline-secondary">
+        주요정보 수정리스트
       </a>
     </c:when>
   </c:choose>

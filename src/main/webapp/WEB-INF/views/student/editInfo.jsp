@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <style>
 .read-only {
   background-color: #e9ecef;
@@ -81,6 +81,7 @@
 
 <div class="card mt-4">
   <div class="card-body">
+<c:if test="${not empty mypage.student}">
     <h5 class="mb-3">학생 정보</h5>
 
     <table class="table table-bordered align-middle">
@@ -145,17 +146,20 @@
 
       </tbody>
     </table>
-
+</c:if>
     <div class="d-flex gap-2 mt-3">
       <button type="submit" class="btn btn-primary">변경</button>
 
       <a href="${pageContext.request.contextPath}/mypage/studentPage"
          class="btn btn-outline-secondary">취소</a>
-
+<c:choose>
+    <c:when test="${AccessInfo.role == 'STUDENT'}">
       <a href="${pageContext.request.contextPath}/student/updateInfo"
          class="btn btn-warning">중요 정보 수정 요청</a>
+         </c:when></c:choose>
     </div>
 
     </form>
   </div>
+  
 </div>
