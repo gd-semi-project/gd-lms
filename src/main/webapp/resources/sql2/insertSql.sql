@@ -421,6 +421,7 @@ INSERT INTO user (user_id, login_id, password_hash, name, birth_date, email, pho
 (299, 'student299', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '신도나', '2002-04-14', 'user299@university.ac.kr', '010-9588-6542', 'STUDENT', 'ACTIVE', 'M', '광주시 강남구 167번길 55', FALSE),
 (300, 'student300', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', '한지아', '2002-04-20', 'user300@university.ac.kr', '010-6953-3527', 'STUDENT', 'ACTIVE', 'M', '울산시 서초구 708번길 75', FALSE);
 
+UPDATE `user` SET status='INACTIVE' WHERE user_id=100;
 -- user 테이블 비밀번호 업데이트 (prof, student)
 -- 새로운 비밀번호 형식: gdlms + 생년월일6자리(YYMMDD) + 전화번호 끝4자리
 -- 예: 생년월일 1975-02-04, 전화번호 010-5997-4550 → gdlms7502044550
@@ -8512,6 +8513,8 @@ INSERT INTO score (score_id, lecture_id, student_id, attendance_score, assignmen
 (788, 21, 173, 15, 17, 20, 30, 82, 'B', TRUE, TRUE),
 (789, 21, 164, 15, 16, 21, 27, 79, 'C+', TRUE, TRUE),
 (790, 21, 183, 15, 18, 23, 27, 83, 'B', TRUE, TRUE);
+
+UPDATE score SET total_score = NULL,grade_letter = NULL WHERE student_id BETWEEN 21 AND 270;
 
 -- attendance 테이블 더미 데이터 (최소 5개)
 INSERT INTO attendance (attendance_id, session_id, student_id, status, checked_at) VALUES
