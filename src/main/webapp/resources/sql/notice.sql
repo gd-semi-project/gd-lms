@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS notice (
     notice_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     lecture_id BIGINT NULL,
     author_id BIGINT NOT NULL,
-    notice_type VARCHAR(50) DEFAULT 'GENERAL',
+    notice_type ENUM('ANNOUNCEMENT', 'LECTURE') NOT NULL, 
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     view_count INT DEFAULT 0,
