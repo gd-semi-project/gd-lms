@@ -92,20 +92,25 @@ public class AccessFilter extends HttpFilter {
 		}
 		
 		if (session.getAttribute("AccessInfo") == null) {
-			session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
-			response.sendRedirect(contextPath + "/error?errorCode=401");
-			return;
+			if (uri.equals(contextPath + "/main")) {
+				response.sendRedirect(contextPath + "/login");
+				return;
+			} else {
+				session.setAttribute("errorMessage", "로그인 후 이용가능합니다.");
+				response.sendRedirect(contextPath + "/error?errorCode=401");
+				return;
+			}
 		}
 		
 		// 비밀번호 변경 대상 확인 후 페이지 강제이동
 		if (session.getAttribute("MPWC") != null) {
-			boolean MPWC = (boolean)session.getAttribute("MPWC");
-			if (MPWC == true &&
-					!actionPath.equals("/changeUserPw/change") &&
-					!actionPath.equals("/login/logout")) {
-				response.sendRedirect(contextPath + "/changeUserPw/change");
-				return;
-			}
+//			boolean MPWC = (boolean)session.getAttribute("MPWC");
+//			if (MPWC == true &&
+//					!actionPath.equals("/changeUserPw/change") &&
+//					!actionPath.equals("/login/logout")) {
+//				response.sendRedirect(contextPath + "/changeUserPw/change");
+//				return;
+//			}
 		}
 		
 		// role 권한 체크
