@@ -19,14 +19,14 @@
 
           <!-- 학번 (본인 확인용) -->
           <tr>
-            <th scope="row">학번</th>
+            <th scope="row">아이디</th>
             <td>
               <input type="text"
-                     name="studentNumber"
+                     name="inputLoginId"
                      class="form-control"
-                     placeholder="학번을 입력하세요"
+                     placeholder="본인 아이디를 입력하세요"
                      required>
-                     ※ 학번과 비밀번호를 모두 입력하세요.
+                     ※ 아이디과 비밀번호를 모두 입력하세요.
             </td>
           </tr>
 
@@ -86,8 +86,17 @@
 
 			<div class="mt-3">
         <button type="submit" class="btn btn-warning">변경</button>
-        <a href="${pageContext.request.contextPath}/mypage/studentPage"
-           class="btn btn-secondary">취소</a>
+        <c:choose>
+      	  <c:when test="${sessionScope.AccessInfo.role == 'ADMIN' or sessionScope.AccessInfo.role == 'STUDENT'}">
+      	  <a href="${pageContext.request.contextPath}/mypage/studentPage"
+       	    class="btn btn-secondary">취소</a>
+       	 </c:when>
+       	 <c:when test="${sessionScope.AccessInfo.role == 'INSTRUCTOR'}">
+      	  <a href="${pageContext.request.contextPath}/instructor/profile"
+       	    class="btn btn-secondary">취소</a>
+       	 </c:when>
+        </c:choose>
+ 
       </div>
 
     </form>

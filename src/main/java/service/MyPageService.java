@@ -69,12 +69,11 @@ public class MyPageService {
 		
 	}
 	
-	// 학번일치유무 확인(비밀번호변경 페이지)
-	public boolean checkStudentNumber(String loginId, int studentNumber) {
-		return studentDAO.checkStudentNumberBychangeAccount(loginId, studentNumber);
-		
-	}
-	
+	// ID일치 확인(비밀번호변경 페이지)
+//	public boolean checkStudentId(String loginId) {
+//		return studentDAO.checkUserIdBychangeAccount(loginId);
+//	}
+//	
 	// 비밀번호 일치유무 확인
 	public boolean checkCurrentPassword(String loginId, String rawPassword) {
 		UserDTO user = userDAO.selectUsersById(loginId);
