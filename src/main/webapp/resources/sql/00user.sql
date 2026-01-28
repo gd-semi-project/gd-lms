@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS user (
     role            ENUM('ADMIN', 'INSTRUCTOR', 'STUDENT')
                     NOT NULL COMMENT '역할',
 
-    status          ENUM('ACTIVE', 'INACTIVE')
+    status          ENUM('ACTIVE', 'INACTIVE', 'LOCKED')
                     NOT NULL DEFAULT 'ACTIVE'
                     COMMENT '상태',
 
@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS user (
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                     ON UPDATE CURRENT_TIMESTAMP
                     COMMENT '수정일시',
+   	
+   	login_try_count INT DEFAULT 0,
 
     CONSTRAINT uk_user_login_id UNIQUE (login_id),
     CONSTRAINT uk_user_email UNIQUE (email)
