@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/about.css">
 </head>
 
-<body>
+<body class="about-page">
 
 <!-- HERO -->
 <div class="hero">

@@ -14,7 +14,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
   <style>
-    body { background: #f6f7f9; }
+    body { background: #f6f7f9; padding-top : 40px; }
     .page-wrap { max-width: 1200px; margin: 0 auto; padding: 18px; }
     .card-soft { border: 1px solid #e7e7e7; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
     .map-shell { background: #fff; border-radius: 16px; border: 1px solid #e7e7e7; overflow: hidden; }
