@@ -29,6 +29,7 @@ public class InstructorController extends HttpServlet {
     private final LectureService lectureService = LectureService.getInstance();
     private final LectureRequestService lectureRequestService = LectureRequestService.getInstance();
     private final LectureAccessService lectureAccessService = new LectureAccessService();
+    
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -137,9 +138,9 @@ public class InstructorController extends HttpServlet {
                     instructorId, lectureId, Role.INSTRUCTOR
                 );
 
-                LectureDTO lecture = lectureService.getLectureDetail(lectureId);
+                LectureRequestDTO lecture = lectureRequestService.getLectureRequestDetail(lectureId);
                 if (lecture == null) {
-                    throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
+                	throw new ResourceNotFoundException("존재하지 않는 강의 신청입니다.");
                 }
 
                 request.setAttribute("lecture", lecture);
@@ -153,7 +154,7 @@ public class InstructorController extends HttpServlet {
                     lectureRequestService.getScorePolicy(lectureId));
 
                 Map<String, Object> profile =
-                    instructorService.getInstructorProfile(lecture.getUserId());
+                	    instructorService.getInstructorProfile(instructorId);
 
                 request.setAttribute("instructor", profile.get("instructor"));
                 request.setAttribute("user", profile.get("user"));
@@ -293,38 +294,52 @@ public class InstructorController extends HttpServlet {
         	    return;
         	}
 
-            if (uri.endsWith("/lecture/request")) {
+        	if (uri.endsWith("/lecture/request")) {
 
-                lectureRequestService.createLectureRequest(instructorId, request);
-                response.sendRedirect(ctx + "/instructor/lecture/request?success=created");
-                return;
-            }
+        	    lectureRequestService.createLectureRequest(instructorId, request);
 
-            if (uri.endsWith("/lecture/request/edit")) {
+        	    request.getSession().setAttribute("flashMessage", "created");
+        	    response.sendRedirect(ctx + "/instructor/lecture/request");
+        	    return;
+        	}
 
-                Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+        	if (uri.endsWith("/lecture/request/edit")) {
 
-                lectureAccessService.assertCanAccessLecture(
-                        instructorId, lectureId, Role.INSTRUCTOR
-                );
+        	    Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-                lectureRequestService.updateLectureRequest(lectureId, request);
-                response.sendRedirect(ctx + "/instructor/lecture/request?success=updated");
-                return;
-            }
+        	    lectureAccessService.assertCanAccessLecture(
+        	            instructorId, lectureId, Role.INSTRUCTOR
+        	    );
 
-            if (uri.endsWith("/lecture/request/delete")) {
+        	    try {
+        	        lectureRequestService.updateLectureRequest(lectureId, request);
 
-                Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+        	        request.getSession().setAttribute("flashMessage", "updated");
+        	        response.sendRedirect(ctx + "/instructor/lecture/request");
+        	        return;
 
-                lectureAccessService.assertCanAccessLecture(
-                        instructorId, lectureId, Role.INSTRUCTOR
-                );
+        	    } catch (Exception e) {
 
-                lectureRequestService.deleteLectureRequest(lectureId);
-                response.sendRedirect(ctx + "/instructor/lecture/request?success=deleted");
-                return;
-            }
+        	        request.getSession().setAttribute("flashMessage", "failed");
+        	        response.sendRedirect(ctx + "/instructor/lecture/request");
+        	        return;
+        	    }
+        	}
+
+        	if (uri.endsWith("/lecture/request/delete")) {
+
+        	    Long lectureId = Long.parseLong(request.getParameter("lectureId"));
+
+        	    lectureAccessService.assertCanAccessLecture(
+        	            instructorId, lectureId, Role.INSTRUCTOR
+        	    );
+
+        	    lectureRequestService.deleteLectureRequest(lectureId);
+
+        	    request.getSession().setAttribute("flashMessage", "deleted");
+        	    response.sendRedirect(ctx + "/instructor/lecture/request");
+        	    return;
+        	}
 
             throw new ResourceNotFoundException("요청하신 작업을 처리할 수 없습니다.");
 
