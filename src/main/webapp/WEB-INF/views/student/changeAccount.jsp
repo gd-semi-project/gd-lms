@@ -22,9 +22,9 @@
             <th scope="row">아이디</th>
             <td>
               <input type="text"
-                     name="studentNumber"
+                     name="inputLoginId"
                      class="form-control"
-                     placeholder="학번을 입력하세요"
+                     placeholder="본인 아이디를 입력하세요"
                      required>
                      ※ 아이디과 비밀번호를 모두 입력하세요.
             </td>
