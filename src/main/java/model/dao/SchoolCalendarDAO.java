@@ -57,7 +57,7 @@ public class SchoolCalendarDAO {
 			}
 			
 		} catch (Exception e) {
-			//TODO sql 문법 오류나 DB 가 없는 경우 에러가 날 수 있습니다
+			System.out.println("selectByRange(): 실패");
 			e.printStackTrace();
 		}
 		
@@ -100,7 +100,7 @@ public class SchoolCalendarDAO {
 			
 			
 		} catch (Exception e) {
-			//TODO sql 문법 오류나 잘못된 값이 들어올 경우 에러가 날 수 있습니다
+			System.out.println("selectById(): 실패");
 			e.printStackTrace();
 		}
 		

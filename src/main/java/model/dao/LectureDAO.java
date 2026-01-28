@@ -81,7 +81,7 @@ public class LectureDAO {
 
 			return (curSum * 100) / capSum;
             } catch (Exception e) {
-            	//TODO sql 문법 오류나 DB 가 없는 경우 에러가 날 수 있습니다
+            	System.out.println("getLectureFillRate(): 실패");
                 e.printStackTrace();
                 return 0;
             }
@@ -494,7 +494,8 @@ public class LectureDAO {
 			}
 
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			System.out.println("selectMyEnrollmentedLecture(): 실패");
 		}
 
 		return list;
@@ -1043,7 +1044,8 @@ public class LectureDAO {
 			}
 
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			System.out.println("selectMyEndedLecture(): 실패");
 		}
 
 		return list;
