@@ -15,10 +15,6 @@ html, body {
   overflow: visible;
 }
 
-.row {
-  min-height: calc(100vh - 56px - 60px);
-}
-
 .sidebar {
   position: sticky;
   top: 56px;
