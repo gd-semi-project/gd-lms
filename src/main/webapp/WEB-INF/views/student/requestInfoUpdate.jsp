@@ -78,7 +78,7 @@
                   <th style="width:16%;">항목</th>
                   <th style="width:28%;">변경 전</th>
                   <th style="width:28%;">변경 후</th>
-                  <th style="width:28%;">증빙 서류</th>
+                  <th style="width:28%;">증빙 서류 / 제출 안내</th>
                 </tr>
               </thead>
 
@@ -88,10 +88,14 @@
                 <tr>
                   <th>이름</th>
                   <td class="cell-old"><div class="old-value">${fn:escapeXml(mypage.user.name)}</div></td>
-                  <td><input class="form-control" name="newName"></td>
+                  <td><input type="text" class="form-control" name="newName"
+                         placeholder="변경 후 이름(개명 등)"
+                         value="${fn:escapeXml(param.newName)}" />
+</td>
                   <td>
                     <input type="file" class="form-control" name="docName">
-                    <div class="help mt-1">개명 허가 서류</div>
+                     <div class="help mt-1">개명 허가/주민등록초본(변경 이력 포함)</div>
+
                   </td>
                 </tr>
 
@@ -110,8 +114,9 @@
                   <td>
                     <select class="form-select" name="newGender">
                       <option value="">변경 없음</option>
-                      <option value="M">남</option>
-                      <option value="F">여</option>
+                      <option value="M" ${param.newGender=='M' ? 'selected' : ''}>남</option>
+                    <option value="F" ${param.newGender=='F' ? 'selected' : ''}>여</option>
+
                     </select>
                   </td>
                   <td><input type="file" class="form-control" name="docGender"></td>
@@ -121,56 +126,104 @@
                 <tr>
                   <th>계좌번호</th>
                   <td class="cell-old"><div class="old-value mono">${mypage.student.tuitionAccount}</div></td>
-                  <td><input class="form-control" name="newAccountNo"></td>
-                  <td><input type="file" class="form-control" name="docAccountNo"></td>
+                  <td><input type="text" class="form-control" name="newAccountNo"
+                         placeholder="변경 후 계좌번호"
+                         value="${fn:escapeXml(param.newAccountNo)}" /></td>
+                  <td> <input type="file" class="form-control" name="docAccountNo" />
+                  <div class="help mt-1">통장 사본(예금주/계좌번호 보이게)</div>
+</td>
                 </tr>
 
                 <!-- 학과 -->
-                <tr>
-                  <th>학과</th>
-                  <td class="cell-old"><div class="old-value">${mypage.department.departmentName}</div></td>
-                  <td>
-                    <select class="form-select" name="newDepartmentId">
-                      <option value="">변경 없음</option>
-                      <c:forEach var="d" items="${departments}">
-                        <option value="${d.departmentId}">${d.departmentName}</option>
-                      </c:forEach>
-                    </select>
-                  </td>
-                  <td><input type="file" class="form-control" name="docDepartment"></td>
-                </tr>
+                              <tr>
+                <th class="align-middle">학과</th>
+                <td class="cell-old">
+                <div class="old-value">
+                  ${fn:escapeXml(mypage.department.departmentName)}
+                </div>
+                </td>
+                <td class="cell-new">
+                  <!-- departments: 학과 목록 -->
+                  <select class="form-select" name="newDepartmentId">
+                    <option value="">변경 없음</option>
+                    <c:forEach var="d" items="${departments}">
+                      <option value="${d.departmentId}"
+                              ${param.newDepartmentId == d.departmentId ? 'selected' : ''}>
+                        ${fn:escapeXml(d.departmentName)}
+                      </option>
+                    </c:forEach>
+                  </select>
+                  <div class="help mt-1">전과/전공 변경은 규정에 따라 승인됩니다.</div>
+                </td>
+                <td>
+				  <input type="file" class="form-control" name="docDepartment" />
+				  <div class="help mt-1">전과 승인서/학과 변경 신청서(서명 포함)</div>
+				
+				  <div class="mt-2">
+				    <a class="btn btn-sm btn-outline-primary"
+				       href="${ctx}/resources/forms/department-change-form.pdf"
+				       download>
+				      신청서 양식
+				    </a>
+				  </div>
+				</td>
+
+              </tr>
 
                 <!-- 학적 -->
-                <tr>
-                  <th>학적 상태</th>
-                  <td class="cell-old"><div class="old-value">${mypage.student.studentStatus}</div></td>
-                  <td>
-                    <select class="form-select" name="newAcademicStatus">
-                      <option value="">변경 없음</option>
-                      <option value="ENROLLED">재학</option>
-                      <option value="BREAK">휴학</option>
-                      <option value="LEAVE">자퇴</option>
-                    </select>
-                  </td>
-                  <td><input type="file" class="form-control" name="docAcademicStatus"></td>
-                </tr>
+                             <tr>
+                <th class="align-middle">학적 상태</th>
+                <td class="cell-old">
+                <div class="old-value">
+                  <c:choose>
+                    <c:when test="${mypage.student.studentStatus == 'ENROLLED'}">재학</c:when>
+                    <c:when test="${mypage.student.studentStatus == 'BREAK'}">휴학</c:when>
+                    <c:when test="${mypage.student.studentStatus == 'LEAVE'}">자퇴</c:when>
+                    <c:when test="${mypage.student.studentStatus == 'GRADUATED'}">졸업</c:when>
+                  </c:choose>
+                </div>
+                </td>
+                <td class="cell-new">
+                  <select class="form-select" name="newAcademicStatus">
+                    <option value="">변경 없음</option>
+                    <option value="ENROLLED" ${param.newAcademicStatus=='ENROLLED' ? 'selected' : ''}>재학</option>
+                    <option value="BREAK" ${param.newAcademicStatus=='BREAK' ? 'selected' : ''}>휴학</option>
+                    <option value="LEAVE" ${param.newAcademicStatus=='LEAVE' ? 'selected' : ''}>자퇴</option>
+                  </select>
+                  <div class="help mt-1">학적 상태 변경은 승인 후 반영됩니다.</div>
+                </td>
+                <td>
+				  <input type="file" class="form-control" name="docAcademicStatus" />
+				  <div class="help mt-1">휴학/자퇴 신청서, 관련 증빙(해당 시)</div>
+				
+				  <div class="mt-2">
+				    <a class="btn btn-sm btn-outline-primary"
+				       href="${ctx}/resources/forms/academic-status-change-form.pdf"
+				       download>
+				      신청서 양식
+				    </a>
+				  </div>
+				</td>
+              </tr>
 
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         </div>
+
+      </div>
 
 
         <div class="card-body">
-          <textarea class="form-control mb-3" name="reason" rows="3" placeholder="신청 사유"></textarea>
+          <textarea class="form-control mb-3" id="reason" name="reason" rows="3" placeholder="변경 사유/추가 설명을 적어주세요.">${fn:escapeXml(param.reason)}</textarea>
 
           <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" required>
-            <label class="form-check-label">위 내용이 사실입니다.</label>
+            <input class="form-check-input" type="checkbox" value="Y" id="agree" name="agree" required>
+            <label class="form-check-label" for="agree">위 내용이 사실이며, 증빙 서류를 제출했습니다.
+</label>
           </div>
 
           <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">변경 신청</button>
+            <button type="submit" class="btn btn-primary">변경 신청 제출</button>
             <a class="btn btn-outline-secondary" href="${ctx}/mypage">취소</a>
           </div>
         </div>
