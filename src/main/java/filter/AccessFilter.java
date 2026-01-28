@@ -144,5 +144,4 @@ public class AccessFilter extends HttpFilter {
 			encoding = encodingParam;
 		}
 	}
-
 }
