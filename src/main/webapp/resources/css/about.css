@@ -4,12 +4,15 @@
   box-sizing:border-box;
   font-family:"Segoe UI", sans-serif;
 }
-.about-page{
-	padding : 0 !important;
-}
+
 body {
-  background:#f4f6fb;
-  color:#111;
+  background : #f4f6fb;
+  color : black
+}
+
+
+.about-page .hero {
+  margin: 0;
 }
 
 /* HERO */

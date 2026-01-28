@@ -7,12 +7,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 import database.DBConnection;
 import exception.InternalServerException;
-import lombok.Data;
 import lombok.NoArgsConstructor;
-import model.dto.ResetToken;
 import utils.HashUtil;
 
 @NoArgsConstructor

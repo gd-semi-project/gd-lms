@@ -1,13 +1,18 @@
 package service;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
+import database.DBConnection;
 import exception.InternalServerException;
 import lombok.NoArgsConstructor;
 import model.dao.TokenDAO;
 import model.dao.UserDAO;
 import model.dto.AccessDTO;
+import model.dto.LoginResultDTO;
 import model.dto.UserDTO;
+import model.enumtype.LoginStatus;
+import model.enumtype.UserStatus;
 import utils.HashUtil;
 
 @NoArgsConstructor
@@ -18,22 +23,50 @@ public class LoginService {
 		return instance;
 	}
 	
-	public AccessDTO DoLogin(String id, String passwd) {
+	public LoginResultDTO DoLogin(String id, String passwd) {
 		try {
+			LoginResultDTO loginResult = new LoginResultDTO();
 			if (id != null && !id.isEmpty() && passwd != null && !passwd.isEmpty()) {
 				UserDAO userDAO = UserDAO.getInstance();
 				AccessDTO accessDTO = userDAO.selectAccessById(id);
 				UserDTO userDTO = userDAO.selectUsersById(id);
 				
-				if (userDTO != null) {
-					if (id.equals(userDTO.getLoginId())) {
-						if (passwd.equals(userDTO.getPassword())) {
-							return accessDTO;
-						}
+				// ERP 적용
+				if (!passwd.equals(userDTO.getPassword())) {
+					loginResult.setLoginStatus(LoginStatus.FAIL);
+					// 비밀번호 틀리면 로그인 시도 회수 1증가 DAO
+					// 계정이 잠기는 조건은 ACTIVE 계정일 때만
+					// INACTIVE 계정이 잠겨버리면 안됨
+					userDAO.updateLoginTryCount(id);
+					
+					// 상태: INACTIVE
+					if (userDTO.getStatus() == UserStatus.INACTIVE) {
+						loginResult.setLoginStatus(LoginStatus.INACTIVE);
+						return loginResult;
 					}
+					
+					// 상태: LOCKED
+					if (userDTO.getStatus() == UserStatus.LOCKED) {
+						loginResult.setLoginStatus(LoginStatus.LOCKED);
+						return loginResult;
+					}
+					
+					return loginResult;
 				}
+				
+				// 앞의 조건 모두 통과시 로그인 성공 후 LoginResult 반환
+				// 로그인 성공했을 때 비밀번호 변경이 필수인 경우, SUCCESS/MPWC
+				if (userDTO.isMustChangePw()) {
+					loginResult.setLoginStatus(LoginStatus.SUCCESS_MPWC);
+				} else {
+					loginResult.setLoginStatus(LoginStatus.SUCCESS);
+				}
+				userDAO.updateLoginStatusACTIVEByLoginID(id);
+				loginResult.setAccessDTO(accessDTO);
+				return loginResult;
 			}
-			return null;
+			loginResult.setLoginStatus(LoginStatus.FAIL);
+			return loginResult;
 		} catch (InternalServerException e) {
 			throw new InternalServerException("로그인 중 에러가 발생했습니다.", e);
 		}
@@ -65,22 +98,42 @@ public class LoginService {
 		}
 	}
 	
+	public int loginTry(String id) {
+		UserDAO userDAO = UserDAO.getInstance();
+		try {
+			int updated = userDAO.updateLoginTryCount(id);
+			return updated;
+		} catch (InternalServerException e) {
+			throw new InternalServerException("로그인 중 오류가 발생했습니다.", e);
+		}
+	}
+	
+	public UserStatus getloginStatus(Long userId) {
+		UserDAO userDAO = UserDAO.getInstance();
+		try {
+			UserStatus userStatus = userDAO.selectStatusByUserId(userId);
+			return userStatus;
+		} catch (InternalServerException e ) {
+			throw new InternalServerException("로그인 중 오류가 발생했습니다.", e);
+		}
+	}
+	
 	// 중복확인용 서비스로직(회원등록)
 	public boolean DuplicateEmail(String email) {
 		try {
 			UserDAO userDAO = UserDAO.getInstance();
-			return userDAO.selectLoginIdByLoginId(email);	
+			return userDAO.selectEmailByEmail(email);	
 		} catch (InternalServerException e) {
 			throw new InternalServerException("이메일 중복확인 중 오류가 발생했습니다.",e);
 		}
 	}
 	
-	public boolean DuplicateLoginId(String loginId) {
+	public boolean duplicateLoginId(String loginId) {
 		try {
 			UserDAO userDAO = UserDAO.getInstance();
 			return userDAO.selectLoginIdByLoginId(loginId);
 		} catch (InternalServerException e) {
-			throw new InternalServerException("이메일 중복확인 중 오류가 발생했습니다.",e);
+			throw new InternalServerException("아이디 중복확인 중 오류가 발생했습니다.",e);
 		}
 	}
 	
@@ -101,6 +154,17 @@ public class LoginService {
     		Long userId = userDAO.selectUserIdByEmailAndBirthDate(email, birthDate);
     		System.out.println(userId);
             return userId;
+		} catch (InternalServerException e) {
+			throw new InternalServerException("사용자 정보 인증 중 오류가 발생했습니다.", e);
+		}
+    }
+	
+	//userId를 loginId로 반환
+	public String getLoginIdByUserId(Long userId) {
+        try {
+    		UserDAO userDAO = UserDAO.getInstance();
+    		String loginId = userDAO.selectLoginIdByUserId(userId);
+            return loginId;
 		} catch (InternalServerException e) {
 			throw new InternalServerException("사용자 정보 인증 중 오류가 발생했습니다.", e);
 		}
@@ -131,6 +195,16 @@ public class LoginService {
 			throw new InternalServerException("비밀번호 초기화 중 오류가 발생했습니다.", e);
 		}
     }
+	
+	public void setLoginStatusACTIVE (long id) {
+		try {
+    		UserDAO userDAO = UserDAO.getInstance();
+            userDAO.updateLoginStatusACTIVEByUserID(id);
+
+		} catch (InternalServerException e) {
+			throw new InternalServerException("비밀번호 초기화 중 오류가 발생했습니다.", e);
+		}
+	}
 	
 	public Long verifyResetToken(String sessionToken) {
 		try {
