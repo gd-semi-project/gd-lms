@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.time.LocalDate;
 
 import database.DBConnection;
+import jakarta.servlet.http.HttpSession;
 import model.dto.SchoolScheduleDTO;
 import model.enumtype.ScheduleCode;
 
@@ -42,7 +43,6 @@ public class SchoolScheduleDAO {
 				}
 			}
 		} catch (Exception e) {
-			//TODO
 			e.printStackTrace();
 			throw new RuntimeException("가장 가까운 학사 일정 조회 실패: " + code, e);
 		}
@@ -76,7 +76,6 @@ public class SchoolScheduleDAO {
 				}
 			}
 		} catch (Exception e) {
-			//TODO
 			e.printStackTrace();
 			throw new RuntimeException("가장 가까운 학사 일정 조회 실패", e);
 		}
@@ -110,7 +109,7 @@ public class SchoolScheduleDAO {
 
 		} catch (Exception e) {
 			System.out.println("scheduleAdd(): 실패");
-			e.printStackTrace();//TODO
+			e.printStackTrace();
 		}
 
 	}
@@ -124,7 +123,7 @@ public class SchoolScheduleDAO {
 			pstmt.executeUpdate();
 
 		} catch (Exception e) {
-			e.printStackTrace();//TODO
+			e.printStackTrace();
 			System.out.println("scheduleDelete(): 실패");
 		}
 	}
@@ -152,7 +151,6 @@ public class SchoolScheduleDAO {
 			pstmt.executeUpdate();
 
 		} catch (Exception e) {
-			//TODO//TODO
 			e.printStackTrace();
 			System.out.println("scheduleUpdate(): 실패");
 		}
@@ -193,7 +191,7 @@ public class SchoolScheduleDAO {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();//TODO
+			e.printStackTrace();
 			System.out.println("scheduleDAO findById(): 실패");
 			return null;
 		}
@@ -219,7 +217,6 @@ public class SchoolScheduleDAO {
 			return rs.getInt(1) > 0;
 
 		} catch (Exception e) {
-			//TODO
 			e.printStackTrace();
 			throw new RuntimeException("학사 일정 기간 체크 실패: " + code, e);
 		}

@@ -50,11 +50,11 @@ public class changeUserPwController extends HttpServlet {
             return;
         }
 		// ROLE이 STUDENT인경우(학생)만 접근가능
-		if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
-			session.setAttribute("errorMessage", "접근 권한이 없습니다.");
-            response.sendRedirect(ctx + "/error?errorCode=403");
-			return;
-		}
+//		if (access.getRole() != Role.STUDENT && access.getRole() != Role.ADMIN) {
+//			session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+//            response.sendRedirect(ctx + "/error?errorCode=403");
+//			return;
+//		}
 		
         String action = request.getPathInfo();
 		if ("/change".equals(action)) {
@@ -103,21 +103,22 @@ public class changeUserPwController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        if (access.getRole() != Role.STUDENT) {
-        	session.setAttribute("errorMessage", "접근 권한이 없습니다.");
-            response.sendRedirect(ctx + "/error?errorCode=403");
-	        return;
-	    }
+//        if (access.getRole() != Role.STUDENT) {
+//        	session.setAttribute("errorMessage", "접근 권한이 없습니다.");
+//            response.sendRedirect(ctx + "/error?errorCode=403");
+//	        return;
+//	    }
         
-        String studentNum = request.getParameter("studentNumber");
+        String sessionLoginId = (String) session.getAttribute("loginId");
+        String inputLoginId = request.getParameter("inputLoginId");
         String currentPw = request.getParameter("Pw");
         String newPw = request.getParameter("newPw");
         String confirmPw = request.getParameter("confirmPw");
         
         // 아무것도 입력안했을때
-        if (studentNum == null || currentPw == null ||
+        if (inputLoginId == null || currentPw == null ||
                 newPw == null || confirmPw == null ||
-                studentNum.isBlank() || currentPw.isBlank() ||
+                		inputLoginId.isBlank() || currentPw.isBlank() ||
                 newPw.isBlank() || confirmPw.isBlank()) {
 
                 request.setAttribute("error", "모든 항목을 입력하시오");
@@ -132,23 +133,13 @@ public class changeUserPwController extends HttpServlet {
             return;
         }
 		
-		// 학번 검증
-	    int studentNumber;
-	    try {
-	        studentNumber = Integer.parseInt(studentNum);
-	    } catch (NumberFormatException e) {
-	        request.setAttribute("error", "학번의 형식이 알맞지않습니다.");
-	        doGet(request, response);
-	        return;
-	    }
-		boolean validStudent =
-				myPageService.checkStudentNumber(loginId, studentNumber);
-		
-		if (!validStudent) {
-			request.setAttribute("error", "학번이 일치하지 않습니다.");
-			doGet(request, response);
-			return;
-		}
+        // 아이디 일치 여부 검증
+        if (!sessionLoginId.equals(inputLoginId)) {
+            request.setAttribute("error", "현재 로그인한 아이디와 일치하지 않습니다.");
+            doGet(request, response);
+            return;
+        }
+        
 		
 		// 비밀번호 검증
 		boolean validPw = myPageService.checkCurrentPassword(loginId, currentPw);
@@ -163,7 +154,7 @@ public class changeUserPwController extends HttpServlet {
 			// 성공시 메시지
 			session.setAttribute("alertMsg", "비밀번호 변경 성공! 다시 로그인해주세요.");
 			
-			response.sendRedirect(ctx + "/login");
+			doGet(request, response);
 			return;
 			
 			

@@ -13,7 +13,7 @@ import model.dto.AccessDTO;
 import model.dto.UserDTO;
 import model.enumtype.Gender;
 import model.enumtype.Role;
-import model.enumtype.Status;
+import model.enumtype.UserStatus;
 
 public class UserDAO {
 	private static final UserDAO instance = new UserDAO(); 
@@ -57,9 +57,11 @@ public class UserDAO {
 				userDTO.setRole(Role.valueOf(roleStr));
 				
 				String statusStr = rs.getString("status"); 
-				userDTO.setStatus(Status.valueOf(statusStr));
+				userDTO.setStatus(UserStatus.valueOf(statusStr));
 				
 				userDTO.setMustChangePw(rs.getBoolean("must_change_pw"));
+				
+				userDTO.setLoginTryCount(rs.getInt("login_try_count"));
 				
 
 				userDTO.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
@@ -91,6 +93,102 @@ public class UserDAO {
 				accessDTO.setRole(Role.valueOf(roleStr));
 			}
 			return accessDTO;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
+	public UserStatus selectStatusByUserId(Long userId) {
+		String sql = """
+				SELECT status
+				FROM user
+				WHERE user_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			
+			UserStatus userStatus = null;
+			if (rs.next()) {
+				userStatus = UserStatus.valueOf(rs.getString("status"));
+			}
+			return userStatus;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
+	public int updateLoginTryCount(String id) {
+		String sql = """
+				UPDATE user
+				SET
+				    login_try_count = login_try_count + 1,
+				    status = CASE
+				        WHEN login_try_count + 1 >= 5 THEN 'LOCKED'
+				        ELSE status
+				    END
+				WHERE login_id = ?
+				  AND login_try_count < 5
+				  AND status = 'ACTIVE'
+				""";
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, id);
+			int updated = pstmt.executeUpdate();
+			
+			return updated;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
+	public int updateLoginStatusACTIVEByLoginID(String id) {
+		String sql = """
+				UPDATE user
+				SET status = 'ACTIVE', login_try_count = 0
+				WHERE login_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, id);
+			int updated = pstmt.executeUpdate();
+			
+			return updated;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
+	public int updateLoginStatusACTIVEByUserID(Long userId) {
+		String sql = """
+				UPDATE user
+				SET status = 'ACTIVE', login_try_count = 0
+				WHERE user_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection()) {
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			int updated = pstmt.executeUpdate();
+			
+			return updated;
+		}  catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+	}
+	
+	public int updateLoginStatusINACTIVE(String id) {
+		String sql = """
+				UPDATE user
+				SET status = 'INACTIVE'
+				WHERE login_id = ?
+				""";
+		try (Connection conn = DBConnection.getConnection()){
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, id);
+			int updated = pstmt.executeUpdate();
+			
+			return updated;
 		}  catch (SQLException | ClassNotFoundException e) {
             throw new InternalServerException(e);
         }
@@ -178,8 +276,25 @@ public class UserDAO {
 
 	}
 	
+	public String selectLoginIdByUserId(Long userId) {
+		String sql = "SELECT login_id FROM user WHERE user_id = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setLong(1, userId);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	        	return rs.getString("login_id");
+	        }
+	    } catch (SQLException | ClassNotFoundException e) {
+            throw new InternalServerException(e);
+        }
+        return null;
+	}
+	
 	public boolean selectLoginIdByLoginId(String loginId) {
-		String sql = "SELECT 1 FROM user WHERE user_id = ?";
+		String sql = "SELECT 1 FROM user WHERE login_id = ?";
 	    try (Connection conn = DBConnection.getConnection();
 	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 

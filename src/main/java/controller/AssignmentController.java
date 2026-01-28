@@ -68,8 +68,7 @@ public class AssignmentController extends HttpServlet {
         try {
             LectureDTO lecture = lectureService.getLectureDetail(lectureId);
             if (lecture == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
+            	throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
             }
 
             request.setAttribute("lecture", lecture);
@@ -197,19 +196,23 @@ public class AssignmentController extends HttpServlet {
             }
 
             request.getRequestDispatcher("/WEB-INF/views/layout/layout.jsp").forward(request, response);
+            return;
 
         } catch (AccessDeniedException e) {
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error/403.jsp").forward(request, response);
+            return;
 
         } catch (ResourceNotFoundException e) {
             request.setAttribute("errorMessage", e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error/404.jsp").forward(request, response);
+            return;
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "과제 처리 중 서버 오류가 발생했습니다.");
             request.getRequestDispatcher("/WEB-INF/views/error/500.jsp").forward(request, response);
+            return;
         }
     }
 
@@ -326,16 +329,20 @@ public class AssignmentController extends HttpServlet {
             }
 
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId);
+            return;
 
         } catch (AccessDeniedException e) {
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=accessDenied");
+            return;
 
         } catch (ResourceNotFoundException e) {
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=notFound");
+            return;
 
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=serverError");
+            return;
         }
     }
 
