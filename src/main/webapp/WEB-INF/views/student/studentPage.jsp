@@ -3,43 +3,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <style>
-<
-link
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-	
-href
-="
-https
-:
-//
-cdn
-.jsdelivr
-.net
-/
-npm
-/
-bootstrap
-@
-5
-.3
-.2
-/
-dist
-/
-css
-/
-bootstrap
-.min
-.css
-"
-
-	
-rel
-="
-stylesheet
-"
-/
->
 </style>
 
 <div class="card">
@@ -138,8 +103,8 @@ stylesheet
 			class="btn btn-warning">비밀번호 변경</a>
 	<c:choose>
 		<c:when test="${AccessInfo.role =='ADMIN'}">
-			<a href="${pageContext.request.contextPath}/admin/updateStudent" class="btn btn-primary">정보
-				수정변경 요청</a>
+			<a href="${pageContext.request.contextPath}/admin/updateStudent" class="btn btn-secondary">
+			정보수정 변경요청</a>
 		</c:when>
 	</c:choose>
 </div>
