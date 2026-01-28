@@ -97,7 +97,6 @@ public class ScoreService {
             }
 
 
-			// 통과하면 저장
 			for (ScoreDTO dto : scores) {
 				scoreDAO.updateScore(conn, dto);
 			}
@@ -179,7 +178,6 @@ public class ScoreService {
 
 		try (Connection conn = DBConnection.getConnection()) {
 
-			// 혹시 score row 없으면 생성
 			scoreDAO.insertInitialScores(conn, lectureId);
 
 			ScoreDTO dto = scoreDAO.selectScoreByLectureAndStudent(conn, lectureId, studentId);
@@ -229,7 +227,6 @@ public class ScoreService {
 			return list;
 
 		} catch (Exception e) {
-			// TODO: handle exception
 			throw new RuntimeException("학생 전체 성적 조회 실패", e);
 		}
 

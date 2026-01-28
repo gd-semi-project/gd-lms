@@ -19,14 +19,14 @@
 
           <!-- 학번 (본인 확인용) -->
           <tr>
-            <th scope="row">학번</th>
+            <th scope="row">아이디</th>
             <td>
               <input type="text"
                      name="studentNumber"
                      class="form-control"
-                     placeholder="학번을 입력하세요"
+                     placeholder="아이디를 입력하세요"
                      required>
-                     ※ 학번과 비밀번호를 모두 입력하세요.
+                     ※ 아이디와 비밀번호를 모두 입력하세요.
             </td>
           </tr>
 

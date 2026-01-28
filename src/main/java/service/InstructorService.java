@@ -7,6 +7,7 @@ import java.util.Map;
 import database.DBConnection;
 import exception.InternalServerException;
 import exception.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import model.dao.InstructorDAO;
 import model.dao.LectureDAO;
 import model.dao.UserDAO;
@@ -53,4 +54,16 @@ public class InstructorService {
             throw new InternalServerException("강사 프로필 조회 중 서버 오류", e);
         }
     }
+
+    public void updateInstructorProfile(
+    	    Long userId,
+    	    String name,
+    	    String email,
+    	    String phone,
+    	    String officeRoom,
+    	    String officePhone
+    	) {
+    	    instructorDAO.updateInstructorUserInfo(userId, name, email, phone);
+    	    instructorDAO.updateInstructorOfficeInfo(userId, officeRoom, officePhone);
+    	}
 }

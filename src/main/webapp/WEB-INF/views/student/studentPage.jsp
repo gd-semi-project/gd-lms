@@ -1,55 +1,51 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>   
-    
-<style>
-<link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-	rel="stylesheet" />
-</style>
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
+<!-- 기본 정보 -->
 <div class="card">
-	<div class="card-body">
-	<h5 class="mb-3">기본 정보</h5>
-		<table class="table table-bordered">
-			<tbody>
-				<tr>
-					<th scope="row">로그인 아이디</th>
-					<td>${mypage.user.loginId}</td>
-				</tr>
-				<tr>
-					<th scope="row">이름</th>
-					<td>${mypage.user.name}</td>
-				</tr>
-				<tr>
-					<th scope="row">성별</th>
-					<td>${mypage.user.gender}</td>
-				</tr>
-				<tr>
-					<th scope="row">생년월일</th>
-					<td>${mypage.user.birthDate}</td>
-				</tr>
-				<tr>
-					<th scope="row">이메일</th>
-					<td>${mypage.user.email}</td>
-				</tr>
-				<tr>
-					<th scope="row">전화번호</th>
-					<td>${mypage.user.phone}</td>
-				</tr>
-				<tr>
-					<th scope="row">신분</th>
-					<td>${mypage.user.role}</td>
-				</tr>
-				<tr>
-					<th scope="row">주소</th>
-					<td>${mypage.user.address}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+  <div class="card-body">
+    <h5 class="mb-3">기본 정보</h5>
+
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <th scope="row">로그인 아이디</th>
+          <td>${mypage.user.loginId}</td>
+        </tr>
+        <tr>
+          <th scope="row">이름</th>
+          <td>${mypage.user.name}</td>
+        </tr>
+        <tr>
+          <th scope="row">성별</th>
+          <td>${mypage.user.gender}</td>
+        </tr>
+        <tr>
+          <th scope="row">생년월일</th>
+          <td>${mypage.user.birthDate}</td>
+        </tr>
+        <tr>
+          <th scope="row">이메일</th>
+          <td>${mypage.user.email}</td>
+        </tr>
+        <tr>
+          <th scope="row">전화번호</th>
+          <td>${mypage.user.phone}</td>
+        </tr>
+        <tr>
+          <th scope="row">신분</th>
+          <td>${mypage.user.role}</td>
+        </tr>
+        <tr>
+          <th scope="row">주소</th>
+          <td>${mypage.user.address}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
+<!-- 학생 정보 -->
 <div class="card mt-4">
   <div class="card-body">
     <h5 class="mb-3">학생 정보</h5>
@@ -67,10 +63,6 @@
         <tr>
           <th scope="row">학년</th>
           <td>${mypage.student.studentGrade}</td>
-        </tr>
-        <tr>
-          <th scope="row">학부 상태 (학부/대학원)</th>
-          <td>${mypage.student.status}</td>
         </tr>
         <tr>
           <th scope="row">학적 상태</th>
@@ -92,21 +84,27 @@
     </table>
   </div>
 </div>
+
+<!-- 버튼 영역 -->
 <div class="mt-3">
-	<c:choose>
-		<c:when test="${AccessInfo.role == 'STUDENT'}">
-			<a href="${pageContext.request.contextPath}/editUserInfoController/edit"
-				class="btn btn-primary">정보 수정</a> 
-		</c:when>
-		<c:when test="${AccessInfo.role =='ADMIN'}">
-			<a
-				href="${pageContext.request.contextPath}/admin/updateStudent"
-			>정보 수정</a>
-		</c:when>
-	</c:choose>
-		<c:if test="${AccessInfo.role == 'STUDENT'}">
-			<a
-			href="${pageContext.request.contextPath}/changeUserPw/change"
-			class="btn btn-warning">비밀번호 변경</a>
-		</c:if>
+  <c:choose>
+    <c:when test="${AccessInfo.role == 'STUDENT'}">
+      <a href="${pageContext.request.contextPath}/editUserInfoController/edit"
+         class="btn btn-primary">
+        정보 수정
+      </a>
+
+      <a href="${pageContext.request.contextPath}/changeUserPw/change"
+         class="btn btn-warning">
+        비밀번호 변경
+      </a>
+    </c:when>
+
+    <c:when test="${AccessInfo.role == 'ADMIN'}">
+      <a href="${pageContext.request.contextPath}/admin/updateStudent"
+         class="btn btn-primary">
+        정보 수정
+      </a>
+    </c:when>
+  </c:choose>
 </div>

@@ -64,6 +64,19 @@ public class InstructorController extends HttpServlet {
                         "/WEB-INF/views/instructor/profile.jsp");
                 break;
             }
+            
+            case "/profile/edit": {
+
+                Map<String, Object> profile =
+                    instructorService.getInstructorProfile(access.getUserId());
+
+                request.setAttribute("instructor", profile.get("instructor"));
+                request.setAttribute("user", profile.get("user"));
+                request.setAttribute("contentPage",
+                    "/WEB-INF/views/instructor/profileEdit.jsp");
+
+                break;
+            }
 
             case "/lectures": {
                 String status = request.getParameter("status");
@@ -120,37 +133,31 @@ public class InstructorController extends HttpServlet {
                     throw new BadRequestException("lectureId 형식이 올바르지 않습니다.");
                 }
 
-                // 🔐 본인 강의만 접근 가능(= lecture 테이블 기준 instructor 체크)
                 lectureAccessService.assertCanAccessLecture(
                     instructorId, lectureId, Role.INSTRUCTOR
                 );
 
-                // ✅ 1) detail.jsp는 LectureDTO 기반이 더 안전함 (status/validation 포함)
                 LectureDTO lecture = lectureService.getLectureDetail(lectureId);
                 if (lecture == null) {
                     throw new ResourceNotFoundException("존재하지 않는 강의입니다.");
                 }
 
-                // ✅ 2) 신청 상세 화면임을 표시 (탭/버튼 분기용)
                 request.setAttribute("lecture", lecture);
                 request.setAttribute("isRequest", true);
                 request.setAttribute("activeTab", "detail");
 
-                // ✅ 3) detail.jsp에서 쓰는 데이터들 세팅
                 request.setAttribute("schedules",
                     lectureRequestService.getLectureSchedules(lectureId));
 
                 request.setAttribute("scorePolicy",
                     lectureRequestService.getScorePolicy(lectureId));
 
-                // ✅ 4) 강사 프로필은 LectureDTO.getUserId()로 조회 (여긴 있음)
                 Map<String, Object> profile =
                     instructorService.getInstructorProfile(lecture.getUserId());
 
                 request.setAttribute("instructor", profile.get("instructor"));
                 request.setAttribute("user", profile.get("user"));
 
-                // ✅ 5) 기존 lecture/detail.jsp 재사용
                 request.setAttribute("contentPage",
                     "/WEB-INF/views/lecture/detail.jsp");
                 break;
@@ -200,7 +207,6 @@ public class InstructorController extends HttpServlet {
                     throw new BadRequestException("lectureId 형식이 올바르지 않습니다.");
                 }
 
-                // 🔐 권한 체크 (본인 강의만 수정 가능)
                 lectureAccessService.assertCanAccessLecture(
                         instructorId, lectureId, Role.INSTRUCTOR
                 );
@@ -259,6 +265,33 @@ public class InstructorController extends HttpServlet {
         Long instructorId = access.getUserId();
 
         try {
+        	
+        	if (uri.endsWith("/profile/edit")) {
+
+        	    Long userId = Long.parseLong(request.getParameter("userId"));
+
+        	    if (!userId.equals(access.getUserId())) {
+        	        throw new AccessDeniedException("본인 정보만 수정할 수 있습니다.");
+        	    }
+
+        	    String name = request.getParameter("name");
+        	    String email = request.getParameter("email");
+        	    String phone = request.getParameter("phone");
+        	    String officeRoom = request.getParameter("officeRoom");
+        	    String officePhone = request.getParameter("officePhone");
+
+        	    instructorService.updateInstructorProfile(
+        	        userId,
+        	        name,
+        	        email,
+        	        phone,
+        	        officeRoom,
+        	        officePhone
+        	    );
+
+        	    response.sendRedirect(ctx + "/instructor/profile?success=updated");
+        	    return;
+        	}
 
             if (uri.endsWith("/lecture/request")) {
 
@@ -271,7 +304,6 @@ public class InstructorController extends HttpServlet {
 
                 Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-                // 🔐 권한 체크
                 lectureAccessService.assertCanAccessLecture(
                         instructorId, lectureId, Role.INSTRUCTOR
                 );
@@ -285,7 +317,6 @@ public class InstructorController extends HttpServlet {
 
                 Long lectureId = Long.parseLong(request.getParameter("lectureId"));
 
-                // 🔐 권한 체크
                 lectureAccessService.assertCanAccessLecture(
                         instructorId, lectureId, Role.INSTRUCTOR
                 );
