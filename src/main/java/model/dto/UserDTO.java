@@ -2,13 +2,11 @@ package model.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import model.enumtype.Gender;
 import model.enumtype.Role;
-import model.enumtype.Status;
-import model.enumtype.YesOrNo;
+import model.enumtype.UserStatus;
 
 @Data
 @NoArgsConstructor
@@ -23,8 +21,9 @@ public class UserDTO {
 	private String phone;
 	private String address;
 	private Role role;
-	private Status status;
+	private UserStatus status;
 	private boolean mustChangePw;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
+	private int loginTryCount;
 }

@@ -1,12 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
-
-    const email = document.getElementById("email");
+	const email = document.getElementById("email");
+    const loginId = document.getElementById("loginId");
     const checkEmailBtn = document.getElementById("checkEmailBtn");
-	const checkLoginIdBtn = document.getElementById("checkLoginIdBtn");
+    const checkLoginIdBtn = document.getElementById("checkLoginIdBtn");
+    const submitBtn = document.getElementById("submitBtn"); // 전송 버튼
+    const idChecked = document.getElementById("idChecked");
+	// 전송 버튼 활성화/비활성화 체크 함수
+	function updateSubmitButton() {
+	    if (email.readOnly && loginId.readOnly) {
+	        submitBtn.disabled = false;
+	    } else {
+	        submitBtn.disabled = true;
+	    }
+		console.log("초기 submitBtn.disabled:", submitBtn.disabled);
+	}
+	updateSubmitButton();
+	
     checkEmailBtn.addEventListener("click", () => {
 		// Email 중복확인 로직 --------------------------------------------
         const emailValue = email.value.trim();
-
+		
         // 1. 입력값 체크
         if (emailValue === "") {
             alert("이메일을 입력해주세요.");
@@ -44,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 email.readOnly = true;
                 checkEmailBtn.disabled = true;
             }
+			updateSubmitButton();
         })
         .catch(error => {
             console.error(error);
@@ -84,16 +98,16 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(data => {
             if (data.duplicate) {
-                alert("이미 사용 중인 아이디입니다.");
-                idChecked.value = "false";
+				alert("이미 사용 중인 아이디입니다.");
                 loginId.readOnly = false;
                 loginId.focus();
             } else {
                 alert("사용 가능한 아이디입니다.");
-                idChecked.value = "true";
                 loginId.readOnly = true;
                 checkLoginIdBtn.disabled = true;
+				updateSubmitButton();
             }
+			updateSubmitButton();
         })
         .catch(error => {
             console.error(error);

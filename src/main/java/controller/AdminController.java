@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.dao.LectureDAO;
 import model.dao.LectureRequestDAO;
 import model.dao.SchoolScheduleDAO;
@@ -49,6 +50,8 @@ public class AdminController extends HttpServlet {
 		String command = requestURI.substring(contextPath.length());
 		String actionPath = command.substring("/admin".length());
 		SchedulePolicyService schedulePolicyService = new SchedulePolicyService(new SchoolScheduleDAOImpl());
+		HttpSession session = request.getSession();
+		
 		
 		if (actionPath.isEmpty()) actionPath = "/";
 		
@@ -69,14 +72,21 @@ public class AdminController extends HttpServlet {
 			request.setAttribute("policy", policy);
 			if(policy.isAvailable()) {
 				
-				request.setAttribute("lectureCount", service.getLectureCount());
-				request.setAttribute("totalLectureCount", service.getTotalLectureCount());
-				request.setAttribute("lectureFillRate", service.getLectureFillRate());
-				request.setAttribute("lowFillRateLecture", service.getLowFillRateLecture());
-				request.setAttribute("totalLectureCapacity", service.getTotalLectureCapacity());
-				request.setAttribute("totalEnrollment", service.getTotalEnrollment());
-				
-				request.setAttribute("departmentList", service.getDepartmentList());
+				try {
+					request.setAttribute("lectureCount", service.getLectureCount());
+					request.setAttribute("totalLectureCount", service.getTotalLectureCount());
+					request.setAttribute("lectureFillRate", service.getLectureFillRate());
+					request.setAttribute("lowFillRateLecture", service.getLowFillRateLecture());
+					request.setAttribute("totalLectureCapacity", service.getTotalLectureCapacity());
+					request.setAttribute("totalEnrollment", service.getTotalEnrollment());
+					
+					request.setAttribute("departmentList", service.getDepartmentList());
+					
+				} catch (Exception e) {
+					session.setAttribute("errorMessage", "수강 통계를 조회할 수 없습니다.");
+					response.sendRedirect(request.getContextPath()+"/error?errorCode=500");
+					return;
+				}
 				
 				String status = request.getParameter("status");
 				if (status == null || status.isBlank()) status = "ACTIVE";
@@ -109,16 +119,15 @@ public class AdminController extends HttpServlet {
 						
 						
 					} catch (NumberFormatException ignore) {
-						//TODO 이거 에러날 일 없어요
-						System.out.println("이게 에러나면 진짜 신기할듯");
-						return;
 					}
 				} else {
 					request.setAttribute("lectureList", lectureService.getAllLecture());
 					break;
-				}
+				} break;
 			} else break;
 		}
+		
+		
 		case "/lectureRequest":{
 			contentPage = "/WEB-INF/views/admin/adminLectureRequest.jsp";
 			ScheduleUiPolicyDTO policy = schedulePolicyService.buildUiPolicyAnyOf(
@@ -135,16 +144,22 @@ public class AdminController extends HttpServlet {
 			if(policy.isAvailable()) {
 				String dpt = request.getParameter("departmentId");
 				Long departmentId = (dpt != null && !dpt.isEmpty()) ? Long.parseLong(dpt) : null;
-				request.setAttribute("pendingLectureList",service.getPendingLectureList(departmentId));
-				request.setAttribute("canceledLectureList",service.getCanceledLectureList(departmentId));
-				request.setAttribute("confirmedLectureList",service.getConfirmedLectureList(departmentId));
-				request.setAttribute("departmentList", service.getDepartmentList());
 				
-				LectureCountByValidationDTO lcbvDTO = service.getLectureCountByValidation();
-				request.setAttribute("totalCount", lcbvDTO.getTotalCount());
-				request.setAttribute("confirmedCount", lcbvDTO.getConfirmedCount());
-				request.setAttribute("pendingCount", lcbvDTO.getPendingCount());
-				request.setAttribute("canceledCount", lcbvDTO.getCanceledCount());
+				try {
+					request.setAttribute("pendingLectureList",service.getPendingLectureList(departmentId));
+					request.setAttribute("canceledLectureList",service.getCanceledLectureList(departmentId));
+					request.setAttribute("confirmedLectureList",service.getConfirmedLectureList(departmentId));
+					request.setAttribute("departmentList", service.getDepartmentList());
+					
+					LectureCountByValidationDTO lcbvDTO = service.getLectureCountByValidation();
+					request.setAttribute("totalCount", lcbvDTO.getTotalCount());
+					request.setAttribute("confirmedCount", lcbvDTO.getConfirmedCount());
+					request.setAttribute("pendingCount", lcbvDTO.getPendingCount());
+					request.setAttribute("canceledCount", lcbvDTO.getCanceledCount());
+				} catch (Exception e) {
+					session.setAttribute("errorMessage", "강의를 찾을 수 없습니다.");
+					response.sendRedirect(request.getContextPath()+"/error?errorCode=500");
+				}
 				
 				
 				
@@ -154,7 +169,14 @@ public class AdminController extends HttpServlet {
 		
 		case "/departmentManage":
 			contentPage = "/WEB-INF/views/admin/adminDepartmentManage.jsp";
-			request.setAttribute("departmentList", service.getDepartmentList());
+			
+			try {
+				request.setAttribute("departmentList", service.getDepartmentList());
+			} catch (Exception e) {
+				session.setAttribute("errorMessage", "학과 리스트를 찾을 수 없습니다.");
+				response.sendRedirect(request.getContextPath()+"/error?errorCode=500");
+				return;
+			}
 			
 			
 			String status = request.getParameter("status");
@@ -192,8 +214,10 @@ public class AdminController extends HttpServlet {
 		            request.setAttribute("currentSum", currentSum);
 					
 					
-				} catch (NumberFormatException ignore) {
-					//TODO 숫자만 있는 셀렉트 문에서 값 받는 거라 int외의 변수가 들어올 일 없어서 이것도 괜찮습니다
+				} catch (Exception e) {
+					session.setAttribute("errorMessage", "DB 오류 발생");
+					response.sendRedirect(request.getContextPath()+"/error?errorCode=500");
+					return;
 				}
 			}
 
@@ -258,15 +282,22 @@ public class AdminController extends HttpServlet {
 		        return;
 		    }
 
-		    Map<String, Object> detail = service.getStudentInfoUpdateRequestDetail(requestId);
-
-		    request.setAttribute("req", detail.get("req"));
-		    request.setAttribute("currentUser", detail.get("currentUser"));
-		    request.setAttribute("currentStudent", detail.get("currentStudent"));
-		    request.setAttribute("currentDept", detail.get("currentDept"));
-		    request.setAttribute("filesByType", detail.get("filesByType"));
-		    request.setAttribute("departments", service.getDepartmentList());
-			break;
+		    try {
+		    	Map<String, Object> detail = service.getStudentInfoUpdateRequestDetail(requestId);
+		    	
+		    	request.setAttribute("req", detail.get("req"));
+		    	request.setAttribute("currentUser", detail.get("currentUser"));
+		    	request.setAttribute("currentStudent", detail.get("currentStudent"));
+		    	request.setAttribute("currentDept", detail.get("currentDept"));
+		    	request.setAttribute("filesByType", detail.get("filesByType"));
+		    	request.setAttribute("departments", service.getDepartmentList());
+		    	break;
+				
+			} catch (Exception e) {
+				session.setAttribute("errorMessage", "수정 요구서를 찾을 수 없습니다.");
+				response.sendRedirect(request.getContextPath()+"/error?errorCode=500");
+				return;
+			}
 			
 		case "/studentInfoUpdateRequests":
 			contentPage = "/WEB-INF/views/admin/studentInfoUpdateRequests.jsp";
@@ -391,7 +422,6 @@ public class AdminController extends HttpServlet {
 	                break;
 					
 				} catch (Exception e) {
-					//TODO 잘못된 값이 들어오면 에러날 수 있긴 한데 셀렉트로 받아오는 거라 그럴 일은 없을 겁니다
 					e.printStackTrace();
 					System.out.println("calendarEdit doPost에서 에러남");
 					break;
@@ -457,7 +487,7 @@ public class AdminController extends HttpServlet {
 
 		        // 3. 중복 여부 확인
 		        LoginService ls = LoginService.getInstance();
-		        boolean isDuplicate = ls.DuplicateLoginId(loginId);
+		        boolean isDuplicate = ls.duplicateLoginId(loginId);
 
 		        // 4. 응답 타입 설정 (중요)
 		        response.setContentType("application/json");

@@ -272,11 +272,11 @@ public class NoticeService {
                 if (!canWrite(role, userId, existing))
                     throw new AccessDeniedException("수정 권한이 없습니다.");
 
-                // 2) 변경 불가 항목은 서버에서 강제 고정
+                // 변경 불가 항목은 덮어쓰기
                 dto.setNoticeType(existing.getNoticeType());
                 dto.setLectureId(existing.getLectureId());
 
-                // 3) 정합성 강제
+                // 정합성 체크 데이터 깨짐을 방지
                 normalizeAndValidateType(dto);
 
                 int updated = noticeDAO.update(conn, dto);
