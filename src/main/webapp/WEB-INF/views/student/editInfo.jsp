@@ -127,10 +127,16 @@
 <div class="mt-3">
 	<button type="submit" class="btn btn-primary">변경</button>
 	<a href="${pageContext.request.contextPath}/mypage/studentPage"
-		class="btn btn-warning">취소</a> <a class="btn btn-secondary"
+		class="btn btn-warning">취소</a>
+	<c:choose>
+	<c:when test="${AccessInfo.role == 'STUDENT'}">
+	 <a class="btn btn-secondary"
 		href="${pageContext.request.contextPath}/student/updateInfo">중요
 		정보 수정 요청 <input type="hidden" name="studentUpdateId"
 		value="${mypage.user.loginId}" />
 	</a>
+	</c:when>
+	</c:choose>
+	
 </div>
 </form>
