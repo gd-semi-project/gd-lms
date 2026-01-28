@@ -10,12 +10,14 @@
     <div class="text-muted small">교수 측 개설 요청을 승인/반려합니다.</div>
   </div>
 
-  <form class="d-flex gap-2" method="post" action="${pageContext.request.contextPath}/admin/lectureValidationProcess">
-    <input class="form-control form-control-sm" name="q" value="${fn:escapeXml(param.q)}"
-           placeholder="강의명/교수명 검색" style="width: 220px;"/>
+<form class="d-flex gap-2" id="quickSearchForm">
+  <input class="form-control form-control-sm"
+         id="quickSearchInput"
+         placeholder="강의명/교수명 검색"
+         style="width:220px;">
+  <button class="btn btn-sm btn-primary" type="submit">검색</button>
+</form>
 
-    <button class="btn btn-sm btn-primary" type="submit">검색</button>
-  </form>
 </div>
 
 
@@ -61,7 +63,7 @@
 
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table id="pendingTable" class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
             <th style="width: 22%;">강의명</th>
@@ -86,7 +88,8 @@
           </c:when>
           <c:otherwise>
             <c:forEach var="r" items="${requestScope.pendingLectureList}">
-              <tr>
+              <tr data-search="${fn:escapeXml(r.lectureTitle)} ${fn:escapeXml(r.instructorName)} ${fn:escapeXml(r.schedule)} ${fn:escapeXml(r.section)}"
+    data-validation="${r.validation}">
                 <td>
                   <div class="fw-semibold">${r.lectureTitle}</div>
                   <div class="text-muted small">요청일: ${r.createdAt}</div>
@@ -183,7 +186,7 @@
 
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table id="pendingTable" class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
             <th style="width: 22%;">강의명</th>
@@ -205,7 +208,8 @@
             </c:when>
             <c:otherwise>
               <c:forEach var="r" items="${canceledLectureList}">
-                <tr>
+                <tr data-search="${fn:escapeXml(r.lectureTitle)} ${fn:escapeXml(r.instructorName)} ${fn:escapeXml(r.schedule)} ${fn:escapeXml(r.section)}"
+    data-validation="${r.validation}">
                   <td>
                     <div class="fw-semibold">${r.lectureTitle}</div>
                     <div class="text-muted small">요청일: ${r.createdAt}</div>
@@ -220,7 +224,8 @@
               </c:forEach>
 
               <c:forEach var="r" items="${confirmedLectureList}">
-                <tr>
+                <tr data-search="${fn:escapeXml(r.lectureTitle)} ${fn:escapeXml(r.instructorName)} ${fn:escapeXml(r.schedule)} ${fn:escapeXml(r.section)}"
+    data-validation="${r.validation}">
                   <td>
                     <div class="fw-semibold">${r.lectureTitle}</div>
                     <div class="text-muted small">요청일: ${r.createdAt}</div>
@@ -246,7 +251,8 @@
             </c:when>
             <c:otherwise>
               <c:forEach var="r" items="${confirmedLectureList}">
-                <tr>
+                <tr data-search="${fn:escapeXml(r.lectureTitle)} ${fn:escapeXml(r.instructorName)} ${fn:escapeXml(r.schedule)} ${fn:escapeXml(r.section)}"
+    data-validation="${r.validation}">
                   <td>
                     <div class="fw-semibold">${r.lectureTitle}</div>
                     <div class="text-muted small">요청일: ${r.createdAt}</div>
@@ -299,3 +305,119 @@
 	<div class = "alert alert-warning">${policy.message}</div>
 </c:otherwise>
 </c:choose>
+
+
+<script>
+/* ===============================
+   처리된 요청 필터 (승인/반려)
+   =============================== */
+(function () {
+  var box = document.getElementById("processedBox");
+  if (!box) return;
+
+  // 버튼은 processedBox 위의 btn-group에 있음
+  var wrapper = box.previousElementSibling;
+  if (!wrapper) return;
+
+  var buttons = wrapper.querySelectorAll("[data-filter]");
+  var bodies  = box.querySelectorAll("tbody[data-body]");
+  if (!buttons.length || !bodies.length) return;
+
+  function setFilter(filter) {
+    var i, tb, btn, active;
+
+    for (i = 0; i < bodies.length; i++) {
+      tb = bodies[i];
+      tb.style.display =
+        (tb.getAttribute("data-body") === filter) ? "" : "none";
+    }
+
+    for (i = 0; i < buttons.length; i++) {
+      btn = buttons[i];
+      active = (btn.getAttribute("data-filter") === filter);
+
+      if (btn.classList) {
+        btn.classList.toggle("active", active);
+        btn.classList.toggle("btn-primary", active);
+        btn.classList.toggle("btn-outline-primary", !active);
+      }
+    }
+  }
+
+  for (var i = 0; i < buttons.length; i++) {
+    (function (btn) {
+      btn.addEventListener("click", function () {
+        setFilter(btn.getAttribute("data-filter"));
+      });
+    })(buttons[i]);
+  }
+
+  setFilter("all");
+}());
+
+
+/* ===============================
+   빠른 검색 (대기 목록만)
+   =============================== */
+(function () {
+  function norm(s) {
+    if (s === undefined || s === null) s = "";
+    s = String(s).toLowerCase().replace(/\s+/g, " ");
+    return s.trim ? s.trim() : s.replace(/^\s+|\s+$/g, "");
+  }
+
+  function getRows() {
+    var nodes = document.querySelectorAll("#pendingTable tbody tr");
+    var rows = [];
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].getElementsByTagName("td").length > 0) {
+        rows.push(nodes[i]);
+      }
+    }
+    return rows;
+  }
+
+  function applyFilter(query) {
+    var q = norm(query);
+    var rows = getRows();
+    var i, tr, hay;
+
+    for (i = 0; i < rows.length; i++) {
+      tr = rows[i];
+      hay = tr.getAttribute("data-search");
+      if (!hay) hay = tr.textContent || tr.innerText || "";
+      hay = norm(hay);
+
+      tr.style.display =
+        (!q || hay.indexOf(q) !== -1) ? "" : "none";
+    }
+  }
+
+  function onReady(fn) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fn);
+    } else {
+      fn();
+    }
+  }
+
+  onReady(function () {
+    var form  = document.getElementById("quickSearchForm");
+    var input = document.getElementById("quickSearchInput");
+    if (!form || !input) return;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      applyFilter(input.value);
+    });
+
+    var t = null;
+    input.addEventListener("input", function () {
+      if (t) clearTimeout(t);
+      t = setTimeout(function () {
+        applyFilter(input.value);
+      }, 80);
+    });
+  });
+}());
+</script>
