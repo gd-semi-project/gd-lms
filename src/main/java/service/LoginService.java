@@ -183,7 +183,7 @@ public class LoginService {
         try {
     		UserDAO userDAO = UserDAO.getInstance();
             if (userId == null || userId <= 0) {
-                throw new IllegalArgumentException("유효하지 않은 사용자 ID입니다.");
+                throw new IllegalArgumentException("임시비밀번호는 1회만 확인 가능합니다.");
             }
 
             int updated = userDAO.updateTempPassword(userId, encryptedTempPassword);
