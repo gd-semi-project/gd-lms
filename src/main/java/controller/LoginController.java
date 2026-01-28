@@ -60,7 +60,7 @@ public class LoginController extends HttpServlet {
 			    String token = (String) request.getParameter("token");
 
 			    if (token == null || token.length() != 32) {
-			    	session.setAttribute("errorMessage", "올바른 방식으로 접근해주세요.");
+			    	session.setAttribute("errorMessage", "유효하지 않은 토큰ID입니다.");
 					response.sendRedirect(contextPath + "/error?errorCode=400");
 			    }
 
@@ -185,7 +185,6 @@ public class LoginController extends HttpServlet {
 		    // 계정이 비활성화 상태라면 토큰 미발급
 		    if (userStatus == UserStatus.INACTIVE) {
 		    	message = "계정 비활성화";
-		    	System.out.println(message);
 		    } else {
 		    	token = ls.getPlainToken(userId, token_type, request.getRemoteAddr());
 		    	// 토큰 생성하고 메일전송
@@ -212,22 +211,24 @@ public class LoginController extends HttpServlet {
 	    			    "</body></html>";
 		        
 		        MailSender.sendMail(email, subject, content);
-		        
-		        // 세션 속성 제거
-		        session.removeAttribute("tokenType");
-		        
-		        // 6. JSON 응답 설정
-		        boolean generateTokenCheck;
-		        if (token == null) {
-		        	generateTokenCheck = false;
-		        } else {
-		        	generateTokenCheck = true;
-		        }
-		        
-			    response.setContentType("application/json");
-			    response.setCharacterEncoding("UTF-8");
-			    String json = "{\"status\":" + generateTokenCheck + ",\"message\":\"" + message + "\"}";
 		    }
+	        // 세션 속성 제거
+	        session.removeAttribute("tokenType");
+	        
+	        // 6. JSON 응답 설정
+	        boolean generateTokenCheck;
+	        if (token == null) {
+	        	generateTokenCheck = false;
+	        } else {
+	        	generateTokenCheck = true;
+	        }
+	        
+		    response.setContentType("application/json");
+		    response.setCharacterEncoding("UTF-8");
+		    String json = "{\"status\":" + generateTokenCheck + ",\"message\":\"" + message + "\"}";
+		    System.out.println(json);
+		    
+		    response.getWriter().write(json);
 		} 
 	}
 
