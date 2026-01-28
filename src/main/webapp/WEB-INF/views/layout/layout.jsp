@@ -41,13 +41,12 @@
 			<jsp:include page="/WEB-INF/views/include/sidebar.jsp" />
 
 			<!-- 바디 -->
-			<main class="col-12 col-md-9 col-lg-10 p-4 main-content about-page">
+			<c:set var="isAbout" value="${requestScope.contentPage == '/WEB-INF/views/about/about.jsp'}"/>
 
-				<c:if test="${not empty requestScope.contentPage}">
-					<jsp:include page="${requestScope.contentPage}" />
-				</c:if>
-
-
+			<main class="col-12 col-md-9 col-lg-10 main-content ${isAbout ? 'about-page' : 'p-4'}">
+			    <c:if test="${not empty requestScope.contentPage}">
+			        <jsp:include page="${requestScope.contentPage}" />
+			    </c:if>
 			</main>
 
 		</div>
