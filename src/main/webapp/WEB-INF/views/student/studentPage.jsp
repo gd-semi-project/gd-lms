@@ -88,6 +88,7 @@
 </c:if>
 
 <!-- 버튼 영역 -->
+<c:if test="${AccessInfo.role != 'ADMIN'}">
 <div class="mt-3">
 <a href="${pageContext.request.contextPath}/editUserInfoController/edit"
          class="btn btn-primary">
@@ -98,12 +99,5 @@
          class="btn btn-warning">
         비밀번호 변경
       </a>
-  <c:choose>
-    <c:when test="${AccessInfo.role == 'ADMIN'}">
-      <a href="${pageContext.request.contextPath}/admin/updateStudent"
-         class="btn btn-outline-secondary">
-        주요정보 수정리스트
-      </a>
-    </c:when>
-  </c:choose>
 </div>
+</c:if>
