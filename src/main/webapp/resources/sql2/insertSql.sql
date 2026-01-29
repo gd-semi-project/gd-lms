@@ -7723,6 +7723,10 @@ INSERT INTO score (score_id, lecture_id, student_id, attendance_score, assignmen
 (789, 21, 164, 15, 16, 21, 27, 79, 'C+', TRUE, TRUE),
 (790, 21, 183, 15, 18, 23, 27, 83, 'B', TRUE, TRUE);
 
+UPDATE score
+SET attendance_score= NULL
+WHERE score_id BETWEEN 1 AND 790;
+
 UPDATE score SET total_score = NULL,grade_letter = NULL WHERE student_id BETWEEN 21 AND 270;
 
 -- attendance 테이블 더미 데이터 (최소 5개)
@@ -8026,5 +8030,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 완료!
 -- ============================================================================
 SELECT '데이터 초기화 및 새 더미 데이터 입력 완료!' AS message;
+
 
 
