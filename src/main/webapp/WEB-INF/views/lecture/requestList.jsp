@@ -16,6 +16,14 @@
   <c:remove var="flashMessage" scope="session"/>
 </c:if>
 
+<script>
+function confirmDelete(form) {
+    if (confirm("정말 삭제하시겠습니까?")) {
+        form.submit();
+    }
+}
+</script>
+
 <h3 class="mb-4">📘 강의 개설 신청</h3>
 
 <!-- 신청 기간 아닐 때 -->

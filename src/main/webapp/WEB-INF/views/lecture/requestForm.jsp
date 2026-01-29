@@ -163,7 +163,7 @@
     </div>
 
     <div class="col-12 mt-4">
-        <button class="btn btn-primary">신청하기</button>
+        <button id="submitBtn" class="btn btn-primary">신청하기</button>
         <a href="${pageContext.request.contextPath}/instructor/lecture/request"
            class="btn btn-secondary">취소</a>
     </div>

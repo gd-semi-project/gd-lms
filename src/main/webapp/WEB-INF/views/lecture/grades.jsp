@@ -7,6 +7,38 @@
 
 <h3 class="mb-4">📝 성적 관리</h3>
 
+<c:if test="${role == 'INSTRUCTOR'}">
+<div class="alert alert-secondary">
+
+    <strong>📅 성적 입력 기간 안내</strong><br/>
+
+    <c:if test="${not empty midtermPeriod}">
+        중간고사 입력 기간 :
+        ${midtermPeriod.startDate} ~ ${midtermPeriod.endDate}
+        <c:if test="${midtermOpen}">
+            <span class="badge bg-success">진행중</span>
+        </c:if>
+    </c:if><br/>
+
+    <c:if test="${not empty finalPeriod}">
+        기말고사 입력 기간 :
+        ${finalPeriod.startDate} ~ ${finalPeriod.endDate}
+        <c:if test="${finalOpen}">
+            <span class="badge bg-success">진행중</span>
+        </c:if>
+    </c:if><br/>
+
+    <c:if test="${not empty gradeCalcPeriod}">
+        학점 계산 기간 :
+        ${gradeCalcPeriod.startDate} ~ ${gradeCalcPeriod.endDate}
+        <c:if test="${gradeCalcOpen}">
+            <span class="badge bg-success">진행중</span>
+        </c:if>
+    </c:if>
+
+</div>
+</c:if>
+
 <c:if test="${role == 'INSTRUCTOR' && not empty warningMessage}">
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
     ⚠ ${warningMessage}
@@ -18,8 +50,9 @@
 
     <div class="alert alert-info">
         ✔ 출석 점수는 자동 계산됩니다.<br/>
-        ✔ 과제는 부분 저장이 가능합니다.<br/>
-        ✔ 학점 계산 시 과제 / 중간 / 기말 점수가 모두 필요합니다.
+        ✔ 과제 점수는 언제든지 저장 가능합니다.<br/>
+		✔ 중간/기말 점수는 입력 기간에만 저장 가능합니다.<br/>
+		✔ 학점 계산 시 과제 / 중간 / 기말 점수가 모두 필요합니다.
     </div>
 
     <div class="mb-3">
@@ -28,12 +61,18 @@
 		<button id="btn-midterm" type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('midterm')">중간</button>
 		<button id="btn-final" type="button" class="btn btn-outline-primary btn-sm" onclick="showTab('final')">기말</button>
     </div>
+    
+    <div class="mb-3">
+	    <input type="text" id="studentSearch"
+	           class="form-control w-25"
+	           placeholder="학생 이름으로 검색">
+	</div>
 
     <form id="scoreForm" method="post" action="${ctx}/score/grades/save">
         <input type="hidden" name="lectureId" value="${lectureId}">
         <input type="hidden" id="actionType" name="actionType" value="">
 
-        <table class="table table-bordered align-middle">
+        <table id="scoreTable" class="table table-bordered align-middle">
             <thead class="table-light text-center">
                 <tr>
                     <th>학번</th>
@@ -64,16 +103,18 @@
 
                     <td class="tab-midterm d-none">
                         <input type="number"
-                               name="midtermScore_${s.studentId}"
-                               value="${s.midtermScore}"
-                               class="form-control form-control-sm midterm-input">
+						   name="midtermScore_${s.studentId}"
+						   value="${s.midtermScore}"
+						   class="form-control form-control-sm midterm-input"
+						   <c:if test="${!midtermOpen}">disabled</c:if>>
                     </td>
 
                     <td class="tab-final d-none">
                         <input type="number"
-                               name="finalScore_${s.studentId}"
-                               value="${s.finalScore}"
-                               class="form-control form-control-sm final-input">
+						   name="finalScore_${s.studentId}"
+						   value="${s.finalScore}"
+						   class="form-control form-control-sm final-input"
+						   <c:if test="${!finalOpen}">disabled</c:if>>
                     </td>
 
                     <td>${s.totalScore != null ? s.totalScore : '-'}</td>
@@ -87,15 +128,20 @@
         </table>
 
         <div class="text-end mt-3">
-            <button type="submit" class="btn btn-primary" onclick="setAction('save')">
-                💾 저장
-            </button>
             <button type="submit"
-                    formaction="${ctx}/score/grades/calculate"
-                    class="btn btn-success"
-                    onclick="setAction('calculate')">
-                📊 학점 계산
-            </button>
+			    class="btn btn-primary"
+			    onclick="setAction('save')">
+			    💾 저장
+			</button>
+            <button type="submit"
+			        formaction="${ctx}/score/grades/calculate"
+			        class="btn btn-success"
+			        onclick="setAction('calculate')"
+			        <c:if test="${!gradeCalcOpen}">
+			            disabled
+			        </c:if>>
+			    📊 학점 계산
+			</button>
         </div>
     </form>
 </c:if>
@@ -128,3 +174,30 @@
 </c:if>
 
 <script src="${ctx}/resources/js/grades.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("studentSearch");
+    const table = document.getElementById("scoreTable");
+
+    if (!searchInput || !table) return;
+
+    searchInput.addEventListener("keyup", function () {
+        const keyword = searchInput.value.toLowerCase();
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            const nameCell = row.children[1]; // 두 번째 컬럼 = 이름
+            if (!nameCell) return;
+
+            const name = nameCell.textContent.toLowerCase();
+
+            if (name.includes(keyword)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+});
+</script>
