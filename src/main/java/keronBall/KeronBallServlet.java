@@ -11,6 +11,8 @@ import utils.AppTime;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+import automation.AppScheduleListener;
+
 @WebServlet("/keronBall/*")
 public class KeronBallServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -127,13 +129,28 @@ public class KeronBallServlet extends HttpServlet {
 			
 		}
 		
-		case "restoreTime":{
+		case "/restoreTime":{
 			AppTime.setReal();
 			
 			getServletContext().setAttribute("isKeronTime", Boolean.FALSE);
 
 			response.sendRedirect(contextPath + "/keronBall/time");
 			break;
+		}
+		
+		
+		case "/forceTick": {
+			AppScheduleListener listner = AppScheduleListener.getInstance();
+			
+			if(listner == null) {
+				System.out.println("Scheduler not initialized");
+				return;
+			}
+			
+			
+			listner.forceTick();
+			response.sendRedirect(contextPath + "/keronBall/time");
+			return;
 		}
 		
 		
