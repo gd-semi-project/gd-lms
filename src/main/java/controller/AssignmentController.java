@@ -198,19 +198,21 @@ public class AssignmentController extends HttpServlet {
             return;
 
         } catch (AccessDeniedException e) {
-            request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/403.jsp").forward(request, response);
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=403");
             return;
+            
+            
 
         } catch (ResourceNotFoundException e) {
-            request.setAttribute("errorMessage", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error/404.jsp").forward(request, response);
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=404");
             return;
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", "과제 처리 중 서버 오류가 발생했습니다.");
-            request.getRequestDispatcher("/WEB-INF/views/error/500.jsp").forward(request, response);
+            session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(ctx + "/error?errorCode=500");
             return;
         }
     }
@@ -331,16 +333,19 @@ public class AssignmentController extends HttpServlet {
             return;
 
         } catch (AccessDeniedException e) {
-            response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=accessDenied");
+        	session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/error?errorCode=403");
             return;
 
         } catch (ResourceNotFoundException e) {
-            response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=notFound");
+          	session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/error?errorCode=404");
             return;
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(ctx + "/lecture/assignments?lectureId=" + lectureId + "&error=serverError");
+          	session.setAttribute("errorMessage", e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/error?errorCode=500");
             return;
         }
     }
