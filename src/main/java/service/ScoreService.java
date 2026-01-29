@@ -62,55 +62,57 @@ public class ScoreService {
 
 	// 성적 저장
 	public void saveScores(Long lectureId, List<ScoreDTO> scores) {
-		try (Connection conn = DBConnection.getConnection()) {
-			conn.setAutoCommit(false);
+	    try (Connection conn = DBConnection.getConnection()) {
+	        conn.setAutoCommit(false);
 
-			boolean hasAnyAssignment = false;
-			boolean hasAnyMidterm = false;
-			boolean hasAnyFinal = false;
+	        boolean midtermOpen = isMidtermInputOpen();
+	        boolean finalOpen = isFinalInputOpen();
 
-			boolean hasEmptyAssignment = false;
-			boolean hasEmptyMidterm = false;
-			boolean hasEmptyFinal = false;
+	        boolean hasAnyMidterm = false;
+	        boolean hasAnyFinal = false;
+	        boolean hasEmptyMidterm = false;
+	        boolean hasEmptyFinal = false;
 
-			for (ScoreDTO dto : scores) {
+	        for (ScoreDTO dto : scores) {
 
-				if (dto.getAssignmentScore() != null)
-					hasAnyAssignment = true;
-				else
-					hasEmptyAssignment = true;
+	            if (dto.getMidtermScore() != null) hasAnyMidterm = true;
+	            else hasEmptyMidterm = true;
 
-				if (dto.getMidtermScore() != null)
-					hasAnyMidterm = true;
-				else
-					hasEmptyMidterm = true;
+	            if (dto.getFinalScore() != null) hasAnyFinal = true;
+	            else hasEmptyFinal = true;
+	        }
 
-				if (dto.getFinalScore() != null)
-					hasAnyFinal = true;
-				else
-					hasEmptyFinal = true;
-			}
+	        if (hasAnyMidterm && hasEmptyMidterm) {
+	            throw new BadRequestException("중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
+	        }
 
-            if (hasAnyMidterm && hasEmptyMidterm) {
-                throw new BadRequestException("중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-            }
+	        if (hasAnyFinal && hasEmptyFinal) {
+	            throw new BadRequestException("기말고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
+	        }
 
-            if (hasAnyFinal && hasEmptyFinal) {
-                throw new BadRequestException("기말고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-            }
+	        for (ScoreDTO dto : scores) {
 
+	            ScoreDTO origin =
+	                scoreDAO.selectScoreByLectureAndStudent(conn, lectureId, dto.getStudentId());
 
-			for (ScoreDTO dto : scores) {
-				scoreDAO.updateScore(conn, dto);
-			}
+	            if (!midtermOpen) {
+	                dto.setMidtermScore(origin.getMidtermScore());
+	            }
 
-			conn.commit();
+	            if (!finalOpen) {
+	                dto.setFinalScore(origin.getFinalScore());
+	            }
 
-		} catch (BadRequestException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InternalServerException("성적 저장 실패", e);
-        }
+	            scoreDAO.updateScore(conn, dto);
+	        }
+
+	        conn.commit();
+
+	    } catch (BadRequestException e) {
+	        throw e;
+	    } catch (Exception e) {
+	        throw new InternalServerException("성적 저장 실패", e);
+	    }
 	}
 
 	// 학점 계산
@@ -258,7 +260,7 @@ public class ScoreService {
 
 	        return schoolScheduleDAO.isWithinPeriod(
 	            conn,
-	            ScheduleCode.FINAL_GRADE_APPEAL,
+	            ScheduleCode.GRADE_INPUT_INSTRUCTOR,
 	            today
 	        );
 
@@ -299,11 +301,11 @@ public class ScoreService {
 	// 기말고사 기간 DTO
 	public SchoolScheduleDTO getFinalPeriod() {
 	    try (Connection conn = DBConnection.getConnection()) {
-	        return schoolScheduleDAO.findNearestSchedule(
-	            conn,
-	            ScheduleCode.FINAL_GRADE_APPEAL,
-	            AppDateTime.today()
-	        );
+	    	return schoolScheduleDAO.findNearestSchedule(
+	                conn,
+	                ScheduleCode.GRADE_INPUT_INSTRUCTOR,
+	                AppDateTime.today()
+	            );
 	    } catch (Exception e) {
 	        throw new InternalServerException("기말고사 기간 조회 실패", e);
 	    }
