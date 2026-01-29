@@ -162,9 +162,15 @@
         </select>
         <button class="btn btn-primary ms-2">조회</button>
     </form>
+    
+     <div class="mb-3">
+	    <input type="text" id="studentSearch"
+	           class="form-control w-25"
+	           placeholder="학생 이름으로 검색">
+	</div>
 
     <c:if test="${not empty selectedSessionId}">
-        <table class="table table-bordered text-center align-middle">
+        <table id="attendanceTable" class="table table-bordered text-center align-middle">
             <thead class="table-light">
                 <tr>
                     <th>학번</th>
@@ -212,3 +218,30 @@
     </c:if>
 
 </c:if>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("studentSearch");
+    const table = document.getElementById("attendanceTable");
+
+    if (!searchInput || !table) return;
+
+    searchInput.addEventListener("keyup", function () {
+        const keyword = searchInput.value.toLowerCase();
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            const nameCell = row.children[1]; // 이름 컬럼 (두 번째 td)
+            if (!nameCell) return;
+
+            const name = nameCell.textContent.toLowerCase();
+
+            if (name.includes(keyword)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+});
+</script>

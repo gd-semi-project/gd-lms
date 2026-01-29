@@ -1,6 +1,7 @@
 package service;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 
 import database.DBConnection;
@@ -8,11 +9,16 @@ import exception.BadRequestException;
 import exception.InternalServerException;
 import exception.ResourceNotFoundException;
 import model.dao.AttendanceDAO;
+import model.dao.SchoolScheduleDAO;
 import model.dao.ScoreDAO;
 import model.dao.ScorePolicyDAO;
 import model.dto.AttendanceSummaryDTO;
+import model.dto.SchoolScheduleDTO;
 import model.dto.ScoreDTO;
 import model.dto.ScorePolicyDTO;
+import model.enumtype.ScheduleCode;
+import utils.AppDateTime;
+import utils.AppTime;
 
 public class ScoreService {
 
@@ -21,6 +27,7 @@ public class ScoreService {
 	private final ScoreDAO scoreDAO = ScoreDAO.getInstance();
 	private final AttendanceDAO attendanceDAO = AttendanceDAO.getInstance();
 	private final ScorePolicyDAO scorePolicyDAO = ScorePolicyDAO.getInstance();
+	private final SchoolScheduleDAO schoolScheduleDAO = SchoolScheduleDAO.getInstance();
 
 	private ScoreService() {
 	}
@@ -83,10 +90,6 @@ public class ScoreService {
 				else
 					hasEmptyFinal = true;
 			}
-
-			if (hasAnyAssignment && hasEmptyAssignment) {
-                throw new BadRequestException("과제 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
-            }
 
             if (hasAnyMidterm && hasEmptyMidterm) {
                 throw new BadRequestException("중간고사 점수는 모든 학생에게 입력해야 저장할 수 있습니다.");
@@ -230,6 +233,93 @@ public class ScoreService {
 			throw new RuntimeException("학생 전체 성적 조회 실패", e);
 		}
 
+	}
+
+	// 중간고사 입력 가능 여부
+	public boolean isMidtermInputOpen() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        LocalDate today = AppDateTime.today();
+
+	        return schoolScheduleDAO.isWithinPeriod(
+	            conn,
+	            ScheduleCode.MIDTERM_GRADE_APPEAL,
+	            today
+	        );
+
+	    } catch (Exception e) {
+	        throw new InternalServerException("중간고사 입력 기간 확인 실패", e);
+	    }
+	}
+
+	// 기말고사 입력 가능 여부
+	public boolean isFinalInputOpen() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        LocalDate today = AppDateTime.today();
+
+	        return schoolScheduleDAO.isWithinPeriod(
+	            conn,
+	            ScheduleCode.FINAL_GRADE_APPEAL,
+	            today
+	        );
+
+	    } catch (Exception e) {
+	        throw new InternalServerException("기말고사 입력 기간 확인 실패", e);
+	    }
+	}
+
+	// 학점 계산 가능 여부
+	public boolean isGradeCalcOpen() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        LocalDate today = AppDateTime.today();
+
+	        return schoolScheduleDAO.isWithinPeriod(
+	            conn,
+	            ScheduleCode.GRADE_INPUT_INSTRUCTOR,
+	            today
+	        );
+
+	    } catch (Exception e) {
+	        throw new InternalServerException("학점 계산 기간 확인 실패", e);
+	    }
+	}
+
+	// 중간고사 기간 DTO
+	public SchoolScheduleDTO getMidtermPeriod() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        return schoolScheduleDAO.findNearestSchedule(
+	            conn,
+	            ScheduleCode.MIDTERM_GRADE_APPEAL,
+	            AppDateTime.today()
+	        );
+	    } catch (Exception e) {
+	        throw new InternalServerException("중간고사 기간 조회 실패", e);
+	    }
+	}
+
+	// 기말고사 기간 DTO
+	public SchoolScheduleDTO getFinalPeriod() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        return schoolScheduleDAO.findNearestSchedule(
+	            conn,
+	            ScheduleCode.FINAL_GRADE_APPEAL,
+	            AppDateTime.today()
+	        );
+	    } catch (Exception e) {
+	        throw new InternalServerException("기말고사 기간 조회 실패", e);
+	    }
+	}
+
+	// 학점 계산 기간 DTO
+	public SchoolScheduleDTO getGradeCalcPeriod() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        return schoolScheduleDAO.findNearestSchedule(
+	            conn,
+	            ScheduleCode.GRADE_INPUT_INSTRUCTOR,
+	            AppDateTime.today()
+	        );
+	    } catch (Exception e) {
+	        throw new InternalServerException("학점 계산 기간 조회 실패", e);
+	    }
 	}
 
 }

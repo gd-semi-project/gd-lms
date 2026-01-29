@@ -296,7 +296,13 @@ public class InstructorController extends HttpServlet {
         	}
 
         	if (uri.endsWith("/lecture/request")) {
-
+        		
+        		String[] weekDays = request.getParameterValues("weekDay");
+        	    if (weekDays == null || weekDays.length == 0) {
+        	        throw new BadRequestException("요일을 최소 1개 이상 선택해야 합니다.");
+        	    }
+        		
+        		validateScoreWeight(request);
         	    lectureRequestService.createLectureRequest(instructorId, request);
 
         	    request.getSession().setAttribute("flashMessage", "created");
@@ -311,6 +317,8 @@ public class InstructorController extends HttpServlet {
         	    lectureAccessService.assertCanAccessLecture(
         	            instructorId, lectureId, Role.INSTRUCTOR
         	    );
+        	    
+        	    validateScoreWeight(request);
 
         	    try {
         	        lectureRequestService.updateLectureRequest(lectureId, request);
@@ -372,6 +380,21 @@ public class InstructorController extends HttpServlet {
 
         } catch (InternalServerException e) {
             throw e;
+        }
+    }
+    
+    
+    private void validateScoreWeight(HttpServletRequest request) {
+
+        int attendance = Integer.parseInt(request.getParameter("attendanceWeight"));
+        int assignment = Integer.parseInt(request.getParameter("assignmentWeight"));
+        int midterm = Integer.parseInt(request.getParameter("midtermWeight"));
+        int fin = Integer.parseInt(request.getParameter("finalWeight"));
+
+        int total = attendance + assignment + midterm + fin;
+
+        if (total != 100) {
+            throw new BadRequestException("성적 배점의 합은 반드시 100%여야 합니다. (현재: " + total + "%)");
         }
     }
 }
