@@ -3,14 +3,12 @@ package controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import model.dao.FileDAO;
 import model.dto.AccessDTO;
 import model.dto.AssignmentDTO;
 import model.dto.AssignmentSubmissionDTO;
@@ -31,6 +29,7 @@ import exception.ResourceNotFoundException;
 	    maxRequestSize = 1024 * 1024 * 100 // 요청 전체 크기 (100MB)
 	)
 public class AssignmentController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
     private final AssignmentService assignmentService = AssignmentService.getInstance();
     private final LectureService lectureService = LectureService.getInstance();

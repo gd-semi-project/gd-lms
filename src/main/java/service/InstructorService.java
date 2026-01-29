@@ -7,9 +7,7 @@ import java.util.Map;
 import database.DBConnection;
 import exception.InternalServerException;
 import exception.ResourceNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import model.dao.InstructorDAO;
-import model.dao.LectureDAO;
 import model.dao.UserDAO;
 import model.dto.InstructorDTO;
 import model.dto.UserDTO;
@@ -25,7 +23,6 @@ public class InstructorService {
     }
 
     private final InstructorDAO instructorDAO = InstructorDAO.getInstance();
-    private final LectureDAO lectureDAO = LectureDAO.getInstance();
     private final UserDAO userDAO = UserDAO.getInstance();
 
     public Map<String, Object> getInstructorProfile(long userId) {

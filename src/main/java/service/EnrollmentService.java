@@ -5,15 +5,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 import database.DBConnection;
-import model.dao.DepartmentDAO;
 import model.dao.EnrollmentDAO;
 import model.dao.LectureDAO;
 import model.dao.SchoolScheduleDAO;
-import model.dto.DepartmentDTO;
 import model.dto.EnrollmentDTO;
 import model.dto.LectureForEnrollDTO;
-import model.dto.SchoolScheduleDTO;
-import model.enumtype.ScheduleCode;
 import utils.AppTime;
 
 public class EnrollmentService {

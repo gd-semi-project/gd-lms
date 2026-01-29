@@ -4,9 +4,7 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import model.enumtype.QnaStatus;
 import model.enumtype.IsDeleted;
-import model.enumtype.IsPrivate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

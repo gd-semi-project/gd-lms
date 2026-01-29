@@ -1,13 +1,8 @@
 package model.dto;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import model.enumtype.LectureStatus;
-import model.enumtype.LectureValidation;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

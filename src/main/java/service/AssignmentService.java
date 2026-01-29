@@ -17,7 +17,6 @@ import java.util.List;
 
 import exception.AccessDeniedException;
 import exception.ResourceNotFoundException;
-import exception.UnauthorizedException;
 
 public class AssignmentService {
     private static final AssignmentService instance = new AssignmentService();

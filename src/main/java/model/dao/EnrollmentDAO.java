@@ -6,11 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import database.DBConnection;
 import model.dto.EnrollmentDTO;
 import model.dto.LectureRequestDTO;
-import model.dto.LectureStudentDTO;
 import model.enumtype.EnrollmentStatus;
 import model.enumtype.LectureValidation;
 

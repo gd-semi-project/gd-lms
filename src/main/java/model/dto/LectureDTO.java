@@ -9,8 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
-import utils.AppDate;
-import utils.AppTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

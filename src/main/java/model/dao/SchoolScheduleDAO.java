@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.time.LocalDate;
 
 import database.DBConnection;
-import jakarta.servlet.http.HttpSession;
 import model.dto.SchoolScheduleDTO;
 import model.enumtype.ScheduleCode;
 

@@ -23,6 +23,7 @@ import utils.AppTime;
 
 @WebServlet("/attendance/*")
 public class AttendanceController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
 	private final AttendanceService attendanceService = AttendanceService.getInstance();
 	private final LectureService lectureService = LectureService.getInstance();
@@ -124,7 +125,6 @@ public class AttendanceController extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String ctx = request.getContextPath();
 		HttpSession session = request.getSession(false);
 		AccessDTO access = (AccessDTO) session.getAttribute("AccessInfo");
 

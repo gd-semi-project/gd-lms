@@ -25,6 +25,7 @@ import service.ScoreService;
 
 @WebServlet("/score/*")
 public class ScoreController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
 	private final ScoreService scoreService = ScoreService.getInstance();
 	private final LectureService lectureService = LectureService.getInstance();

@@ -1,18 +1,12 @@
 package service;
 
 import java.sql.Connection;
-import java.time.LocalDate;
-
 import database.DBConnection;
 import model.dao.LectureAccessDAO;
-import model.dao.SchoolScheduleDAO;
 import model.dto.LectureDTO;
-import model.dto.SchoolScheduleDTO;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;
 import model.enumtype.Role;
-import model.enumtype.ScheduleCode;
-import utils.AppTime;
 import exception.AccessDeniedException;
 
 public class LectureAccessService {

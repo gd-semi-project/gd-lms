@@ -1,9 +1,6 @@
 package service;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-
-import database.DBConnection;
 import exception.InternalServerException;
 import lombok.NoArgsConstructor;
 import model.dao.TokenDAO;
