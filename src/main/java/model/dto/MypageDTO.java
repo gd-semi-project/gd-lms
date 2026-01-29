@@ -1,11 +1,7 @@
 package model.dto;
 
-import java.time.LocalDateTime;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import model.enumtype.StudentStatus;
-import model.enumtype.StudentType;
 
 @Data
 @NoArgsConstructor

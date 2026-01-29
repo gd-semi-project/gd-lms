@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import service.FileUploadService;
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Collection;
@@ -40,7 +39,7 @@ public class FileUploadController extends HttpServlet {
 				// 서비스 호출해서 UUID로 파일 다운로드 시도
 				System.out.println("파일다운로드를 시도합니다.");
 				
-				String uuid = request.getParameter("filename");
+				// String uuid = request.getParameter("filename");
 			    String originalFileName = fus.getFileOriginalName(UUID.fromString(fileUUID));
 			    
 			    String downloadDir = "D:/upload";
@@ -69,7 +68,6 @@ public class FileUploadController extends HttpServlet {
 					response.sendError(HttpServletResponse.SC_NOT_FOUND, "파일을 찾을 수 없습니다.");
 			        return;
 				}
-				
 			} else {
 				// 잘못된 경로 요청 예외페이지?
 				System.out.println("잘못된 경로값입니다.");
@@ -94,8 +92,6 @@ public class FileUploadController extends HttpServlet {
 			
 			fus.fileUpload(boardType, refId, partList);
 		}
-		
-		
 		
 	}
 

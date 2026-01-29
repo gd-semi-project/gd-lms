@@ -24,6 +24,7 @@ import service.LectureService;
 
 @WebServlet("/instructor/*")
 public class InstructorController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
     private final InstructorService instructorService = InstructorService.getInstance();
     private final LectureService lectureService = LectureService.getInstance();

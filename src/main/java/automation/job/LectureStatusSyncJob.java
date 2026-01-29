@@ -5,9 +5,7 @@ import java.time.LocalDateTime;
 
 import automation.AutomationJob;
 import automation.log.AutomationLogDAO;
-import model.enumtype.ScheduleCode;
 import service.LectureService;
-import service.SchedulePolicyService;
 import utils.AppTime;
 
 public class LectureStatusSyncJob implements AutomationJob{

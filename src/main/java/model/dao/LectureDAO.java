@@ -19,7 +19,6 @@ import model.dto.LectureForEnrollDTO;
 import model.dto.LectureStudentDTO;
 import model.dto.MyLectureDTO;
 import model.dto.MyscheduleDTO;
-import model.dto.UserDTO;
 import model.enumtype.EnrollmentStatus;
 import model.enumtype.LectureStatus;
 import model.enumtype.LectureValidation;

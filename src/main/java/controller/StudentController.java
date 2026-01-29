@@ -30,6 +30,7 @@ import service.MyPageService;
         maxRequestSize = 50 * 1024 * 1024      // 50MB total
 		)
 public class StudentController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
     private final LectureService lectureService =
         LectureService.getInstance();

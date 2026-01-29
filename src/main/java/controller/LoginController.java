@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import model.dao.UserDAO;
 import model.dto.AccessDTO;
 import model.dto.LoginResultDTO;
 import model.enumtype.LoginStatus;

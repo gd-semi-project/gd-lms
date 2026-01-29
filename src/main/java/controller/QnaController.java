@@ -2,7 +2,6 @@ package controller;
 
 import java.io.IOException;
 import java.util.List;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -10,7 +9,6 @@ import model.dto.AccessDTO;
 import model.dto.LectureDTO;
 import model.dto.QnaAnswerDTO;
 import model.dto.QnaPostDTO;
-import model.dto.UserDTO;
 import model.enumtype.Role;
 import service.LectureService;
 import service.QnaService;
@@ -20,6 +18,7 @@ import exception.ResourceNotFoundException;
 
 @WebServlet("/lecture/qna")
 public class QnaController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
     private final QnaService qnaService = new QnaService();
     private final LectureService lectureService = LectureService.getInstance();

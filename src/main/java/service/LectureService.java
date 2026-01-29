@@ -1,7 +1,6 @@
 package service;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,9 +20,7 @@ import model.dto.LectureDTO;
 import model.dto.LectureScheduleDTO;
 import model.dto.LectureStudentDTO;
 import model.dto.MyLectureDTO;
-import model.enumtype.LectureStatus;
 import model.enumtype.Role;
-import utils.AppTime;
 
 public class LectureService {	// 이미 개설된 강의에 기준
 

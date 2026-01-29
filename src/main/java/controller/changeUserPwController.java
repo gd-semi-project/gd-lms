@@ -8,14 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.dto.AccessDTO;
 import model.dto.MypageDTO;
-import model.dto.StudentDTO;
-import model.dto.UserDTO;
-import model.enumtype.Role;
 import service.MyPageService;
 import utils.HashUtil;
-
 import java.io.IOException;
-import java.time.LocalDate;
 
 @WebServlet("/changeUserPw/*")
 public class changeUserPwController extends HttpServlet {

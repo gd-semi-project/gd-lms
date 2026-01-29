@@ -1,6 +1,5 @@
 package utils;
 
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import exception.InternalServerException;

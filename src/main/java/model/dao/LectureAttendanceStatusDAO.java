@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import model.dto.LectureAttendanceStatusDTO;
-
 public class LectureAttendanceStatusDAO { // 출석 가능 여부 판단
 
 	private static final LectureAttendanceStatusDAO instance = new LectureAttendanceStatusDAO();

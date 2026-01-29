@@ -24,6 +24,7 @@ import exception.ResourceNotFoundException;
 
 @WebServlet("/notice/*")
 public class NoticeController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 
     private final NoticeService noticeService = new NoticeService();
 
@@ -38,7 +39,6 @@ public class NoticeController extends HttpServlet {
     // SC_NOT_FOUND = 404
     // SC_BAD_REQUEST =400
     // 에러페이지 경로 상수
-    private static final String ERROR_403   = "/WEB-INF/views/error/403.jsp";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

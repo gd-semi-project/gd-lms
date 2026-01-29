@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,10 +26,7 @@ import model.dto.DepartmentDTO;
 import model.dto.FileDTO;
 import model.dto.InstructorDTO;
 import model.dto.LectureCountByValidationDTO;
-import model.dto.LectureDTO;
 import model.dto.LectureRequestDTO;
-import model.dto.LectureScheduleDTO;
-import model.dto.MypageDTO;
 import model.dto.StudentDTO;
 import model.dto.StudentInfoUpdateRequestDTO;
 import model.dto.UserDTO;
@@ -43,8 +39,6 @@ public class AdminService {
 	private LectureRequestDAO lectureRequestDAO = LectureRequestDAO.getInstance();
 	private EnrollmentDAO enrollmentDAO = EnrollmentDAO.getInstance();
 	private DepartmentDAO departmentDAO = DepartmentDAO.getInstance();
-	private InstructorDAO instructorDAO = InstructorDAO.getInstance();
-	private FileDAO fileDAO = FileDAO.getInstance();
 	private static final String UPLOAD_DIR = "D:/upload";
 	private static final AdminService instance = new AdminService();
 	private AdminService() {}
