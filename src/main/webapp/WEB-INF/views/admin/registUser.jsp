@@ -6,14 +6,14 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="h3 mb-1">회원 등록</h1>
-    <div class="text-muted small">새로운 회원 정보를 입력하고 등록합니다.</div>
+    <h1 class="h3 mb-1">사용자 등록</h1>
+    <div class="text-muted small">새로운 사용자 정보를 입력하고 등록합니다.</div>
   </div>
 </div>
 
 <div class="card shadow-lg border-0">
   <div class="card-header bg-primary text-white fw-bold">
-    회원 정보 입력
+    사용자 정보 입력
   </div>
 
   <div class="card-body">
@@ -61,14 +61,14 @@
 
       <!-- 역할 선택 -->
       <div class="mb-3">
-        <label for="role" class="form-label">회원 역할</label>
+        <label for="role" class="form-label">사용자 역할</label>
         <select class="form-select" id="role" name="role" required>
           <option value="">선택하세요</option>
           <option value="학생">학생</option>
           <option value="교수">교수</option>
           <option value="관리자">관리자</option>
         </select>
-        <div class="invalid-feedback">회원 역할을 선택하세요.</div>
+        <div class="invalid-feedback">사용자 역할을 선택하세요.</div>
       </div>
 
       <!-- 버튼 -->
@@ -86,7 +86,7 @@
 
 <!-- 안내 -->
 <div class="mt-3 text-muted small">
-  * 등록된 회원은 시스템 로그인 및 권한 관리에 사용됩니다.
+  * 등록된 사용자는 시스템 로그인 및 권한 관리에 사용됩니다.
 </div>
 
 <script>
