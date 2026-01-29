@@ -265,5 +265,40 @@ public class SchoolScheduleDAO {
 
 	    return null;
 	}
+	
+	public SchoolScheduleDTO findLatestSchedule(Connection conn, ScheduleCode code) {
+
+	    String sql = """
+	        SELECT id, schedule_code, title, start_date, end_date
+	        FROM schoolSchedule
+	        WHERE schedule_code = ?
+	        ORDER BY start_date DESC
+	        LIMIT 1
+	    """;
+
+	    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+	        pstmt.setString(1, code.name());
+
+	        try (ResultSet rs = pstmt.executeQuery()) {
+
+	            if (rs.next()) {
+	                SchoolScheduleDTO dto = new SchoolScheduleDTO();
+	                dto.setId(rs.getLong("id"));
+	                dto.setScheduleCode(code);
+	                dto.setTitle(rs.getString("title"));
+	                dto.setStartDate(rs.getDate("start_date").toLocalDate());
+	                dto.setEndDate(rs.getDate("end_date").toLocalDate());
+	                return dto;
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        throw new RuntimeException("최근 학사 일정 조회 실패: " + code, e);
+	    }
+
+	    return null;
+	}
+	
 
 }
