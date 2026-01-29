@@ -3,7 +3,7 @@
 <footer class="border-top bg-white py-3">
   <div class="container-fluid d-flex justify-content-between align-items-center">
     <div class="text-muted small">
-      © 2026 테스트. All rights reserved.
+      © 2026 Gasangoodee University. All rights reserved.
     </div>
 
     <!-- 이미지 클릭 트리거 -->

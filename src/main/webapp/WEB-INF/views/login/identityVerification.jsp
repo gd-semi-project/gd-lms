@@ -21,12 +21,14 @@
 
         <form id="passwdResetForm">
             <!-- 이메일 -->
+            <div class="mb-1">이메일을 입력해주세요.</div>
             <div class="mb-3 input-group">
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" class="form-control" id="email" name="email" placeholder="example@domain.com" required>
             </div>
 
             <!-- 생년월일 -->
+            <div class="mb-1">생년월일을 입력해주세요.</div>
             <div class="mb-3 input-group">
                 <span class="input-group-text"><i class="bi bi-calendar"></i></span>
                 <input type="date" class="form-control" id="birthDate" name="birthDate" required
