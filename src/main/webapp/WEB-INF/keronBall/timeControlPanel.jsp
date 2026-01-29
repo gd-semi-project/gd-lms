@@ -85,5 +85,8 @@
 	<form method="post" action="${pageContext.request.contextPath}/keronBall/restoreTime">
      	<button type="submit" class="btn btn-outline-secondary">복원</button>
 	 </form>
+	<form method="post" action="${pageContext.request.contextPath}/keronBall/forceTick">
+     	<button type="submit" class="btn btn-outline-danger">forceTick</button>
+	 </form>
 </div>
 

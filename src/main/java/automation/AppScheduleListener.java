@@ -23,10 +23,14 @@ import utils.AppTime;
 @WebListener
 public class AppScheduleListener implements ServletContextListener{
 	private ScheduledExecutorService scheduler;
+	private static AppScheduleListener INSTANCE;
+	private AutomationService automationService;
+	public static AppScheduleListener getInstance() {return INSTANCE;}
 	
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
 		System.out.println("AppScheduleListener 가동");
+		INSTANCE = this;
 		AutomationLogDAO logDAO = new AutomationLogDAOImpl();
 		LectureService lectureService = LectureService.getInstance();
 		
@@ -35,7 +39,7 @@ public class AppScheduleListener implements ServletContextListener{
 		
 		
 		
-		AutomationService automationService = new AutomationService(
+		this.automationService = new AutomationService(
 				List.of( 
 						// jobLists
 						
@@ -47,12 +51,23 @@ public class AppScheduleListener implements ServletContextListener{
 				);
 		
 		scheduler = Executors.newSingleThreadScheduledExecutor();
-		scheduler.scheduleAtFixedRate(() -> {
-			LocalDateTime now = AppTime.now();
-			System.out.println("[AppScheduleListener] tick: "+AppTime.now());
-			automationService.runDueJobs(now);
-		}, 0, 1, TimeUnit.MINUTES);
+		scheduler.scheduleAtFixedRate(this::tick, 0, 1, TimeUnit.MINUTES);
 	}
+	
+	public void tick() {
+		LocalDateTime now = AppTime.now();
+		System.out.println("[AppScheduleListener] tick: "+AppTime.now());
+		automationService.runDueJobs(now);
+	}
+	
+	public void forceTick() {
+		System.out.println("[AppScheduleListener] forceTick: "+ AppTime.now());
+		tick();
+	}
+	
+	
+	
+	
 	
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
