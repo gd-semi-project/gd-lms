@@ -8032,4 +8032,3 @@ SET FOREIGN_KEY_CHECKS = 1;
 SELECT '데이터 초기화 및 새 더미 데이터 입력 완료!' AS message;
 
 
-

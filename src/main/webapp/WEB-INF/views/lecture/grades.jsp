@@ -19,6 +19,10 @@
             <span class="badge bg-success">진행중</span>
         </c:if>
     </c:if><br/>
+    
+    <c:if test="${empty midtermPeriod}">
+	    중간고사 입력 기간이 종료되었습니다.
+	</c:if>
 
     <c:if test="${not empty finalPeriod}">
         기말고사 입력 기간 :
