@@ -3,7 +3,7 @@ package model.enumtype;
 public enum Role {
 	STUDENT("학생"),
     ADMIN("관리자"),
-    INSTRUCTOR("강사");
+    INSTRUCTOR("교수");
 
     private final String label;
     Role(String label) { this.label = label; }
