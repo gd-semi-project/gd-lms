@@ -41,19 +41,11 @@ public class FileUploadController extends HttpServlet {
 				
 				// String uuid = request.getParameter("filename");
 			    String originalFileName = fus.getFileOriginalName(UUID.fromString(fileUUID));
-			    
-			    String downloadDir = "D:/upload";
-			    String storedName = fileUUID;
+	
 			    
 				if (originalFileName != null) {
 					
-					String boardType = request.getParameter("boardType"); // 백시현 추가
-					if (boardType != null && !boardType.equals("ASSIGNMENT")) { // 백시현 추가
-						downloadDir = downloadDir + "/" + boardType;
-						storedName = fileUUID + "_" + originalFileName;
-					}
-					
-					byte[] fileData = fus.fileDownload(downloadDir, storedName);
+					byte[] fileData = fus.fileDownload(fileUUID);
 					
 					response.setContentType("application/octet-stream"); // 다운로드용 MIME
 				    response.setContentLength(fileData.length);
