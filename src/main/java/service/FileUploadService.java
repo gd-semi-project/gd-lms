@@ -54,14 +54,14 @@ public class FileUploadService {
 	    for (Part part : partList) {
 	        // 1. 파일 메타데이터 생성
 	        UUID uuid = UUID.randomUUID();
-	        String originalFilename = part.getSubmittedFileName();
-	        int lastOfIndexDot = originalFilename.lastIndexOf(".");
-	        String extender = originalFilename.substring(lastOfIndexDot);
-	        String extLower = extender.toLowerCase();
 	    	try {
 		    	if (part.getSize() == 0 || part.getSubmittedFileName() == null) {
 		            continue;
 		        }
+		        String originalFilename = part.getSubmittedFileName();
+		        int lastOfIndexDot = originalFilename.lastIndexOf(".");
+		        String extender = originalFilename.substring(lastOfIndexDot);
+		        String extLower = extender.toLowerCase();
 		        if (!allowLower.contains(extLower)) {
 		        	if (resultMessage != null) {
 		        		resultMessage += ",";
