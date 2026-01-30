@@ -1,0 +1,55 @@
+
+.login-container {
+  width: 100%;
+  max-width: 500px;
+  padding: 32px 28px;
+  background-color: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* 제목 */
+.login-container h3 {
+  font-weight: bold;
+  color: #333;
+}
+
+/* 입력폼 */
+.login-container .form-control {
+  height: 44px;
+  border-radius: 8px;
+}
+
+/* 버튼 */
+.login-container .btn-primary {
+  height: 44px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* 에러 메시지 */
+.login-container .alert {
+  font-size: 14px;
+}
+
+/* 비밀번호 초기화 링크 */
+#resetLoginPassword {
+  display: block;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+#resetLoginPassword:hover {
+  text-decoration: underline;
+}
+
+/* 모바일 대응 */
+@media (max-width: 576px) {
+  .login-container {
+    margin: 0 16px;
+    padding: 24px 20px;
+  }
+}

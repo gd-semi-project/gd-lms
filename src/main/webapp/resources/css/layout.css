@@ -1,0 +1,51 @@
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+
+
+/* 메인 콘텐츠만 패딩 */
+.main-content {
+  overflow: visible;
+}
+
+.sidebar {
+  position: sticky;
+  top: 56px;              /* navbar 높이 */
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+main.about-page {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ===== 기본: PC ===== */
+.sidebar {
+  display: block;
+}
+
+/* 모바일에서 sidebar 숨김 */
+@media (max-width: 991px) {
+  .sidebar {
+    display: none !important;
+  }
+}
+
+/* PC에서는 햄버거 버튼 숨김 */
+@media (min-width: 992px) {
+  .navbar-toggler {
+    display: none !important;
+  }
+}
+
+/* 모바일에서만 햄버거 메뉴 표시 */
+@media (min-width: 992px) {
+  .mobile-menu {
+    display: none;
+  }
+}

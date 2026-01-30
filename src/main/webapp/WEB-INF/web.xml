@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+          					 https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+	<filter>
+	    <filter-name>AccessFilter</filter-name>
+	    <filter-class>filter.AccessFilter</filter-class>
+	    <init-param>
+	        <param-name>encoding</param-name>
+	        <param-value>UTF-8</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+	    <filter-name>AccessFilter</filter-name>
+	    <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<filter>
+    	<filter-name>InputBlockFilter</filter-name>
+    	<filter-class>filter.InputBlockFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+    	<filter-name>InputBlockFilter</filter-name>
+    	<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<welcome-file-list>
+	    <welcome-file>main</welcome-file>
+	</welcome-file-list>
+	
+	<!--  에러코드 -->
+	<error-page>
+        <error-code>400</error-code>
+        <location>/WEB-INF/views/error/400.jsp</location>
+    </error-page>
+
+    <!-- 401 Unauthorized -->
+    <error-page>
+        <error-code>401</error-code>
+        <location>/WEB-INF/views/error/401.jsp</location>
+    </error-page>
+
+    <!-- 403 Forbidden -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/views/error/403.jsp</location>
+    </error-page>
+
+    <!-- 404 Not Found -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/views/error/404.jsp</location>
+    </error-page>
+
+    <!-- 500 Internal Server Error -->
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/views/error/500.jsp</location>
+    </error-page>
+	
+</web-app>

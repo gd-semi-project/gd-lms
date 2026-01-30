@@ -1,0 +1,206 @@
+package model.dao;
+
+import model.dto.QnaPostDTO;
+import model.enumtype.QnaStatus;
+import model.enumtype.IsDeleted;
+import model.enumtype.IsPrivate;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class QnaPostDAO {
+    private static final QnaPostDAO instance = new QnaPostDAO();
+    private QnaPostDAO() {}
+    public static QnaPostDAO getInstance() { return instance; }
+
+    // 강의별 QnA 목록 조회
+    public List<QnaPostDTO> findByLecture(Connection conn, long lectureId, int limit, int offset) throws SQLException {
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.lecture_id = ? AND p.is_deleted = 'N' " +
+    			  "ORDER BY p.created_at DESC " +
+    			  "LIMIT ? OFFSET ?";
+
+        List<QnaPostDTO> list = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, lectureId);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(map(rs));
+                	
+                
+            }
+        }
+        return list;
+    }
+
+    // STUDENT: 공개글 + 본인 비공개글만
+    public List<QnaPostDTO> findByLectureForStudent(Connection conn, long lectureId, long studentId, int limit, int offset) throws SQLException {
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.lecture_id = ? AND p.is_deleted = 'N' " +
+    			  "  AND (p.is_private = 'N' OR p.author_id = ?) " +
+    			  "ORDER BY p.created_at DESC " +
+    			  "LIMIT ? OFFSET ?";
+
+        List<QnaPostDTO> list = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, lectureId);
+            ps.setLong(2, studentId);
+            ps.setInt(3, limit);
+            ps.setInt(4, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(map(rs));
+            }
+        }
+        return list;
+    }
+
+    // 강의별 Qna 총 개수
+    public int countByLecture(Connection conn, long lectureId) throws SQLException {
+        String sql = "SELECT COUNT(*) cnt FROM qna_posts WHERE lecture_id = ? AND is_deleted = 'N'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, lectureId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("cnt") : 0;
+            }
+        }
+    }
+    
+    // STUDENT: 강의별 QnA 총 개수: 공개글 + 본인 비공개글만(삭제 제외)
+    public int countByLectureForStudent(Connection conn, long lectureId, long studentId) throws SQLException {
+        String sql =
+            "SELECT COUNT(*) cnt " +
+            "FROM qna_posts " +
+            "WHERE lecture_id = ? AND is_deleted = 'N' " +
+            "  AND (is_private = 'N' OR author_id = ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, lectureId);
+            ps.setLong(2, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("cnt") : 0;
+            }
+        }
+    }
+
+    // 단건 조회
+    public QnaPostDTO findById(Connection conn, long qnaId, long lectureId) throws SQLException {
+    	String sql =
+    			  "SELECT p.qna_id, p.lecture_id, p.author_id, u.name AS author_name, " +
+    			  "       p.title, p.content, p.is_private, p.status, p.is_deleted, p.created_at, p.updated_at " +
+    			  "FROM qna_posts p " +
+    			  "JOIN user u ON u.user_id = p.author_id " +
+    			  "WHERE p.qna_id = ? AND p.lecture_id = ? AND p.is_deleted = 'N'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, qnaId);
+            ps.setLong(2, lectureId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
+    // ====== CUD ======
+    
+    // 질문 생성
+    public long insert(Connection conn, QnaPostDTO dto) throws SQLException {
+        String sql =
+            "INSERT INTO qna_posts (lecture_id, author_id, title, content, is_private, status, is_deleted) " +
+            "VALUES (?, ?, ?, ?, ?, 'OPEN', 'N')";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setLong(1, dto.getLectureId());
+            ps.setLong(2, dto.getAuthorId());
+            ps.setString(3, dto.getTitle());
+            ps.setString(4, dto.getContent());
+
+            IsPrivate priv = (dto.getIsPrivate() == null) ? IsPrivate.N : dto.getIsPrivate();
+            ps.setString(5, priv.toDb()); // ★ enum -> DB 문자열
+
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                return keys.next() ? keys.getLong(1) : 0L;
+            }
+        }
+    }
+
+    // 질문 수정
+    public int update(Connection conn, QnaPostDTO dto) throws SQLException {
+        String sql =
+            "UPDATE qna_posts " +
+            "SET title = ?, content = ?, is_private = ?, updated_at = NOW() " +
+            "WHERE qna_id = ? AND is_deleted = 'N'";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dto.getTitle());
+            ps.setString(2, dto.getContent());
+
+            IsPrivate priv = (dto.getIsPrivate() == null) ? IsPrivate.N : dto.getIsPrivate();
+            ps.setString(3, priv.toDb()); // ★
+
+            ps.setLong(4, dto.getQnaId());
+            return ps.executeUpdate();
+        }
+    }
+
+    // 질문 삭제
+    public int softDelete(Connection conn, long qnaId) throws SQLException {
+        String sql = "UPDATE qna_posts SET is_deleted = 'Y', updated_at = NOW() WHERE qna_id = ? AND is_deleted = 'N'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, qnaId);
+            return ps.executeUpdate();
+        }
+    }
+
+    // 질문 상태 변경(OPEN,CLOSED)
+    public int updateStatus(Connection conn, long qnaId, QnaStatus status) throws SQLException {
+        String sql = "UPDATE qna_posts SET status = ?, updated_at = NOW() WHERE qna_id = ? AND is_deleted = 'N'";
+        QnaStatus st = (status == null) ? QnaStatus.OPEN : status;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, st.name());
+            ps.setLong(2, qnaId);
+            return ps.executeUpdate();
+        }
+    }
+
+    // ResultSet,QnaPostDTO 매핑
+    private QnaPostDTO map(ResultSet rs) throws SQLException {
+        QnaPostDTO d = new QnaPostDTO();
+        d.setQnaId(rs.getLong("qna_id"));
+        d.setLectureId(rs.getLong("lecture_id"));
+        d.setAuthorId(rs.getLong("author_id"));
+        d.setTitle(rs.getString("title"));
+        d.setContent(rs.getString("content"));
+        d.setAuthorName(rs.getString("author_name"));
+
+        // ★ String -> enum 변환
+        d.setIsPrivate(IsPrivate.fromDb(rs.getString("is_private")));
+        d.setIsDeleted(IsDeleted.fromDb(rs.getString("is_deleted")));
+
+        String statusDb = rs.getString("status");
+        d.setStatus(statusDb == null ? QnaStatus.OPEN : QnaStatus.valueOf(statusDb.trim().toUpperCase()));
+
+        Timestamp c = rs.getTimestamp("created_at");
+        Timestamp u = rs.getTimestamp("updated_at");
+        d.setCreatedAt(c != null ? c.toLocalDateTime() : null);
+        d.setUpdatedAt(u != null ? u.toLocalDateTime() : null);
+        return d;
+    }
+    
+
+ 
+    
+    
+    
+    
+}

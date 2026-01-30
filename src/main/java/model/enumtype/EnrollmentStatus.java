@@ -2,5 +2,5 @@ package model.enumtype;
 
 public enum EnrollmentStatus {
     ENROLLED,     // 등록
-    DROPPED,      // 실패
+    DROPPED,      // 수강취소
 }
