@@ -91,17 +91,17 @@ public class AssignmentController extends HttpServlet {
                 }
 
                 request.setAttribute("assignment", assignment);
-                
+
                 FileUploadService fus = FileUploadService.getInstance();
+                // 과제 자체 파일 조회
+                List<FileDTO> assignmentFiles = fus.getFileList("ASSIGNMENT", assignmentId);
+                assignment.setFileList(assignmentFiles);
+                
                 String boardType = "ASSIGNMENT_SUBMISSION/" + assignmentId;
                 if (role == Role.INSTRUCTOR || role == Role.ADMIN) {
                     // 교수: 모든 제출물 가져오기
                     List<AssignmentSubmissionDTO> submissions = assignmentService.getSubmissions(assignmentId, lectureId, userId, role);
                     request.setAttribute("submissions", submissions);
-
-                    // 과제 자체 파일 조회
-                    List<FileDTO> assignmentFiles = fus.getFileList("ASSIGNMENT", assignmentId);
-                    assignment.setFileList(assignmentFiles);
 
                     // 제출물별 파일 조회 (교수 채점용)
                     for (AssignmentSubmissionDTO sub : submissions) {
@@ -113,7 +113,7 @@ public class AssignmentController extends HttpServlet {
                     // 학생: 본인 제출물만
                     AssignmentSubmissionDTO mySubmission = assignmentService.getMySubmission(assignmentId, lectureId, userId, role);
                     request.setAttribute("mySubmission", mySubmission);
-
+                    
                     if (mySubmission != null) {
                         List<FileDTO> myFileList = fus.getFileList(boardType, mySubmission.getSubmissionId());
                         mySubmission.setFileList(myFileList);
