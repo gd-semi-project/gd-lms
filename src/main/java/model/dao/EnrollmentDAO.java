@@ -221,18 +221,26 @@ public class EnrollmentDAO {
 	// 시간표 겹침 체크(같은 시간대에 시간표가 겹쳐서는 안됨)
 	public boolean checkSchedule(Connection conn, long studentId, long lectureId) {
 		String sql = """
-				    SELECT 1
-				    FROM enrollment e
-				    JOIN lecture_schedule s1
-				      ON e.lecture_id = s1.lecture_id   -- 이미 신청한 강의의 시간표
-				    JOIN lecture_schedule s2
-				      ON s2.lecture_id = ?              -- 새로 신청하려는 강의의 시간표
-				    WHERE e.user_id = ?                 -- 같은 학생
-				      AND e.status = 'ENROLLED'          -- 현재 수강 중인 강의만
-				      AND s1.week_day = s2.week_day     -- 같은 요일
-				      AND s1.start_time < s2.end_time   -- 시간 겹침 조건 ①
-				      AND s1.end_time   > s2.start_time -- 시간 겹침 조건 ②
-				    LIMIT 1
+				   SELECT 1
+        FROM enrollment e
+        JOIN lecture l1
+          ON e.lecture_id = l1.lecture_id
+        JOIN lecture_schedule s1
+          ON l1.lecture_id = s1.lecture_id
+
+        JOIN lecture l2
+          ON l2.lecture_id = ?
+        JOIN lecture_schedule s2
+          ON l2.lecture_id = s2.lecture_id
+
+        WHERE e.user_id = ?
+          AND e.status = 'ENROLLED'
+          AND l1.status IN ('PLANNED','ONGOING')
+          AND l2.status IN ('PLANNED','ONGOING')
+          AND s1.week_day = s2.week_day
+          AND s1.start_time < s2.end_time
+          AND s1.end_time   > s2.start_time
+        LIMIT 1
 				""";
 
 		try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
