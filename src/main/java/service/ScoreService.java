@@ -288,10 +288,9 @@ public class ScoreService {
 	// 중간고사 기간 DTO
 	public SchoolScheduleDTO getMidtermPeriod() {
 	    try (Connection conn = DBConnection.getConnection()) {
-	        return schoolScheduleDAO.findNearestSchedule(
+	        return schoolScheduleDAO.findLatestSchedule(
 	            conn,
-	            ScheduleCode.MIDTERM_GRADE_APPEAL,
-	            AppDateTime.today()
+	            ScheduleCode.MIDTERM_GRADE_APPEAL
 	        );
 	    } catch (Exception e) {
 	        throw new InternalServerException("중간고사 기간 조회 실패", e);
